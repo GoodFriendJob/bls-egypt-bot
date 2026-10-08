@@ -1,0 +1,139 @@
+BLS appointment bot - run transcript
+started : 2026-10-08T22:54:18
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+22:54:18 | INFO    | __main__ - ==============================================================
+22:54:18 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+22:54:18 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261008_225418.txt
+22:54:18 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+22:54:18 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+22:54:18 | INFO    | __main__ - ==============================================================
+22:54:18 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+22:54:18 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+22:54:18 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+22:54:18 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+22:54:19 | INFO    | modules.notifier - notifier: telegram listener started
+22:54:19 | INFO    | __main__ - single-cycle mode (--once)
+22:54:20 | INFO    | modules.auth - auth: browser launched
+22:54:23 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+22:54:23 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:54:29 | INFO    | modules.utils - find_real_input: real 'text' field is index 0 of 10 (parent div.mb-3 display:block)
+22:54:32 | INFO    | modules.auth - auth: email filled
+22:54:32 | INFO    | modules.auth - auth: email submitted
+22:54:33 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+22:54:34 | INFO    | modules.utils - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+22:54:36 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+22:54:36 | INFO    | modules.auth - auth: password filled
+22:54:36 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh7bnLX5F04795Sjkry0%2B40oDapgNQ917CG4MAbK%2FDB%2FCws8nVna5JITpT5Vudiqf%2FJE9xsfvgR8sx18PSDAFBiLN%2FRDyudYJh9ssuWJJJkZHfCVOvq%2FKgYkHY5fEJZhWo0%3D
+22:54:36 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225436_password-page-filled.png
+22:54:36 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225436_password-page-filled.html
+22:54:36 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+22:54:36 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=26
+22:54:36 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+22:54:36 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+22:54:37 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225436_captcha-before.png
+22:54:37 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225437_captcha-detected.html
+22:54:37 | INFO    | modules.auth - auth: 26 stacked prompt(s); 1 readable (contrast >= 2.0)
+22:54:37 | INFO    | modules.auth - auth: prompt 390 chosen (contrast=15.16, z-index=978, color=rgb(33, 37, 41))
+22:54:37 | INFO    | modules.auth - ------------------------------------------------------------
+22:54:37 | INFO    | modules.auth - CAPTCHA attempt 1 of 3
+22:54:37 | INFO    | modules.auth -   target number   : 390
+22:54:37 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+22:54:37 | INFO    | modules.auth -   visible labels  : 26 (of 26 box-labels in the DOM)
+22:54:37 | INFO    | modules.auth - auth: captcha attempt 1: target=390, 9 visible tiles
+22:54:37 | INFO    | modules.auth -   grid order      : 1:fpruurt, 2:gkuui, 3:aqrgrl, 4:hlqtjm, 5:zxcwjrpk, 6:isamtfkfy, 7:xskocrnsr, 8:gkfne, 9:qnpvrs
+22:54:37 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261008-225437_target390_attempt1.png
+22:54:37 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261008-225437_target390_attempt1.png
+22:54:40 | INFO    | modules.vision - vision: model replied '3,4,6,7'
+22:54:40 | INFO    | modules.auth -   vision positions: [3, 4, 6, 7]
+22:54:40 | INFO    | modules.auth -   matched tiles   : 4 -> ['aqrgrl', 'hlqtjm', 'isamtfkfy', 'xskocrnsr']
+22:54:43 | INFO    | modules.auth -   click results   :
+22:54:43 | INFO    | modules.auth -       id=aqrgrl         number=None   clicked=True  img-selected=True
+22:54:43 | INFO    | modules.auth -       id=hlqtjm         number=None   clicked=True  img-selected=True
+22:54:43 | INFO    | modules.auth -       id=isamtfkfy      number=None   clicked=True  img-selected=True
+22:54:43 | INFO    | modules.auth -       id=xskocrnsr      number=None   clicked=True  img-selected=True
+22:54:44 | INFO    | modules.auth -   SelectedImages  : ''
+22:54:44 | INFO    | modules.auth -   expected ids    : ['aqrgrl', 'hlqtjm', 'isamtfkfy', 'xskocrnsr']
+22:54:44 | ERROR   | modules.auth -   SelectedImages mismatch — missing=['aqrgrl', 'hlqtjm', 'isamtfkfy', 'xskocrnsr'] unexpected=[]
+22:54:44 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225444_captcha-attempt1-before-submit.png
+22:54:44 | ERROR   | modules.auth -   outcome         : ABORTED - not every tile could be clicked
+22:54:44 | INFO    | modules.auth - auth: captcha aborted — a tile could not be clicked
+22:54:45 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225444_captcha-click-failed-attempt1.png
+22:54:45 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225445_captcha-click-failed-attempt1.html
+22:54:45 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225445_login-captcha.png
+22:54:45 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225445_login-captcha.html
+22:54:48 | INFO    | modules.utils - widget DOM dumped: logs\dom\20261008-225448_login-captcha_widget.html (192 match(es))
+22:54:48 | WARNING | modules.auth - auth: captcha detected ('please select all boxes with number') — manual step required
+22:54:48 | WARNING | modules.auth - auth: captcha url=https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh7bnLX5F04795Sjkry0%2B40oDapgNQ917CG4MAbK%2FDB%2FCws8nVna5JITpT5Vudiqf%2FJE9xsfvgR8sx18PSDAFBiLN%2FRDyudYJh9ssuWJJJkZHfCVOvq%2FKgYkHY5fEJZhWo0%3D
+22:54:48 | WARNING | modules.auth - auth: captcha artefacts — screenshot=logs\screenshots\20261008-225445_login-captcha.png full_dom=logs\dom\20261008-225445_login-captcha.html widget_dom=logs\dom\20261008-225448_login-captcha_widget.html matches=192 iframes=[]
+22:54:48 | INFO    | modules.auth - auth: captcha detected: please select all boxes with number
+22:54:49 | INFO    | modules.notifier - notifier: waiting for /resume…
+22:55:20 | INFO    | modules.notifier - notifier: /resume command received
+22:55:20 | INFO    | modules.notifier - notifier: /resume received
+22:55:41 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+22:55:42 | INFO    | modules.auth - auth: password submitted
+22:55:42 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:55:42 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225542_after-password-submit.png
+22:55:42 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225542_after-password-submit.html
+22:55:42 | INFO    | modules.auth - auth: landing URL https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (matched=True)
+22:55:42 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+22:55:42 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225542_login-failed-attempt1.png
+22:55:47 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+22:55:54 | INFO    | modules.utils - find_real_input: real 'text' field is index 5 of 10 (parent div.mb-3 display:block)
+22:55:56 | INFO    | modules.auth - auth: email filled
+22:55:56 | INFO    | modules.auth - auth: email submitted
+22:55:57 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+22:55:58 | INFO    | modules.utils - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+22:56:00 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+22:56:00 | INFO    | modules.auth - auth: password filled
+22:56:00 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh52qenyTYWLURubjH0LAmD%2BQyM6vNxgLWxam0cot2tBoeWjNGFDr0KCoaVXaEA%2F5V6fwmJhmP%2FKaYygaO773g79AwYM%2Fb3iozwpDJ2p78bdo82t5XFawj3xnS0rbEcfEgI%3D
+22:56:00 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225600_password-page-filled.png
+22:56:00 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225600_password-page-filled.html
+22:56:00 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+22:56:00 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=36
+22:56:00 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+22:56:00 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+22:56:01 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225600_captcha-before.png
+22:56:01 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225601_captcha-detected.html
+22:56:01 | INFO    | modules.auth - auth: 36 stacked prompt(s); 1 readable (contrast >= 2.0)
+22:56:01 | INFO    | modules.auth - auth: prompt 291 chosen (contrast=15.02, z-index=968, color=rgb(33, 37, 41))
+22:56:01 | INFO    | modules.auth - ------------------------------------------------------------
+22:56:01 | INFO    | modules.auth - CAPTCHA attempt 1 of 3
+22:56:01 | INFO    | modules.auth -   target number   : 291
+22:56:01 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+22:56:01 | INFO    | modules.auth -   visible labels  : 36 (of 36 box-labels in the DOM)
+22:56:01 | INFO    | modules.auth - auth: captcha attempt 1: target=291, 9 visible tiles
+22:56:01 | INFO    | modules.auth -   grid order      : 1:sgdjsr, 2:ohbmrd, 3:wkldldu, 4:wlhnfn, 5:yvztjztd, 6:jlbqhbmvl, 7:jbrfl, 8:iihazpl, 9:tnebhce
+22:56:01 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261008-225601_target291_attempt1.png
+22:56:01 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261008-225601_target291_attempt1.png
+22:56:03 | INFO    | modules.vision - vision: model replied '1, 3, 6, 8, 9'
+22:56:03 | INFO    | modules.auth -   vision positions: [1, 3, 6, 8, 9]
+22:56:03 | INFO    | modules.auth -   matched tiles   : 5 -> ['sgdjsr', 'wkldldu', 'jlbqhbmvl', 'iihazpl', 'tnebhce']
+22:56:07 | INFO    | modules.auth -   click results   :
+22:56:07 | INFO    | modules.auth -       id=sgdjsr         number=None   clicked=True  img-selected=True
+22:56:07 | INFO    | modules.auth -       id=wkldldu        number=None   clicked=True  img-selected=True
+22:56:07 | INFO    | modules.auth -       id=jlbqhbmvl      number=None   clicked=True  img-selected=True
+22:56:07 | INFO    | modules.auth -       id=iihazpl        number=None   clicked=True  img-selected=True
+22:56:07 | INFO    | modules.auth -       id=tnebhce        number=None   clicked=True  img-selected=True
+22:56:08 | INFO    | modules.auth -   SelectedImages  : ''
+22:56:08 | INFO    | modules.auth -   expected ids    : ['iihazpl', 'jlbqhbmvl', 'sgdjsr', 'tnebhce', 'wkldldu']
+22:56:08 | ERROR   | modules.auth -   SelectedImages mismatch — missing=['iihazpl', 'jlbqhbmvl', 'sgdjsr', 'tnebhce', 'wkldldu'] unexpected=[]
+22:56:09 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225608_captcha-attempt1-before-submit.png
+22:56:09 | ERROR   | modules.auth -   outcome         : ABORTED - not every tile could be clicked
+22:56:09 | INFO    | modules.auth - auth: captcha aborted — a tile could not be clicked
+22:56:09 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225609_captcha-click-failed-attempt1.png
+22:56:09 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225609_captcha-click-failed-attempt1.html
+22:56:09 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-225609_login-captcha.png
+22:56:09 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-225609_login-captcha.html
+22:56:12 | INFO    | modules.utils - widget DOM dumped: logs\dom\20261008-225612_login-captcha_widget.html (202 match(es))
+22:56:12 | WARNING | modules.auth - auth: captcha detected ('please select all boxes with number') — manual step required
+22:56:12 | WARNING | modules.auth - auth: captcha url=https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh52qenyTYWLURubjH0LAmD%2BQyM6vNxgLWxam0cot2tBoeWjNGFDr0KCoaVXaEA%2F5V6fwmJhmP%2FKaYygaO773g79AwYM%2Fb3iozwpDJ2p78bdo82t5XFawj3xnS0rbEcfEgI%3D
+22:56:12 | WARNING | modules.auth - auth: captcha artefacts — screenshot=logs\screenshots\20261008-225609_login-captcha.png full_dom=logs\dom\20261008-225609_login-captcha.html widget_dom=logs\dom\20261008-225612_login-captcha_widget.html matches=202 iframes=[]
+22:56:12 | INFO    | modules.auth - auth: captcha detected: please select all boxes with number
+22:56:13 | INFO    | modules.notifier - notifier: waiting for /resume…
+22:56:46 | INFO    | __main__ - cancelled — shutting down
+======================================================================
+finished: 2026-10-08T22:56:46
