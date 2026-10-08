@@ -73,25 +73,152 @@ BUTTON_TIMEOUT_MS = 5000
 # --------------------------------------------------------------------------- #
 # CAPTCHA (DOM-based — no image recognition needed)
 #
-# Confirmed structure:
-#   * Each box is  div.col-12.box-label  plus random extra classes.
-#   * A box's innerText is "Please select all boxes with number XXX", where XXX
-#     is the number displayed in that box.
-#   * Several grids are stacked — 38 boxes in the DOM, only 9 visible at a time.
-#   * The page prompt uses the SAME sentence, carrying the target number.
-#
-# Because prompt and boxes share identical wording, the prompt is located by
-# scanning leaf elements that are NOT inside a box (see _captcha_target).
+# Confirmed structure from page source:
+#   * Prompt text lives in  div.col-12.box-label  -> "Please select all boxes
+#     with number NNN".
+#   * Clickable tiles are  div.col-4  containing an <img> wired up with
+#     onclick="Select('<id>', this)".
+#   * A VISIBLE tile carries an inline  style="padding: 5px; display: block;"
+#     A HIDDEN tile carries  style="padding:5px;"  with no display:block.
+#     Several grids are stacked; only 9 tiles are visible at a time.
+#   * Clicking a tile adds class "img-selected" to its <img>.
+#   * The page's own Select() handler maintains the hidden input
+#     "SelectedImages". The bot therefore only ever CLICKS - it must never write
+#     SelectedImages itself, and must not touch the other hidden fields
+#     (Id, ReturnUrl, ResponseData, Param, __RequestVerificationToken), which
+#     ride along with the native form submit.
 # --------------------------------------------------------------------------- #
-CAPTCHA_BOX_SELECTOR = "div.col-12.box-label"
+CAPTCHA_BOX_LABEL_SELECTOR = "div.col-12.box-label"
+CAPTCHA_TILE_SELECTOR = "div.col-4"
+CAPTCHA_IMG_SELECTOR = "img.captcha-img"
+CAPTCHA_SELECTED_CLASS = "img-selected"
+CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
 CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
 CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]')
 CAPTCHA_MAX_ATTEMPTS = 3
 CAPTCHA_CLICK_DELAY = 0.5
 
+# One pass over the DOM: resolve every visible tile to the number its label
+# states, and report which labels are prompts rather than per-tile labels.
+#
+# Visibility is decided by the inline "display:block" marker (whitespace
+# normalised, so both "display: block" and "display:block" match) AND by an
+# ancestor walk - an inline display:block inside a hidden grid still computes to
+# "block", so the inline marker alone is not sufficient.
+_CAPTCHA_SCAN_JS = r"""
+(args) => {
+  const { tileSel, labelSel, imgSel, selectedClass } = args;
+
+  const numFrom = (txt) => {
+    const m = /number\s+(\d+)/i.exec(txt || '');
+    return m ? m[1] : null;
+  };
+
+  const ancestorsVisible = (el) => {
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none') return false;
+      if (s.visibility === 'hidden' || s.visibility === 'collapse') return false;
+      if (parseFloat(s.opacity || '1') < 0.1) return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+
+  const inlineBlock = (el) => {
+    const st = (el.getAttribute('style') || '').replace(/\s+/g, '');
+    return st.includes('display:block');
+  };
+
+  const allTiles = Array.from(document.querySelectorAll(tileSel));
+  const allLabels = Array.from(document.querySelectorAll(labelSel));
+  const labelIndex = new Map(allLabels.map((el, i) => [el, i]));
+
+  // Which label states this tile's number? Try, in order: a label inside the
+  // tile, the nearest preceding label sibling, the sole label in the tile's row,
+  // the tile's own text, then image attributes.
+  const labelFor = (tile) => {
+    const own = tile.querySelector(labelSel);
+    if (own && numFrom(own.innerText)) {
+      return { num: numFrom(own.innerText), src: 'descendant', idx: labelIndex.get(own) };
+    }
+    let sib = tile.previousElementSibling;
+    while (sib) {
+      if (sib.matches && sib.matches(labelSel) && numFrom(sib.innerText)) {
+        return { num: numFrom(sib.innerText), src: 'prev-sibling', idx: labelIndex.get(sib) };
+      }
+      sib = sib.previousElementSibling;
+    }
+    const parent = tile.parentElement;
+    if (parent) {
+      const inRow = Array.from(parent.querySelectorAll(labelSel));
+      if (inRow.length === 1 && numFrom(inRow[0].innerText)) {
+        return { num: numFrom(inRow[0].innerText), src: 'row-single', idx: labelIndex.get(inRow[0]) };
+      }
+    }
+    const selfNum = numFrom(tile.innerText);
+    if (selfNum) return { num: selfNum, src: 'tile-text', idx: null };
+
+    const img = tile.querySelector(imgSel) || tile.querySelector('img');
+    if (img) {
+      for (const attr of ['alt', 'title', 'data-number', 'data-value']) {
+        const v = (img.getAttribute(attr) || '').trim();
+        const n = numFrom(v) || (/^\d+$/.test(v) ? v : null);
+        if (n) return { num: n, src: 'img-' + attr, idx: null };
+      }
+    }
+    return { num: null, src: 'unresolved', idx: null };
+  };
+
+  const tiles = [];
+  const claimed = new Set();
+  allTiles.forEach((tile, domIndex) => {
+    if (!inlineBlock(tile) || !ancestorsVisible(tile)) return;
+    const img = tile.querySelector(imgSel) || tile.querySelector('img');
+    const info = labelFor(tile);
+    if (info.idx !== null && info.idx !== undefined) claimed.add(info.idx);
+    tiles.push({
+      domIndex: domIndex,
+      id: tile.id || (img && img.id) || '',
+      num: info.num,
+      labelSource: info.src,
+      hasImg: !!img,
+      selected: img ? img.classList.contains(selectedClass) : false,
+    });
+  });
+
+  // A prompt is a visible label that is not acting as some tile's own label.
+  const prompts = [];
+  const visibleLabels = [];
+  allLabels.forEach((lab, i) => {
+    if (!ancestorsVisible(lab)) return;
+    const n = numFrom(lab.innerText);
+    if (!n) return;
+    const entry = { idx: i, num: n, text: (lab.innerText || '').trim().slice(0, 120) };
+    visibleLabels.push(entry);
+    if (!claimed.has(i) && !lab.closest(tileSel)) prompts.push(entry);
+  });
+
+  return {
+    tiles: tiles,
+    prompts: prompts,
+    visibleLabels: visibleLabels,
+    totalTiles: allTiles.length,
+    totalLabels: allLabels.length,
+  };
+}
+"""
+
 # Candidate containers for a captcha / challenge widget, dumped verbatim when one
 # is detected so the markup can be analysed without re-triggering a login.
 CAPTCHA_DOM_SELECTORS = (
+    # BLS's own captcha, first — these are the confirmed containers.
+    "div.col-12.box-label",
+    "div.col-4",
+    "img.captcha-img",
+    'input[name="SelectedImages"]',
+    # Generic third-party challenges, in case BLS ever swaps provider.
     "iframe[src*='recaptcha']",
     "iframe[src*='hcaptcha']",
     "iframe[src*='turnstile']",
@@ -507,10 +634,11 @@ class BLSAuth:
         False when a captcha is present but could not be solved — the caller then
         falls back to pausing for a human.
 
-        Strategy: read the target number from the prompt, click every *visible*
-        box whose own number equals it, submit, and verify the captcha is gone.
-        Up to ``CAPTCHA_MAX_ATTEMPTS`` rounds, re-reading the target each time
-        because a failed attempt reloads the grid with a new number.
+        Per round: scan the DOM once, take the target number from the prompt,
+        click the <img> inside every visible ``div.col-4`` whose label states that
+        number, confirm each click registered (class ``img-selected``), then
+        submit. A rejected selection reloads the grid with a new number, so every
+        round re-scans from scratch. Up to ``CAPTCHA_MAX_ATTEMPTS`` rounds.
         """
         if not await self._captcha_present(page):
             return True
@@ -520,32 +648,57 @@ class BLSAuth:
         await utils.screenshot(page, "captcha-before")
 
         for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
-            target = await self._captcha_target(page)
+            scan = await self._captcha_scan(page)
+            if scan is None:
+                await utils.screenshot(page, f"captcha-scan-failed-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-scan-failed-attempt{attempt}")
+                return False
+
+            tiles = scan.get("tiles") or []
+            target = self._captcha_target(scan)
+            logger.info(
+                f"auth: captcha attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS} — "
+                f"target={target}, {len(tiles)} visible tile(s) of "
+                f"{scan.get('totalTiles')} in the DOM"
+            )
+
             if target is None:
-                logger.warning("auth: captcha present but no target number in the prompt")
+                logger.warning("auth: captcha present but no target number found")
+                logger.warning(f"auth: visible labels seen: {scan.get('visibleLabels')}")
                 await utils.screenshot(page, f"captcha-no-target-attempt{attempt}")
                 await utils.dump_page_html(page, f"captcha-no-target-attempt{attempt}")
                 return False
 
-            matches, total_visible = await self._captcha_matching_boxes(page, target)
+            unresolved = [t for t in tiles if not t.get("num")]
+            if unresolved:
+                # Cannot know these tiles' numbers, so cannot know whether they
+                # should be clicked. Guessing risks a wrong answer and a lockout.
+                logger.warning(
+                    f"auth: {len(unresolved)} visible tile(s) have no readable "
+                    "number — refusing to guess"
+                )
+                await utils.dump_page_html(page, f"captcha-unresolved-attempt{attempt}")
+                return False
+
+            matches = [t for t in tiles if t.get("num") == target]
             logger.info(
-                f"auth: captcha attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS} — "
-                f"target={target}, {len(matches)} of {total_visible} visible box(es) match"
+                f"auth: {len(matches)} tile(s) match number {target} "
+                f"(label source: {matches[0]['labelSource'] if matches else 'n/a'})"
             )
 
             if not matches:
-                logger.warning(f"auth: no visible box carries number {target}")
+                logger.warning(f"auth: no visible tile carries number {target}")
                 await utils.screenshot(page, f"captcha-no-match-attempt{attempt}")
                 await utils.dump_page_html(page, f"captcha-no-match-attempt{attempt}")
                 return False
 
-            for index, box in enumerate(matches, start=1):
-                try:
-                    await box.click()
-                    logger.debug(f"auth: clicked captcha box {index}/{len(matches)}")
-                except Exception as exc:
-                    logger.warning(f"auth: could not click captcha box {index}: {exc}")
-                await asyncio.sleep(CAPTCHA_CLICK_DELAY)
+            if not await self._captcha_click_tiles(page, matches):
+                await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
+                return False
+
+            selected = await self._captcha_selected_images(page)
+            if selected is not None:
+                logger.info(f"auth: SelectedImages now holds {selected!r}")
 
             if not await self._click_captcha_submit(page):
                 logger.warning("auth: captcha Submit button not found")
@@ -573,100 +726,132 @@ class BLSAuth:
         return False
 
     async def _captcha_present(self, page: Page) -> bool:
-        """True while at least one captcha box is visible on the page."""
-        try:
-            boxes = await page.query_selector_all(CAPTCHA_BOX_SELECTOR)
-        except Exception:
+        """True while at least one captcha tile is visible on the page."""
+        scan = await self._captcha_scan(page)
+        if scan is None:
             return False
-        for box in boxes:
-            if await utils.is_really_visible(box):
-                return True
-        return False
+        return bool(scan.get("tiles"))
 
-    async def _captcha_target(self, page: Page) -> str | None:
-        """Extract the target number from the page prompt.
-
-        The prompt and the boxes use identical wording, so matching "the first
-        element containing the sentence" would return box 1, not the prompt.
-        Only leaf elements outside any box are considered.
-        """
+    async def _captcha_scan(self, page: Page) -> dict[str, Any] | None:
+        """Run the single-pass DOM scan. None when it could not be evaluated."""
         try:
-            text = await page.evaluate(
-                """
-                (boxSelector) => {
-                  const isVisible = (el) => {
-                    const r = el.getBoundingClientRect();
-                    if (r.width < 2 || r.height < 2) return false;
-                    let n = el;
-                    while (n && n.nodeType === 1) {
-                      const s = getComputedStyle(n);
-                      if (s.display === 'none') return false;
-                      if (s.visibility === 'hidden' || s.visibility === 'collapse') return false;
-                      if (parseFloat(s.opacity || '1') < 0.1) return false;
-                      n = n.parentElement;
-                    }
-                    return true;
-                  };
-                  const pattern = /number\\s+\\d+/i;
-                  const all = document.querySelectorAll('body *');
-                  const fallback = [];
-                  for (const el of all) {
-                    if (el.matches(boxSelector) || el.closest(boxSelector)) continue;
-                    const txt = (el.innerText || '').trim();
-                    if (!pattern.test(txt)) continue;
-                    if (!isVisible(el)) continue;
-                    if (el.children.length === 0) return txt;   // leaf: the prompt itself
-                    fallback.push(txt);
-                  }
-                  // No leaf matched - use the shortest container text, which is
-                  // the tightest wrapper around the prompt.
-                  if (fallback.length) {
-                    fallback.sort((a, b) => a.length - b.length);
-                    return fallback[0];
-                  }
-                  return null;
-                }
-                """,
-                CAPTCHA_BOX_SELECTOR,
+            return await page.evaluate(
+                _CAPTCHA_SCAN_JS,
+                {
+                    "tileSel": CAPTCHA_TILE_SELECTOR,
+                    "labelSel": CAPTCHA_BOX_LABEL_SELECTOR,
+                    "imgSel": CAPTCHA_IMG_SELECTOR,
+                    "selectedClass": CAPTCHA_SELECTED_CLASS,
+                },
             )
         except Exception as exc:
-            logger.warning(f"auth: captcha prompt lookup failed: {exc}")
+            logger.warning(f"auth: captcha DOM scan failed: {exc}")
             return None
 
-        if not text:
-            return None
-        match = CAPTCHA_NUMBER_REGEX.search(text)
-        if not match:
-            return None
-        logger.debug(f"auth: captcha prompt text {text[:80]!r}")
-        return match.group(1)
+    def _captcha_target(self, scan: dict[str, Any]) -> str | None:
+        """Pick the target number out of a scan result.
 
-    async def _captcha_matching_boxes(
-        self, page: Page, target: str
-    ) -> tuple[list[Any], int]:
-        """Visible boxes whose own number equals ``target``, plus the visible count.
+        Prompts and per-tile labels use the same ``div.col-12.box-label`` class
+        and the same sentence, so "any visible box-label" can easily return a
+        tile's own label instead of the prompt. Preference order:
 
-        Compares the box's extracted number for EXACT equality rather than
-        testing whether its text contains the target: a substring test would make
-        target "12" also match boxes showing "123" or "512", poisoning the answer.
+        1. A visible label that no tile claimed as its own  -> the real prompt.
+        2. If several unclaimed labels disagree, the first in document order.
+        3. If every visible label is claimed by a tile, fall back to the first
+           visible label and log loudly, because that reading may be wrong.
+        """
+        prompts = scan.get("prompts") or []
+        if prompts:
+            numbers = {entry["num"] for entry in prompts}
+            if len(numbers) > 1:
+                logger.warning(
+                    f"auth: {len(numbers)} different prompt numbers visible "
+                    f"({sorted(numbers)}) — using the first in document order"
+                )
+            logger.debug(f"auth: captcha prompt text {prompts[0]['text']!r}")
+            return prompts[0]["num"]
+
+        labels = scan.get("visibleLabels") or []
+        if labels:
+            logger.warning(
+                "auth: every visible box-label is attached to a tile — no distinct "
+                f"prompt found; falling back to the first label ({labels[0]['num']}). "
+                "Verify the prompt markup if the captcha keeps failing."
+            )
+            return labels[0]["num"]
+        return None
+
+    async def _captcha_click_tiles(
+        self, page: Page, matches: list[dict[str, Any]]
+    ) -> bool:
+        """Click the <img> inside each matching tile, verifying each registered.
+
+        Tiles are addressed by their position in ``document.querySelectorAll`` so
+        the random per-load ids are never used as selectors. Clicking lets the
+        page's own ``Select()`` handler populate the hidden ``SelectedImages``
+        field — the bot never writes that field itself.
         """
         try:
-            boxes = await page.query_selector_all(CAPTCHA_BOX_SELECTOR)
+            tiles = await page.query_selector_all(CAPTCHA_TILE_SELECTOR)
         except Exception as exc:
-            logger.warning(f"auth: could not query captcha boxes: {exc}")
-            return [], 0
+            logger.warning(f"auth: could not re-query captcha tiles: {exc}")
+            return False
 
-        matches: list[Any] = []
-        visible_count = 0
-        for box in boxes:
-            if not await utils.is_really_visible(box):
-                continue
-            visible_count += 1
-            text = await utils.element_text(box)
-            found = CAPTCHA_NUMBER_REGEX.search(text or "")
-            if found and found.group(1) == target:
-                matches.append(box)
-        return matches, visible_count
+        clicked = 0
+        for position, tile_info in enumerate(matches, start=1):
+            index = tile_info.get("domIndex")
+            if index is None or index >= len(tiles):
+                logger.warning(f"auth: captcha tile index {index} is out of range")
+                return False
+
+            tile = tiles[index]
+            target_el = await tile.query_selector(CAPTCHA_IMG_SELECTOR)
+            if target_el is None:
+                target_el = await tile.query_selector("img")
+            if target_el is None:
+                logger.warning(f"auth: captcha tile {index} has no <img> to click")
+                return False
+
+            try:
+                await target_el.click()
+                clicked += 1
+                logger.debug(
+                    f"auth: clicked captcha tile {position}/{len(matches)} "
+                    f"(id={tile_info.get('id') or '?'}, number={tile_info.get('num')})"
+                )
+            except Exception as exc:
+                logger.warning(f"auth: could not click captcha tile {index}: {exc}")
+                return False
+
+            await asyncio.sleep(CAPTCHA_CLICK_DELAY)
+
+            # The page marks a chosen tile with class "img-selected"; if that did
+            # not appear, the click did not register and submitting now would
+            # send an incomplete answer.
+            try:
+                is_selected = await target_el.evaluate(
+                    "(el, cls) => el.classList.contains(cls)", CAPTCHA_SELECTED_CLASS
+                )
+            except Exception:
+                is_selected = None
+            if is_selected is False:
+                logger.warning(
+                    f"auth: captcha tile {index} did not gain .{CAPTCHA_SELECTED_CLASS} "
+                    "after the click"
+                )
+
+        logger.info(f"auth: clicked {clicked}/{len(matches)} matching captcha tile(s)")
+        return clicked == len(matches)
+
+    async def _captcha_selected_images(self, page: Page) -> str | None:
+        """Current value of the hidden SelectedImages field, for logging only."""
+        try:
+            field = await page.query_selector(CAPTCHA_SELECTED_INPUT_SELECTOR)
+            if field is None:
+                return None
+            return await field.get_attribute("value") or ""
+        except Exception:
+            return None
 
     async def _click_captcha_submit(self, page: Page) -> bool:
         for selector in CAPTCHA_SUBMIT_SELECTORS:
