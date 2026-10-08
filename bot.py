@@ -54,6 +54,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         },
     },
     "applicant": {"documents": {}},
+    "openai": {"api_key": "", "model": "gpt-4o", "timeout": 45},
     "telegram": {"token": "", "chat_id": "", "heartbeat_hours": 6},
     "otp": {
         "method": "email",
@@ -135,7 +136,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
 }
 
-REQUIRED_DIRS = ("session", "logs", "logs/screenshots", "logs/dom", "docs")
+REQUIRED_DIRS = (
+    "session",
+    "logs",
+    "logs/screenshots",
+    "logs/dom",
+    "logs/captcha_samples",
+    "docs",
+)
 
 # --------------------------------------------------------------------------- #
 # Per-run transcript
@@ -147,6 +155,20 @@ REQUIRED_DIRS = ("session", "logs", "logs/screenshots", "logs/dom", "docs")
 # --------------------------------------------------------------------------- #
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 _run_log_handle: Any = None
+
+# Run transcripts are committed to git, so anything secret-shaped is masked on
+# the way into the file. Nothing deliberately logs a credential, but a library
+# traceback or a repr of the config dict easily could.
+_SECRET_RES = (
+    re.compile(r"sk-[A-Za-z0-9_\-]{12,}"),                 # OpenAI keys
+    re.compile(r"\b\d{8,10}:[A-Za-z0-9_\-]{30,}\b"),       # Telegram bot tokens
+)
+
+
+def _redact(text: str) -> str:
+    for pattern in _SECRET_RES:
+        text = pattern.sub("[REDACTED]", text)
+    return text
 
 
 class _Tee:
@@ -161,8 +183,9 @@ class _Tee:
         written = self._stream.write(data)
         try:
             with self._lock:
-                # Strip colour codes so the committed file stays readable.
-                self._handle.write(_ANSI_RE.sub("", data))
+                # Strip colour codes so the committed file stays readable, and
+                # mask anything secret-shaped before it reaches a tracked file.
+                self._handle.write(_redact(_ANSI_RE.sub("", data)))
         except Exception:
             pass
         return written if isinstance(written, int) else len(data)
@@ -275,6 +298,12 @@ def validate_config(config: dict[str, Any]) -> list[str]:
     telegram = config.get("telegram") or {}
     if not telegram.get("token") or not telegram.get("chat_id"):
         problems.append("telegram.token / telegram.chat_id missing — alerts disabled")
+
+    if not (config.get("openai") or {}).get("api_key"):
+        problems.append(
+            "openai.api_key is empty — CAPTCHAs cannot be solved automatically, "
+            "the bot will pause for a manual solve instead"
+        )
 
     if (config["otp"].get("method") or "").lower() == "email":
         if not config["otp"].get("imap_user") or not config["otp"].get("imap_pass"):

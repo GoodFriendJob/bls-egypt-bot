@@ -261,6 +261,7 @@ on another.
 | Rolling combined log | `logs/bot.log` |
 | Screenshots — captcha attempts, login failures, HTTP errors, unexpected pages | `logs/screenshots/` |
 | Page/DOM dumps on captcha or markup problems | `logs/dom/` |
+| CAPTCHA grid images sent to the vision model | `logs/captcha_samples/` |
 
 The transcript mirrors stdout **and** stderr, so it also captures output that
 does not go through the logger (the Flask banner, raw tracebacks, library
@@ -290,6 +291,33 @@ git push -u origin main
 > was on screen, which includes applicant name, passport number and date of
 > birth once the booking form is reached. `config.yaml`, `session/` and `docs/`
 > remain ignored and are never committed.
+
+### How the CAPTCHA is solved
+
+The BLS login CAPTCHA is a 3x3 grid; the prompt says "Please select all boxes
+with number NNN". Two separate tricks have to be beaten:
+
+**The prompt** — 31 prompts are stacked at one position
+(`.box-label { position:absolute; top:20px }`), all with a *different* number.
+30 of them are painted in the container's own background colour (`#F0FFF0`) and
+only one keeps readable dark text. The bot picks the label with the highest
+text/background **contrast ratio** — literally "the one a human can read".
+Document order is useless: on a live run the real prompt sat at index 18 while
+index 0 held a decoy.
+
+**The tiles** — each tile is a lone base64 `<img>` with no text, `alt` or
+`data-*` attribute, and the images are unique on every load, so neither DOM
+scraping nor a hash lookup can work. The digits exist only as pixels. The bot
+screenshots just the grid and asks **GPT-4o vision** which positions show the
+target number, then maps those positions back to tile ids and clicks them.
+
+Set `openai.api_key` in `config.yaml` to enable this. Without a key the bot
+falls back to pausing and asking for a manual solve over Telegram. Up to 3
+attempts are made; a rejected answer reloads the grid with a new number.
+
+> Grid screenshots are clipped to the tiles alone — the email address and other
+> account details on that page are deliberately excluded, so nothing
+> identifying is sent to the API or committed to `logs/captcha_samples/`.
 
 ### What a captcha attempt records
 

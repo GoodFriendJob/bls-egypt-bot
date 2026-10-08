@@ -11,3 +11,8 @@ Flask==3.0.3
 PyYAML==6.0.2
 loguru==0.7.2
 python-dateutil==2.9.0.post0
+# GPT-4o vision, used to read the CAPTCHA tile digits.
+# Range rather than a hard pin: the 1.x line is API-stable for what we use
+# (chat.completions with an image part) and this avoids install.bat failing on a
+# machine where one exact patch release is unavailable.
+openai>=1.40.0,<2.0.0

@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -38,7 +39,13 @@ from playwright.async_api import (
     async_playwright,
 )
 
-from modules import utils
+from modules import utils, vision
+
+
+def _sample_stamp() -> str:
+    """Timestamp used to name saved captcha grid samples."""
+    return datetime.now().strftime("%Y%m%d-%H%M%S")
+
 
 SESSION_FILE = Path("session/cookies.json")
 
@@ -163,6 +170,51 @@ _CAPTCHA_SCAN_JS = r"""
     return true;
   };
 
+  // --- colour contrast ------------------------------------------------
+  // CONFIRMED: all 31 prompts are stacked at the same spot
+  // (.box-label { position:absolute; top:20px }) so every one of them is
+  // "visible" by display/opacity. The decoys are painted in the container's
+  // own background colour (#F0FFF0) and only the live prompt keeps readable
+  // dark text. Contrast against the backdrop is therefore the discriminator -
+  // it is what actually decides whether a human can read the text.
+  const parseRGB = (s) => {
+    const m = /rgba?\(([^)]+)\)/.exec(s || '');
+    if (!m) return null;
+    const p = m[1].split(',').map((x) => parseFloat(x.trim()));
+    if (p.length < 3 || p.some(isNaN)) return null;
+    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+  };
+
+  const relLum = (c) => {
+    const f = (v) => {
+      v = v / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+  };
+
+  const backdropOf = (el) => {
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const c = parseRGB(getComputedStyle(n).backgroundColor);
+      if (c && c.a > 0.1) return c;
+      n = n.parentElement;
+    }
+    return { r: 255, g: 255, b: 255, a: 1 };
+  };
+
+  const contrastOf = (el) => {
+    const st = getComputedStyle(el);
+    const fg = parseRGB(st.color);
+    if (!fg || fg.a < 0.1) return 0;
+    const bg = backdropOf(el);
+    const l1 = relLum(fg);
+    const l2 = relLum(bg);
+    const hi = Math.max(l1, l2);
+    const lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+
   const inlineBlock = (el) => {
     const st = (el.getAttribute('style') || '').replace(/\s+/g, '');
     return st.includes('display:block');
@@ -211,7 +263,13 @@ _CAPTCHA_SCAN_JS = r"""
   const tiles = [];
   const claimed = new Set();
   allTiles.forEach((tile, domIndex) => {
-    if (!inlineBlock(tile) || !ancestorsVisible(tile)) return;
+    // Visibility is decided by computed style plus a real bounding box, not by
+    // the inline display:block marker alone — a grid can be hidden by a class
+    // instead, and relying on the inline string missed a tile on live runs.
+    if (!ancestorsVisible(tile)) return;
+    const r = tile.getBoundingClientRect();
+    if (r.width < 10 || r.height < 10) return;
+
     const img = tile.querySelector(imgSel) || tile.querySelector('img');
     const info = labelFor(tile);
     if (info.idx !== null && info.idx !== undefined) claimed.add(info.idx);
@@ -222,17 +280,27 @@ _CAPTCHA_SCAN_JS = r"""
       labelSource: info.src,
       hasImg: !!img,
       selected: img ? img.classList.contains(selectedClass) : false,
+      inlineBlock: inlineBlock(tile),
+      rect: { x: r.x + window.scrollX, y: r.y + window.scrollY, w: r.width, h: r.height },
     });
   });
 
-  // A prompt is a visible label that is not acting as some tile's own label.
+  // Every stacked label is "visible"; the readable one is the one with contrast.
   const prompts = [];
   const visibleLabels = [];
   allLabels.forEach((lab, i) => {
     if (!ancestorsVisible(lab)) return;
     const n = numFrom(lab.innerText);
     if (!n) return;
-    const entry = { idx: i, num: n, text: (lab.innerText || '').trim().slice(0, 120) };
+    const st = getComputedStyle(lab);
+    const entry = {
+      idx: i,
+      num: n,
+      text: (lab.innerText || '').trim().slice(0, 120),
+      contrast: Math.round(contrastOf(lab) * 100) / 100,
+      zIndex: st.zIndex,
+      color: st.color,
+    };
     visibleLabels.push(entry);
     if (!claimed.has(i) && !lab.closest(tileSel)) prompts.push(entry);
   });
@@ -311,6 +379,7 @@ class BLSAuth:
         self.config = config
         self.state = state
         self.notifier = notifier
+        self.vision = vision.VisionSolver(config)
 
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
@@ -787,16 +856,6 @@ class BLSAuth:
                 f"  visible labels  : {len(scan.get('visibleLabels') or [])} "
                 f"(of {scan.get('totalLabels')} box-labels in the DOM)"
             )
-            logger.info(
-                "  tile numbers    : "
-                + ", ".join(
-                    f"{t.get('id') or '?'}={t.get('num')}" for t in tiles
-                )
-            )
-            logger.info(
-                "  label sources   : "
-                + ", ".join(sorted({str(t.get("labelSource")) for t in tiles}))
-            )
             self._log(
                 f"captcha attempt {attempt}: target={target}, {len(tiles)} visible tiles",
                 status="warn",
@@ -809,26 +868,54 @@ class BLSAuth:
                 await utils.dump_page_html(page, f"captcha-no-target-attempt{attempt}")
                 return False
 
-            unresolved = [t for t in tiles if not t.get("num")]
-            if unresolved:
-                # Cannot know these tiles' numbers, so cannot know whether they
-                # should be clicked. Guessing risks a wrong answer and a lockout.
-                logger.warning(
-                    f"auth: {len(unresolved)} visible tile(s) have no readable "
-                    "number — refusing to guess"
-                )
-                await utils.dump_page_html(page, f"captcha-unresolved-attempt{attempt}")
+            # --- Tile recognition -------------------------------------------
+            # The tile digits exist ONLY as pixels: each tile holds a single
+            # base64 <img> with no text, alt or data attribute, and the images
+            # are unique on every load (so a hash lookup table cannot work).
+            # Reading the grid with vision is the only way to solve this.
+            ordered = self._order_tiles_visually(tiles)
+            logger.info(
+                "  grid order      : "
+                + ", ".join(f"{i}:{t.get('id') or '?'}" for i, t in enumerate(ordered, 1))
+            )
+
+            grid_png = await self._screenshot_grid(page, ordered, attempt)
+            sample = vision.save_sample(
+                grid_png, f"{_sample_stamp()}_target{target}_attempt{attempt}"
+            )
+            logger.info(f"  grid screenshot : {sample or 'FAILED'}")
+
+            if not grid_png:
+                logger.error("  outcome         : ABORTED - could not capture the grid")
                 return False
 
-            matches = [t for t in tiles if t.get("num") == target]
+            positions = await self.vision.find_matching_positions(
+                grid_png, target, count=len(ordered)
+            )
+
+            if positions is None:
+                logger.error(
+                    "  outcome         : ABORTED - vision lookup unavailable "
+                    "(no API key, API error, or unparseable reply)"
+                )
+                self._log("captcha: vision lookup failed", status="error")
+                return False
+
+            logger.info(f"  vision positions: {positions}")
+
+            if not positions:
+                logger.warning(
+                    f"  vision reported no tile shows {target} — treating the "
+                    "reading as wrong and retrying with a fresh grid"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(page)
+                    continue
+                return False
+
+            matches = [ordered[p - 1] for p in positions]
             matched_ids = [t.get("id") or "?" for t in matches]
             logger.info(f"  matched tiles   : {len(matches)} -> {matched_ids}")
-
-            if not matches:
-                logger.warning(f"auth: no visible tile carries number {target}")
-                await utils.screenshot(page, f"captcha-no-match-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-no-match-attempt{attempt}")
-                return False
 
             clicked_ok, confirmations = await self._captcha_click_tiles(page, matches)
 
@@ -885,6 +972,83 @@ class BLSAuth:
         await utils.screenshot(page, "captcha-failed")
         await utils.dump_page_html(page, "captcha-failed")
         return False
+
+    @staticmethod
+    def _order_tiles_visually(tiles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Sort tiles left-to-right, top-to-bottom — the order the model sees.
+
+        DOM order is not reliable here, and grid positions returned by the vision
+        model are defined visually. Rows are grouped with a tolerance of half a
+        tile height so minor sub-pixel differences do not split a row.
+        """
+        placed = [t for t in tiles if t.get("rect")]
+        if not placed:
+            return list(tiles)
+
+        heights = [t["rect"]["h"] for t in placed if t["rect"]["h"] > 0]
+        tolerance = (sum(heights) / len(heights) / 2) if heights else 20
+
+        rows: list[list[dict[str, Any]]] = []
+        for tile in sorted(placed, key=lambda t: t["rect"]["y"]):
+            for row in rows:
+                if abs(row[0]["rect"]["y"] - tile["rect"]["y"]) <= tolerance:
+                    row.append(tile)
+                    break
+            else:
+                rows.append([tile])
+
+        ordered: list[dict[str, Any]] = []
+        for row in rows:
+            ordered.extend(sorted(row, key=lambda t: t["rect"]["x"]))
+        return ordered
+
+    async def _screenshot_grid(
+        self, page: Page, ordered: list[dict[str, Any]], attempt: int
+    ) -> bytes | None:
+        """Capture just the tile grid, as PNG bytes.
+
+        Clipped to the union of the tile rects rather than the whole container,
+        so the image holds only the puzzle — no email address or other account
+        detail leaves the machine, and nothing identifying lands in the samples
+        folder that gets committed to git.
+        """
+        rects = [t["rect"] for t in ordered if t.get("rect")]
+        if rects:
+            pad = 6
+            left = min(r["x"] for r in rects) - pad
+            top = min(r["y"] for r in rects) - pad
+            right = max(r["x"] + r["w"] for r in rects) + pad
+            bottom = max(r["y"] + r["h"] for r in rects) + pad
+            clip = {
+                "x": max(0, left),
+                "y": max(0, top),
+                "width": max(1, right - max(0, left)),
+                "height": max(1, bottom - max(0, top)),
+            }
+            try:
+                return await page.screenshot(clip=clip)
+            except Exception as exc:
+                logger.warning(f"auth: clipped grid screenshot failed: {exc}")
+
+        # Fall back to the captcha container element.
+        try:
+            container = await page.query_selector(CAPTCHA_CONTAINER_SELECTOR)
+            if container is not None:
+                return await container.screenshot()
+        except Exception as exc:
+            logger.warning(f"auth: container screenshot failed: {exc}")
+
+        logger.error(f"auth: no way to capture the captcha grid (attempt {attempt})")
+        return None
+
+    async def _reload_captcha(self, page: Page) -> None:
+        """Ask for a fresh grid after an unusable reading."""
+        if await utils.click_by_text(
+            page, ("clear selection", "refresh", "reload"), config=self.config
+        ):
+            logger.info("auth: requested a fresh captcha grid")
+            await self._settle(page)
+        await utils.human_delay(self.config)
 
     async def _captcha_present(self, page: Page) -> bool:
         """True while a captcha challenge is on screen."""
@@ -976,37 +1140,56 @@ class BLSAuth:
             return None
 
     def _captcha_target(self, scan: dict[str, Any]) -> str | None:
-        """Pick the target number out of a scan result.
+        """Pick the target number out of a scan result, by colour contrast.
 
-        Prompts and per-tile labels use the same ``div.col-12.box-label`` class
-        and the same sentence, so "any visible box-label" can easily return a
-        tile's own label instead of the prompt. Preference order:
+        CONFIRMED: the page stacks ~31 prompts at one position and paints all but
+        one in the container's own background colour (#F0FFF0), leaving a single
+        readable label. Document order is meaningless here — a live run saw the
+        real prompt (381) sitting at index 18 while index 0 held a decoy (631),
+        which is exactly the wrong answer picking "the first" produced.
 
-        1. A visible label that no tile claimed as its own  -> the real prompt.
-        2. If several unclaimed labels disagree, the first in document order.
-        3. If every visible label is claimed by a tile, fall back to the first
-           visible label and log loudly, because that reading may be wrong.
+        So the label with the highest text/background contrast wins: that is, by
+        definition, the one a human can actually read.
         """
-        prompts = scan.get("prompts") or []
-        if prompts:
-            numbers = {entry["num"] for entry in prompts}
-            if len(numbers) > 1:
-                logger.warning(
-                    f"auth: {len(numbers)} different prompt numbers visible "
-                    f"({sorted(numbers)}) — using the first in document order"
-                )
-            logger.debug(f"auth: captcha prompt text {prompts[0]['text']!r}")
-            return prompts[0]["num"]
+        candidates = scan.get("prompts") or scan.get("visibleLabels") or []
+        if not candidates:
+            return None
 
-        labels = scan.get("visibleLabels") or []
-        if labels:
+        ranked = sorted(
+            candidates, key=lambda e: float(e.get("contrast") or 0), reverse=True
+        )
+        best = ranked[0]
+        best_contrast = float(best.get("contrast") or 0)
+
+        readable = [e for e in ranked if float(e.get("contrast") or 0) >= 2.0]
+        logger.info(
+            f"auth: {len(candidates)} stacked prompt(s); "
+            f"{len(readable)} readable (contrast >= 2.0)"
+        )
+
+        if best_contrast < 2.0:
+            # Nothing stands out — the decoy scheme may have changed.
             logger.warning(
-                "auth: every visible box-label is attached to a tile — no distinct "
-                f"prompt found; falling back to the first label ({labels[0]['num']}). "
-                "Verify the prompt markup if the captcha keeps failing."
+                f"auth: no prompt has readable contrast (best={best_contrast} "
+                f"num={best['num']}); the colour discriminator may need revisiting"
             )
-            return labels[0]["num"]
-        return None
+            return None
+
+        if len(readable) > 1:
+            distinct = {e["num"] for e in readable}
+            if len(distinct) > 1:
+                logger.warning(
+                    f"auth: {len(readable)} readable prompts disagree "
+                    f"({sorted(distinct)}) — taking the highest contrast"
+                )
+
+        logger.info(
+            f"auth: prompt {best['num']} chosen "
+            f"(contrast={best_contrast}, z-index={best.get('zIndex')}, "
+            f"color={best.get('color')})"
+        )
+        logger.debug(f"auth: prompt text {best['text']!r}")
+        return best["num"]
 
     async def _captcha_click_tiles(
         self, page: Page, matches: list[dict[str, Any]]

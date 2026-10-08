@@ -65,6 +65,16 @@ applicant:
     # bank_statement: "docs/bank.pdf"
     # travel_insurance: "docs/insurance.pdf"
 
+openai:
+  # Used to read the CAPTCHA tile digits with GPT-4o vision.
+  # Get a key from https://platform.openai.com/api-keys
+  # Leave blank to disable automatic solving — the bot then pauses and asks for
+  # a manual solve over Telegram instead.
+  api_key: ""
+  model: "gpt-4o"
+  # Seconds to wait for a vision reply before giving up on an attempt.
+  timeout: 45
+
 telegram:
   # Create a bot with @BotFather and paste the token here.
   token: ""

@@ -9,4 +9,5 @@ __all__ = [
     "otp",
     "state",
     "utils",
+    "vision",
 ]
