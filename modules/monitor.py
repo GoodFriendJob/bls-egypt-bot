@@ -55,6 +55,7 @@ class Monitor:
         self.network_error_wait = float(retry.get("network_error_wait", 60))
 
         self._consecutive_errors = 0
+        self._last_pause_reason: str | None = None
 
     # ------------------------------------------------------------------ #
     # Loop
@@ -233,8 +234,23 @@ class Monitor:
         await utils.interruptible_sleep(2, self.state, step=0.5)
 
     async def _await_manual_resume(self) -> None:
+        """Hold until the user sends /resume (or presses Start on the dashboard).
+
+        Must always consume real time before returning. When Telegram is not
+        configured ``wait_for_resume`` returns False instantly, and the caller
+        re-enters this method immediately — without the sleep below that becomes
+        a 100% CPU busy-loop that also floods the log.
+        """
         reason = self.state.pause_reason or "manual step"
-        logger.info(f"monitor: paused — {reason}")
+        if reason != self._last_pause_reason:
+            logger.info(f"monitor: paused — {reason}")
+            self._last_pause_reason = reason
+
         resumed = await self.notifier.wait_for_resume(timeout=60)
-        if not resumed and self.state.paused:
-            logger.debug("monitor: still waiting for /resume")
+        if resumed or not self.state.paused:
+            self._last_pause_reason = None
+            return
+
+        logger.debug("monitor: still waiting for /resume")
+        # Guarantees forward progress even when wait_for_resume cannot block.
+        await utils.interruptible_sleep(15, self.state)

@@ -16,7 +16,11 @@
       "Bash(./.venv/Scripts/python.exe -m compileall -q bot.py modules dashboard)",
       "Bash(./.venv/Scripts/python.exe bot.py --headful --once)",
       "Bash(./.venv/Scripts/python.exe -m pip index versions playwright-stealth)",
-      "Bash(./.venv/Scripts/python.exe -m pip install -q \"playwright-stealth==2.0.3\")"
+      "Bash(./.venv/Scripts/python.exe -m pip install -q \"playwright-stealth==2.0.3\")",
+      "Bash(cd /d \"e:\\\\Work\\\\bls-egypt-bot\")",
+      "Bash(cmd //c \"stop.bat < nul\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(./.venv/Scripts/python.exe bot.py)"
     ]
   }
 }

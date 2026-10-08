@@ -88,9 +88,20 @@ class BotState:
             return self._pause_reason
 
     def request_start(self) -> None:
+        """Start (or resume) monitoring.
+
+        Also clears a manual pause: otherwise a bot paused for a manual step
+        could never be recovered from the dashboard, only via Telegram /resume —
+        and that is unreachable when Telegram is not configured.
+        """
         with self._lock:
             self._running = True
             self._stop_requested = False
+            was_paused = self._paused
+            self._paused = False
+            self._pause_reason = None
+        if was_paused:
+            self.log_event("control", "manual pause cleared by start", status="ok")
         self.log_event("control", "monitoring start requested", status="ok")
 
     def request_pause(self) -> None:
