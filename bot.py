@@ -47,9 +47,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "visa_type": "Short Stay / Tourist",
         "location_labels": {"cairo": "Cairo", "alexandria": "Alexandria"},
         "paths": {
-            "login": "/",
-            "dashboard": "/account",
-            "appointment": "/appointment/newappointment",
+            # CONFIRMED paths. There is no /account page on this portal.
+            "login": "/Global/account/login",
+            "dashboard": "/Global/bls/visatypeverification",
+            "appointment": "/Global/bls/appointment",  # TODO: confirm
         },
     },
     "applicant": {"documents": {}},

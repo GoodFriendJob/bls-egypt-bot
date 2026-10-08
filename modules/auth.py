@@ -45,16 +45,12 @@ SESSION_FILE = Path("session/cookies.json")
 # The real email box is an input[type="text"] whose div.mb-3 wrapper is display:block.
 EMAIL_INPUT_TYPE = "text"
 
-# TODO(unconfirmed — needs live portal inspection): the password page has not been
-# inspected. CLAUDE.md expects the same honeypot pattern as the email step, so the
-# same div.mb-3 / display:block discriminator should apply — confirm before
-# trusting it, and answer:
-#   * Is the real box input[type="password"] or input[type="text"]?
-#   * Are decoy password fields present, and do they also sit in div.mb-3?
-#   * Is the wrapper still div.mb-3 on this page, or a different class?
-#   * Does the step-1 email field persist, or is it replaced?
-#   * Is there a distinct submit button id (step 1 uses #btnVerify)?
-# Until then both input types are probed through find_real_input(), password first.
+# CONFIRMED from live runs: the password page repeats the email page's honeypot
+# pattern exactly — 10 inputs, only one real, and its index randomises per load
+# (observed at index 8 on one run and index 4 on the next). The real box IS
+# input[type="password"] and its parent div.mb-3 is the only one with
+# display:block, so find_real_input() resolves it directly.
+# The "text" entry stays as a fallback in case BLS swaps the input type.
 PASSWORD_INPUT_TYPES = ("password", "text")
 
 VERIFY_BUTTON_SELECTOR = "#btnVerify"  # CONFIRMED: stable id
@@ -62,6 +58,10 @@ VERIFY_BUTTON_TEXTS = ("verify", "continue", "next", "submit", "proceed", "تح�
 LOGIN_BUTTON_TEXTS = ("login", "log in", "sign in", "submit", "دخول", "تسجيل")
 COOKIE_ACCEPT_TEXTS = ("accept", "agree", "got it", "ok", "موافق")
 LOGGED_IN_MARKERS = ("logout", "log out", "sign out", "my account", "تسجيل الخروج")
+
+# CONFIRMED: a successful login lands on /Global/bls/visatypeverification.
+# ("/account" does not exist on this portal at all - it 404s.)
+LOGGED_IN_URL_HINTS = ("visatypeverification", "/global/bls/")
 
 # CONFIRMED: the login form POSTs here. The hidden fields
 # (__RequestVerificationToken, ResponseData, ReturnUrl, Id) ride along with the
@@ -481,7 +481,15 @@ class BLSAuth:
     # Login flow
     # ------------------------------------------------------------------ #
     async def _perform_login(self, page: Page) -> bool:
-        """Two-step login: email + Verify, then password + submit."""
+        """Two-step login, confirmed against the live portal:
+
+        1. Email page -> Verify
+        2. Password page, which also carries the CAPTCHA
+        3. CAPTCHA solved + submitted -> redirect to /Global/bls/visatypeverification
+
+        There is no /account or /dashboard page on this portal — probing for one
+        returns 404. Success is therefore judged by the landing URL.
+        """
         await self._goto(page, self._path("login"))
         await utils.human_delay(self.config)
         await self._dismiss_cookie_banner(page)
@@ -499,7 +507,6 @@ class BLSAuth:
         await utils.human_delay(self.config)
         await self._click_verify(page)
         await self._settle(page)
-        await self._check_for_captcha(page)
 
         # --- Step 2: password ---------------------------------------------
         password = (self.config.get("bls", {}) or {}).get("password", "")
@@ -509,26 +516,67 @@ class BLSAuth:
         if not await self._fill_password(page, password):
             await utils.screenshot(page, "login-no-password-field")
             raise LoginError("password field did not appear after the email step")
-        self._log("password submitted", status="ok")
+        self._log("password filled", status="ok")
+
+        # Evidence of the page as filled, before anything can navigate away.
+        logger.info(f"auth: password-page URL is {page.url}")
+        await utils.screenshot(page, "password-page-filled")
+        await utils.dump_page_html(page, "password-page-filled")
+
+        # --- CAPTCHA lives on the password page ----------------------------
+        # Solve it BEFORE submitting. An unsolved captcha blocks the POST, which
+        # is exactly what earlier runs showed: no /Global/account/LoginSubmit
+        # response within 20s after clicking Login.
+        logger.info("auth: checking for a CAPTCHA on the password page")
+        if not await self.solve_captcha(page):
+            await self._check_for_captcha(page)  # manual /resume fallback
 
         await utils.human_delay(self.config)
         await self._submit_login(page)
         await self._settle(page)
+        self._log("password submitted", status="ok")
 
-        # CAPTCHA FIRST. The challenge renders instead of the account page, so
-        # checking "am I logged in?" before handling it always fails and reports a
-        # misleading reason. solve_captcha() is a no-op when nothing is on screen.
-        logger.info("auth: checking for a CAPTCHA before the login check")
-        if not await self.solve_captcha(page):
-            # Unsolved (or markup we do not recognise) -> hand over to a human.
-            await self._check_for_captcha(page)
+        logger.info(f"auth: post-submit URL is {page.url}")
+        await utils.screenshot(page, "after-password-submit")
+        await utils.dump_page_html(page, "after-password-submit")
 
-        # TODO(unconfirmed): the live portal may insert an email/SMS OTP step
-        # right here, before the account page loads. If that is observed, call
-        # modules.otp.handle_otp(page, ...) at this point and only then evaluate
-        # _is_logged_in(). Until it is confirmed, an OTP prompt simply makes the
-        # login-detection check fail and the caller retries.
-        return await self._is_logged_in(page)
+        # A rejected captcha re-renders the challenge instead of redirecting.
+        if await self._captcha_present(page):
+            logger.info("auth: CAPTCHA still present after submit — solving again")
+            if not await self.solve_captcha(page):
+                await self._check_for_captcha(page)
+            await utils.human_delay(self.config)
+            await self._submit_login(page)
+            await self._settle(page)
+            logger.info(f"auth: URL after second submit is {page.url}")
+            await utils.screenshot(page, "after-second-submit")
+
+        # Success is the redirect to /Global/bls/... — wait for it explicitly.
+        landed = await self._wait_for_login_landing(page)
+        logger.info(f"auth: landing URL {page.url} (matched={landed})")
+
+        # TODO(unconfirmed): the portal may insert an email/SMS OTP step here.
+        # If that is observed, call modules.otp.handle_otp(page, ...) before the
+        # check below.
+        return await self._is_logged_in(page, navigate=False)
+
+    async def _wait_for_login_landing(self, page: Page, timeout_ms: int = 30000) -> bool:
+        """Wait for the confirmed post-login redirect to /Global/bls/..."""
+        try:
+            await page.wait_for_url(
+                lambda url: any(h in (url or "").lower() for h in LOGGED_IN_URL_HINTS),
+                timeout=timeout_ms,
+            )
+            return True
+        except PlaywrightTimeout:
+            logger.warning(
+                f"auth: no redirect to {LOGGED_IN_URL_HINTS} within "
+                f"{timeout_ms // 1000}s — still at {page.url}"
+            )
+            return False
+        except Exception as exc:
+            logger.debug(f"auth: landing wait failed: {exc}")
+            return False
 
     async def _fill_email(self, page: Page, email: str) -> bool:
         """Fill the one real email field.
@@ -656,9 +704,14 @@ class BLSAuth:
                 self._log(f"login POST returned HTTP {response.status}", status="error")
             return response.status < 400
         except PlaywrightTimeout:
-            # Not fatal: some flows submit via XHR to another path, or the page was
-            # already navigating. _is_logged_in() is the real verdict.
-            logger.debug(f"auth: no {LOGIN_SUBMIT_PATH} response observed")
+            # Not fatal, but highly diagnostic: if the POST never fired, something
+            # on the page blocked submission — a captcha being the prime suspect.
+            # Logged at WARNING so it is visible in the run transcript.
+            logger.warning(
+                f"auth: no {LOGIN_SUBMIT_PATH} response within 20s — the login "
+                "POST does not appear to have fired (a captcha or validation "
+                "error may be blocking the form)"
+            )
             return False
         except Exception as exc:
             logger.debug(f"auth: login submit observation failed: {exc}")
@@ -1071,41 +1124,66 @@ class BLSAuth:
     # ------------------------------------------------------------------ #
     # Session detection + persistence
     # ------------------------------------------------------------------ #
-    async def _is_logged_in(self, page: Page) -> bool:
-        """Heuristic session check: load the account page and read the result.
+    async def _is_logged_in(self, page: Page, *, navigate: bool = True) -> bool:
+        """Decide whether the current session is authenticated.
 
-        TODO(unconfirmed — needs live portal inspection): the post-login landing
-        page has not been seen yet, so ``bls.paths.dashboard`` is a guess and this
-        check leans on generic "logout"/"my account" text. Once logged in, capture
-        the real account URL and a stable element that only exists in an
-        authenticated session, then replace the phrase heuristics below.
+        CONFIRMED: a logged-in session lives under ``/Global/bls/`` and lands on
+        ``/Global/bls/visatypeverification`` (the login form's hidden ``ReturnUrl``
+        points there). There is **no** ``/account`` or ``/dashboard`` page on this
+        portal — probing for one returns 404, which earlier caused a successful
+        login to be reported as a failure.
+
+        ``navigate=False`` judges the page as it stands. Use it straight after a
+        login so the post-submit page (which may still hold a captcha) is not
+        navigated away from before it has been inspected.
         """
-        try:
-            await self._goto(page, self._path("dashboard"))
-        except PortalUnreachableError:
-            raise  # the portal is blocked — do not fall through to a login attempt
-        except Exception as exc:
-            logger.debug(f"auth: dashboard navigation failed: {exc}")
+        if navigate:
+            try:
+                await self._goto(page, self._path("dashboard"))
+            except PortalUnreachableError:
+                raise  # blocked at the edge — do not fall through to a login
+            except Exception as exc:
+                logger.debug(f"auth: session probe navigation failed: {exc}")
+                return False
+            await utils.human_delay(self.config, scale=0.5)
+
+        url = (page.url or "").lower()
+
+        # --- hard negatives -------------------------------------------------
+        if url.startswith("chrome-error://") or "chromewebdata" in url:
+            logger.info(f"auth: not logged in — browser error page ({url})")
             return False
 
-        await utils.human_delay(self.config, scale=0.5)
-        url = (page.url or "").lower()
-        text = await utils.page_text(page)
+        if any(hint in url for hint in ("/account/login", "signin", "/login")):
+            logger.info(f"auth: not logged in — still on the login page ({url})")
+            return False
 
-        if utils.contains_any(text, LOGGED_IN_MARKERS):
+        if await self._captcha_present(page):
+            logger.info("auth: not logged in — a CAPTCHA is still on screen")
+            return False
+
+        # --- confirmed positive --------------------------------------------
+        if any(hint in url for hint in LOGGED_IN_URL_HINTS):
+            logger.success(f"auth: logged in — landed on {page.url}")
             return True
 
-        # Still on a login screen, or bounced back to one.
-        if any(hint in url for hint in ("login", "signin", "account/login")):
-            return False
+        # --- secondary signals ----------------------------------------------
+        text = await utils.page_text(page)
+        if utils.contains_any(text, LOGGED_IN_MARKERS):
+            logger.info(f"auth: logged in — session marker found at {page.url}")
+            return True
+
         if await utils.first_visible(page, 'input[type="password"]') is not None:
+            logger.info(f"auth: not logged in — a password field is visible ({url})")
             return False
         if utils.contains_any(text, ("sign in", "log in", "تسجيل الدخول")):
+            logger.info(f"auth: not logged in — sign-in text present ({url})")
             return False
 
         # Unexpected shape — capture it rather than guessing.
-        logger.debug(f"auth: inconclusive session check at {page.url}")
+        logger.warning(f"auth: session check inconclusive at {page.url}")
         await utils.screenshot(page, "session-check-inconclusive")
+        await utils.dump_page_html(page, "session-check-inconclusive")
         return False
 
     def _has_saved_session(self) -> bool:
@@ -1163,7 +1241,29 @@ class BLSAuth:
         "could not locate the real email field among the honeypots".
         """
         logger.debug(f"auth: navigating to {url}")
-        response = await page.goto(url, wait_until="domcontentloaded")
+
+        # The portal fires a client-side redirect on first load, which aborts the
+        # initial navigation with "interrupted by another navigation to
+        # chrome-error://chromewebdata". That is transient - retry once rather
+        # than burning a whole login attempt on it.
+        response = None
+        for nav_attempt in (1, 2):
+            try:
+                response = await page.goto(url, wait_until="domcontentloaded")
+                break
+            except Exception as exc:
+                message = str(exc)
+                transient = (
+                    "interrupted by another navigation" in message
+                    or "chromewebdata" in message
+                    or "ERR_ABORTED" in message
+                )
+                if not transient or nav_attempt == 2:
+                    raise
+                logger.warning(
+                    f"auth: navigation to {url} was interrupted — retrying once"
+                )
+                await utils.human_delay(self.config)
 
         if response is not None and response.status >= 400:
             server = ""

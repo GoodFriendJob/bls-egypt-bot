@@ -34,11 +34,12 @@ bls:
   paths:
     # CONFIRMED: the first login page.
     login: "/Global/account/login"
-    # NOT yet confirmed — placeholders. Capture the real URLs after a successful
-    # login. (The login form POSTs to /Global/account/LoginSubmit, so the
-    # authenticated routes are likely also under /Global/.)
-    dashboard: "/account"
-    appointment: "/appointment/newappointment"
+    # CONFIRMED: where a successful login lands (the login form's hidden
+    # ReturnUrl points here). This portal has NO /account or /dashboard page —
+    # requesting one returns 404.
+    dashboard: "/Global/bls/visatypeverification"
+    # NOT yet confirmed — placeholder. Capture the real URL from the booking flow.
+    appointment: "/Global/bls/appointment"
 
 applicant:
   full_name: ""
