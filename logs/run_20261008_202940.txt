@@ -1,0 +1,119 @@
+BLS appointment bot - run transcript
+started : 2026-10-08T20:29:40
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+20:29:40 | INFO    | __main__ - ==============================================================
+20:29:40 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+20:29:40 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261008_202940.txt
+20:29:40 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+20:29:40 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+20:29:40 | INFO    | __main__ - ==============================================================
+20:29:40 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+20:29:40 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+20:29:40 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+20:29:40 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+20:29:41 | INFO    | modules.notifier - notifier: telegram listener started
+20:29:41 | INFO    | __main__ - single-cycle mode (--once)
+20:29:42 | INFO    | modules.auth - auth: browser launched
+20:29:43 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+20:29:43 | WARNING | modules.auth - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+20:29:44 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-202943_login-failed-attempt1.png
+20:29:49 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+20:29:55 | INFO    | modules.utils - find_real_input: real 'text' field is index 8 of 10 (parent div.mb-3 display:block)
+20:29:58 | INFO    | modules.auth - auth: email filled
+20:29:58 | INFO    | modules.auth - auth: email submitted
+20:30:00 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+20:30:01 | INFO    | modules.utils - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+20:30:03 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+20:30:03 | INFO    | modules.auth - auth: password submitted
+20:30:25 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-203024_login-failed-attempt2.png
+20:30:25 | INFO    | modules.auth - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+20:30:25 | ERROR   | __main__ - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+
+  File "D:\bls-egypt-bot\bot.py", line 501, in <module>
+    sys.exit(main())
+    │   │    └ <function main at 0x000002AE62BEAD40>
+    │   └ <built-in function exit>
+    └ <module 'sys' (built-in)>
+
+  File "D:\bls-egypt-bot\bot.py", line 388, in main
+    return _main_inner(args, run_log)
+           │           │     └ WindowsPath('D:/bls-egypt-bot/logs/run_20261008_202940.txt')
+           │           └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_config_warnings=False)
+           └ <function _main_inner at 0x000002AE62BEADE0>
+
+  File "D:\bls-egypt-bot\bot.py", line 427, in _main_inner
+    return asyncio.run(_bootstrap())
+           │       │   └ <function _main_inner.<locals>._bootstrap at 0x000002AE62BEB920>
+           │       └ <function run at 0x000002AE61669080>
+           └ <module 'asyncio' from 'C:\\Users\\Beka\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object _main_inner.<locals>._bootstrap at 0x000002AE62C4C9A0>
+           │      └ <function Runner.run at 0x000002AE617016C0>
+           └ <asyncio.runners.Runner object at 0x000002AE62C26590>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<_main_inner.<locals>._bootstrap() running at D:\bls-egypt-bot\bot.py:424> cb=[_run_until_co...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000002AE616FF1A0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000002AE62C26590>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000002AE617EB4C0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000002AE61700F40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000002AE61646340>
+    └ <Handle <TaskStepMethWrapper object at 0x000002AE63295630>()>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <TaskStepMethWrapper object at 0x000002AE63295630>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <TaskStepMethWrapper object at 0x000002AE63295630>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <TaskStepMethWrapper object at 0x000002AE63295630>()>
+
+  File "D:\bls-egypt-bot\bot.py", line 424, in _bootstrap
+    return await _run_with_state(config, args, state)
+                 │               │       │     └ <modules.state.BotState object at 0x000002AE627FD4D0>
+                 │               │       └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_config_warnings=False)
+                 │               └ {'bls': {'url': 'https://egypt.blsspainglobal.com/', 'email': 'fadysawairas@gmail.com', 'password': 'Fady@Shady89', 'location...
+                 └ <function _run_with_state at 0x000002AE62BEAE80>
+
+> File "D:\bls-egypt-bot\bot.py", line 465, in _run_with_state
+    await monitor.run_once()
+          │       └ <function Monitor.run_once at 0x000002AE6254C9A0>
+          └ <modules.monitor.Monitor object at 0x000002AE62C88950>
+
+  File "D:\bls-egypt-bot\modules\monitor.py", line 94, in run_once
+    page = await self.auth.ensure_logged_in()
+                 │    │    └ <function BLSAuth.ensure_logged_in at 0x000002AE624D47C0>
+                 │    └ <modules.auth.BLSAuth object at 0x000002AE6310F190>
+                 └ <modules.monitor.Monitor object at 0x000002AE62C88950>
+
+  File "D:\bls-egypt-bot\modules\auth.py", line 436, in ensure_logged_in
+    raise LoginError(message)
+          │          └ 'Login failed after 2 attempt(s): login did not reach an authenticated page'
+          └ <class 'modules.auth.LoginError'>
+
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+20:30:26 | INFO    | modules.auth - auth: browser closed
+20:30:26 | INFO    | modules.notifier - notifier: telegram listener stopped
+======================================================================
+finished: 2026-10-08T20:30:26

@@ -1,0 +1,366 @@
+2026-10-08 19:19:50.103 | INFO     | __main__:main:292 - ==============================================================
+2026-10-08 19:19:50.103 | INFO     | __main__:main:293 - BLS Spain Egypt appointment bot starting
+2026-10-08 19:19:50.103 | INFO     | __main__:main:294 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 19:19:50.104 | INFO     | __main__:main:295 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 19:19:50.104 | INFO     | __main__:main:296 - ==============================================================
+2026-10-08 19:19:50.104 | WARNING  | __main__:main:300 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 19:19:50.105 | WARNING  | __main__:main:300 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 19:19:50.105 | WARNING  | __main__:main:300 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 19:19:50.331 | INFO     | __main__:start_dashboard:246 - dashboard on http://127.0.0.1:5000
+2026-10-08 19:19:51.326 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 19:19:51.603 | INFO     | __main__:_run_with_state:353 - single-cycle mode (--once)
+2026-10-08 19:19:53.354 | INFO     | modules.auth:_log:654 - auth: browser launched
+2026-10-08 19:19:53.959 | INFO     | modules.auth:ensure_logged_in:257 - auth: logging in (attempt 1/2)
+2026-10-08 19:19:54.058 | WARNING  | modules.auth:ensure_logged_in:277 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 19:19:54.910 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-191954_login-failed-attempt1.png
+2026-10-08 19:19:59.928 | INFO     | modules.auth:ensure_logged_in:257 - auth: logging in (attempt 2/2)
+2026-10-08 19:20:06.861 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 2 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:20:09.945 | INFO     | modules.auth:_fill_email:374 - auth: email filled
+2026-10-08 19:20:09.946 | INFO     | modules.auth:_log:654 - auth: email submitted
+2026-10-08 19:20:12.175 | INFO     | modules.auth:_click_verify:428 - auth: clicked Verify via #btnVerify
+2026-10-08 19:20:13.442 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:20:15.321 | INFO     | modules.auth:_fill_password:401 - auth: password filled (real input[type='password'])
+2026-10-08 19:20:15.322 | INFO     | modules.auth:_log:654 - auth: password submitted
+2026-10-08 19:20:37.950 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-192037_login-failed-attempt2.png
+2026-10-08 19:20:37.951 | INFO     | modules.auth:_log:654 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:20:38.297 | ERROR    | __main__:_run_with_state:370 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 390, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 316, in main
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 313, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 354, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 93, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 289, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:20:38.859 | INFO     | modules.auth:stop:214 - auth: browser closed
+2026-10-08 19:20:39.311 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 19:20:39.312 | INFO     | __main__:_run_with_state:385 - shutdown complete
+2026-10-08 19:30:23.757 | INFO     | __main__:main:292 - ==============================================================
+2026-10-08 19:30:23.757 | INFO     | __main__:main:293 - BLS Spain Egypt appointment bot starting
+2026-10-08 19:30:23.757 | INFO     | __main__:main:294 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 19:30:23.758 | INFO     | __main__:main:295 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 19:30:23.758 | INFO     | __main__:main:296 - ==============================================================
+2026-10-08 19:30:23.759 | WARNING  | __main__:main:300 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 19:30:23.759 | WARNING  | __main__:main:300 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 19:30:23.759 | WARNING  | __main__:main:300 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 19:30:23.887 | INFO     | __main__:start_dashboard:246 - dashboard on http://127.0.0.1:5000
+2026-10-08 19:30:24.847 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 19:30:25.055 | INFO     | __main__:_run_with_state:353 - single-cycle mode (--once)
+2026-10-08 19:30:26.099 | INFO     | modules.auth:_log:654 - auth: browser launched
+2026-10-08 19:30:26.907 | INFO     | modules.auth:ensure_logged_in:257 - auth: logging in (attempt 1/2)
+2026-10-08 19:30:26.994 | WARNING  | modules.auth:ensure_logged_in:277 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 19:30:28.198 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-193026_login-failed-attempt1.png
+2026-10-08 19:30:33.223 | INFO     | modules.auth:ensure_logged_in:257 - auth: logging in (attempt 2/2)
+2026-10-08 19:30:39.632 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 2 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:30:42.774 | INFO     | modules.auth:_fill_email:374 - auth: email filled
+2026-10-08 19:30:42.775 | INFO     | modules.auth:_log:654 - auth: email submitted
+2026-10-08 19:30:45.094 | INFO     | modules.auth:_click_verify:428 - auth: clicked Verify via #btnVerify
+2026-10-08 19:30:46.572 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 2 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:30:48.366 | INFO     | modules.auth:_fill_password:401 - auth: password filled (real input[type='password'])
+2026-10-08 19:30:48.367 | INFO     | modules.auth:_log:654 - auth: password submitted
+2026-10-08 19:31:10.388 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-193110_login-failed-attempt2.png
+2026-10-08 19:31:10.388 | INFO     | modules.auth:_log:654 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:31:10.742 | ERROR    | __main__:_run_with_state:370 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 390, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 316, in main
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 313, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 354, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 93, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 289, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:31:11.282 | INFO     | modules.auth:stop:214 - auth: browser closed
+2026-10-08 19:31:11.700 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 19:31:11.700 | INFO     | __main__:_run_with_state:385 - shutdown complete
+2026-10-08 19:57:52.324 | INFO     | __main__:main:298 - ==============================================================
+2026-10-08 19:57:52.324 | INFO     | __main__:main:299 - BLS Spain Egypt appointment bot starting
+2026-10-08 19:57:52.324 | INFO     | __main__:main:300 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 19:57:52.324 | INFO     | __main__:main:301 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 19:57:52.325 | INFO     | __main__:main:302 - ==============================================================
+2026-10-08 19:57:52.325 | WARNING  | __main__:main:306 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 19:57:52.325 | WARNING  | __main__:main:306 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 19:57:52.326 | WARNING  | __main__:main:306 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 19:57:52.468 | INFO     | __main__:start_dashboard:246 - dashboard on http://127.0.0.1:5000
+2026-10-08 19:57:53.394 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 19:57:53.602 | INFO     | __main__:_run_with_state:359 - single-cycle mode (--once)
+2026-10-08 19:57:54.610 | INFO     | modules.auth:_log:863 - auth: browser launched
+2026-10-08 19:57:55.417 | INFO     | modules.auth:ensure_logged_in:277 - auth: logging in (attempt 1/2)
+2026-10-08 19:57:55.509 | WARNING  | modules.auth:ensure_logged_in:297 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 19:57:56.417 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-195755_login-failed-attempt1.png
+2026-10-08 19:58:01.431 | INFO     | modules.auth:ensure_logged_in:277 - auth: logging in (attempt 2/2)
+2026-10-08 19:58:06.112 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 6 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:58:10.065 | INFO     | modules.auth:_fill_email:398 - auth: email filled
+2026-10-08 19:58:10.066 | INFO     | modules.auth:_log:863 - auth: email submitted
+2026-10-08 19:58:11.031 | INFO     | modules.auth:_click_verify:452 - auth: clicked Verify via #btnVerify
+2026-10-08 19:58:12.171 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-08 19:58:13.736 | INFO     | modules.auth:_fill_password:425 - auth: password filled (real input[type='password'])
+2026-10-08 19:58:13.737 | INFO     | modules.auth:_log:863 - auth: password submitted
+2026-10-08 19:58:35.537 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-195835_login-failed-attempt2.png
+2026-10-08 19:58:35.537 | INFO     | modules.auth:_log:863 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:58:35.902 | ERROR    | __main__:_run_with_state:376 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 396, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 322, in main
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 319, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 360, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 94, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 309, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 19:58:36.438 | INFO     | modules.auth:stop:234 - auth: browser closed
+2026-10-08 19:58:36.936 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 19:58:36.937 | INFO     | __main__:_run_with_state:391 - shutdown complete
+2026-10-08 20:22:10.566 | INFO     | __main__:main:298 - ==============================================================
+2026-10-08 20:22:10.567 | INFO     | __main__:main:299 - BLS Spain Egypt appointment bot starting
+2026-10-08 20:22:10.567 | INFO     | __main__:main:300 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 20:22:10.567 | INFO     | __main__:main:301 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 20:22:10.568 | INFO     | __main__:main:302 - ==============================================================
+2026-10-08 20:22:10.568 | WARNING  | __main__:main:306 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 20:22:10.568 | WARNING  | __main__:main:306 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 20:22:10.569 | WARNING  | __main__:main:306 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 20:22:10.695 | INFO     | __main__:start_dashboard:246 - dashboard on http://127.0.0.1:5000
+2026-10-08 20:22:11.610 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 20:22:11.864 | INFO     | __main__:_run_with_state:359 - single-cycle mode (--once)
+2026-10-08 20:22:12.890 | INFO     | modules.auth:_log:1048 - auth: browser launched
+2026-10-08 20:22:13.706 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 1/2)
+2026-10-08 20:22:13.792 | WARNING  | modules.auth:ensure_logged_in:424 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 20:22:14.628 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-202213_login-failed-attempt1.png
+2026-10-08 20:22:19.639 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 2/2)
+2026-10-08 20:22:25.557 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:22:28.755 | INFO     | modules.auth:_fill_email:525 - auth: email filled
+2026-10-08 20:22:28.756 | INFO     | modules.auth:_log:1048 - auth: email submitted
+2026-10-08 20:22:29.796 | INFO     | modules.auth:_click_verify:579 - auth: clicked Verify via #btnVerify
+2026-10-08 20:22:30.911 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 2 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:22:32.449 | INFO     | modules.auth:_fill_password:552 - auth: password filled (real input[type='password'])
+2026-10-08 20:22:32.450 | INFO     | modules.auth:_log:1048 - auth: password submitted
+2026-10-08 20:22:55.135 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-202254_login-failed-attempt2.png
+2026-10-08 20:22:55.135 | INFO     | modules.auth:_log:1048 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:22:55.493 | ERROR    | __main__:_run_with_state:376 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 396, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 322, in main
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 319, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 360, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 94, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 436, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:22:56.052 | INFO     | modules.auth:stop:361 - auth: browser closed
+2026-10-08 20:22:56.498 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 20:22:56.499 | INFO     | __main__:_run_with_state:391 - shutdown complete
+2026-10-08 20:29:40.158 | INFO     | __main__:_main_inner:402 - ==============================================================
+2026-10-08 20:29:40.158 | INFO     | __main__:_main_inner:403 - BLS Spain Egypt appointment bot starting
+2026-10-08 20:29:40.158 | INFO     | __main__:_main_inner:404 - run transcript: D:\bls-egypt-bot\logs\run_20261008_202940.txt
+2026-10-08 20:29:40.159 | INFO     | __main__:_main_inner:405 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 20:29:40.159 | INFO     | __main__:_main_inner:406 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 20:29:40.159 | INFO     | __main__:_main_inner:407 - ==============================================================
+2026-10-08 20:29:40.159 | WARNING  | __main__:_main_inner:411 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 20:29:40.160 | WARNING  | __main__:_main_inner:411 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 20:29:40.160 | WARNING  | __main__:_main_inner:411 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 20:29:40.285 | INFO     | __main__:start_dashboard:338 - dashboard on http://127.0.0.1:5000
+2026-10-08 20:29:41.185 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 20:29:41.396 | INFO     | __main__:_run_with_state:464 - single-cycle mode (--once)
+2026-10-08 20:29:42.393 | INFO     | modules.auth:_log:1118 - auth: browser launched
+2026-10-08 20:29:43.194 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 1/2)
+2026-10-08 20:29:43.286 | WARNING  | modules.auth:ensure_logged_in:424 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 20:29:44.432 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-202943_login-failed-attempt1.png
+2026-10-08 20:29:49.446 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 2/2)
+2026-10-08 20:29:55.127 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 8 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:29:58.166 | INFO     | modules.auth:_fill_email:525 - auth: email filled
+2026-10-08 20:29:58.167 | INFO     | modules.auth:_log:1118 - auth: email submitted
+2026-10-08 20:30:00.046 | INFO     | modules.auth:_click_verify:579 - auth: clicked Verify via #btnVerify
+2026-10-08 20:30:01.581 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:30:03.256 | INFO     | modules.auth:_fill_password:552 - auth: password filled (real input[type='password'])
+2026-10-08 20:30:03.257 | INFO     | modules.auth:_log:1118 - auth: password submitted
+2026-10-08 20:30:25.198 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-203024_login-failed-attempt2.png
+2026-10-08 20:30:25.199 | INFO     | modules.auth:_log:1118 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:30:25.584 | ERROR    | __main__:_run_with_state:481 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 501, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 388, in main
+    return _main_inner(args, run_log)
+  File "D:\bls-egypt-bot\bot.py", line 427, in _main_inner
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 424, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 465, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 94, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 436, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:30:26.147 | INFO     | modules.auth:stop:361 - auth: browser closed
+2026-10-08 20:30:26.581 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 20:30:26.582 | INFO     | __main__:_run_with_state:496 - shutdown complete
+2026-10-08 20:35:49.310 | INFO     | __main__:_main_inner:402 - ==============================================================
+2026-10-08 20:35:49.311 | INFO     | __main__:_main_inner:403 - BLS Spain Egypt appointment bot starting
+2026-10-08 20:35:49.311 | INFO     | __main__:_main_inner:404 - run transcript: D:\bls-egypt-bot\logs\run_20261008_203549.txt
+2026-10-08 20:35:49.311 | INFO     | __main__:_main_inner:405 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-08 20:35:49.312 | INFO     | __main__:_main_inner:406 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-08 20:35:49.312 | INFO     | __main__:_main_inner:407 - ==============================================================
+2026-10-08 20:35:49.312 | WARNING  | __main__:_main_inner:411 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-08 20:35:49.312 | WARNING  | __main__:_main_inner:411 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-08 20:35:49.313 | WARNING  | __main__:_main_inner:411 - config: document 'photo' not found at docs/photo.jpg
+2026-10-08 20:35:49.434 | INFO     | __main__:start_dashboard:338 - dashboard on http://127.0.0.1:5000
+2026-10-08 20:35:50.327 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-08 20:35:50.603 | INFO     | __main__:_run_with_state:464 - single-cycle mode (--once)
+2026-10-08 20:35:51.603 | INFO     | modules.auth:_log:1118 - auth: browser launched
+2026-10-08 20:35:52.414 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 1/2)
+2026-10-08 20:35:52.511 | WARNING  | modules.auth:ensure_logged_in:424 - auth: login attempt failed: Page.goto: Navigation to "https://egypt.blsspainglobal.com/Global/account/login" is interrupted by another navigation to "chrome-error://chromewebdata/"
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login", waiting until "domcontentloaded"
+
+2026-10-08 20:35:53.291 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-203552_login-failed-attempt1.png
+2026-10-08 20:35:58.298 | INFO     | modules.auth:ensure_logged_in:404 - auth: logging in (attempt 2/2)
+2026-10-08 20:36:03.688 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:36:06.834 | INFO     | modules.auth:_fill_email:525 - auth: email filled
+2026-10-08 20:36:06.835 | INFO     | modules.auth:_log:1118 - auth: email submitted
+2026-10-08 20:36:08.167 | INFO     | modules.auth:_click_verify:579 - auth: clicked Verify via #btnVerify
+2026-10-08 20:36:09.481 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 8 of 10 (parent div.mb-3 display:block)
+2026-10-08 20:36:11.256 | INFO     | modules.auth:_fill_password:552 - auth: password filled (real input[type='password'])
+2026-10-08 20:36:11.257 | INFO     | modules.auth:_log:1118 - auth: password submitted
+2026-10-08 20:36:33.055 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261008-203632_login-failed-attempt2.png
+2026-10-08 20:36:33.056 | INFO     | modules.auth:_log:1118 - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:36:33.448 | ERROR    | __main__:_run_with_state:481 - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 501, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 388, in main
+    return _main_inner(args, run_log)
+  File "D:\bls-egypt-bot\bot.py", line 427, in _main_inner
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 424, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 465, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 94, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 436, in ensure_logged_in
+    raise LoginError(message)
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+2026-10-08 20:36:34.004 | INFO     | modules.auth:stop:361 - auth: browser closed
+2026-10-08 20:36:34.485 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-08 20:36:34.486 | INFO     | __main__:_run_with_state:496 - shutdown complete
