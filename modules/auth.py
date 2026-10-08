@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,25 @@ LOGGED_IN_MARKERS = ("logout", "log out", "sign out", "my account", "تسجيل 
 LOGIN_SUBMIT_PATH = "/Global/account/LoginSubmit"
 
 BUTTON_TIMEOUT_MS = 5000
+
+# --------------------------------------------------------------------------- #
+# CAPTCHA (DOM-based — no image recognition needed)
+#
+# Confirmed structure:
+#   * Each box is  div.col-12.box-label  plus random extra classes.
+#   * A box's innerText is "Please select all boxes with number XXX", where XXX
+#     is the number displayed in that box.
+#   * Several grids are stacked — 38 boxes in the DOM, only 9 visible at a time.
+#   * The page prompt uses the SAME sentence, carrying the target number.
+#
+# Because prompt and boxes share identical wording, the prompt is located by
+# scanning leaf elements that are NOT inside a box (see _captcha_target).
+# --------------------------------------------------------------------------- #
+CAPTCHA_BOX_SELECTOR = "div.col-12.box-label"
+CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
+CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]')
+CAPTCHA_MAX_ATTEMPTS = 3
+CAPTCHA_CLICK_DELAY = 0.5
 
 # Candidate containers for a captcha / challenge widget, dumped verbatim when one
 # is detected so the markup can be analysed without re-triggering a login.
@@ -330,7 +350,11 @@ class BLSAuth:
         await utils.human_delay(self.config)
         await self._submit_login(page)
         await self._settle(page)
-        await self._check_for_captcha(page)
+
+        # The BLS captcha is DOM-based, so try to solve it automatically first.
+        # Only if that fails do we fall back to pausing for a human.
+        if not await self.solve_captcha(page):
+            await self._check_for_captcha(page)
 
         # TODO(unconfirmed): the live portal may insert an email/SMS OTP step
         # right here, before the account page loads. If that is observed, call
@@ -472,6 +496,191 @@ class BLSAuth:
         except Exception as exc:
             logger.debug(f"auth: login submit observation failed: {exc}")
             return False
+
+    # ------------------------------------------------------------------ #
+    # CAPTCHA
+    # ------------------------------------------------------------------ #
+    async def solve_captcha(self, page: Page) -> bool:
+        """Solve the DOM-based BLS captcha.
+
+        Returns True when there is no captcha, or when one was solved. Returns
+        False when a captcha is present but could not be solved — the caller then
+        falls back to pausing for a human.
+
+        Strategy: read the target number from the prompt, click every *visible*
+        box whose own number equals it, submit, and verify the captcha is gone.
+        Up to ``CAPTCHA_MAX_ATTEMPTS`` rounds, re-reading the target each time
+        because a failed attempt reloads the grid with a new number.
+        """
+        if not await self._captcha_present(page):
+            return True
+
+        logger.info("auth: captcha detected — attempting DOM-based solve")
+        self._log("captcha detected — solving", status="warn")
+        await utils.screenshot(page, "captcha-before")
+
+        for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
+            target = await self._captcha_target(page)
+            if target is None:
+                logger.warning("auth: captcha present but no target number in the prompt")
+                await utils.screenshot(page, f"captcha-no-target-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-no-target-attempt{attempt}")
+                return False
+
+            matches, total_visible = await self._captcha_matching_boxes(page, target)
+            logger.info(
+                f"auth: captcha attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS} — "
+                f"target={target}, {len(matches)} of {total_visible} visible box(es) match"
+            )
+
+            if not matches:
+                logger.warning(f"auth: no visible box carries number {target}")
+                await utils.screenshot(page, f"captcha-no-match-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-no-match-attempt{attempt}")
+                return False
+
+            for index, box in enumerate(matches, start=1):
+                try:
+                    await box.click()
+                    logger.debug(f"auth: clicked captcha box {index}/{len(matches)}")
+                except Exception as exc:
+                    logger.warning(f"auth: could not click captcha box {index}: {exc}")
+                await asyncio.sleep(CAPTCHA_CLICK_DELAY)
+
+            if not await self._click_captcha_submit(page):
+                logger.warning("auth: captcha Submit button not found")
+                await utils.screenshot(page, f"captcha-no-submit-attempt{attempt}")
+                return False
+
+            await self._settle(page)
+
+            if not await self._captcha_present(page):
+                logger.success(f"auth: captcha solved on attempt {attempt}")
+                self._log(f"captcha solved (attempt {attempt})", status="ok")
+                await utils.screenshot(page, "captcha-solved")
+                return True
+
+            logger.warning(
+                f"auth: captcha still present after attempt {attempt} — "
+                "selection was rejected, grid reloaded"
+            )
+            await utils.human_delay(self.config)
+
+        logger.error(f"auth: captcha not solved after {CAPTCHA_MAX_ATTEMPTS} attempts")
+        self._log(f"captcha unsolved after {CAPTCHA_MAX_ATTEMPTS} attempts", status="error")
+        await utils.screenshot(page, "captcha-failed")
+        await utils.dump_page_html(page, "captcha-failed")
+        return False
+
+    async def _captcha_present(self, page: Page) -> bool:
+        """True while at least one captcha box is visible on the page."""
+        try:
+            boxes = await page.query_selector_all(CAPTCHA_BOX_SELECTOR)
+        except Exception:
+            return False
+        for box in boxes:
+            if await utils.is_really_visible(box):
+                return True
+        return False
+
+    async def _captcha_target(self, page: Page) -> str | None:
+        """Extract the target number from the page prompt.
+
+        The prompt and the boxes use identical wording, so matching "the first
+        element containing the sentence" would return box 1, not the prompt.
+        Only leaf elements outside any box are considered.
+        """
+        try:
+            text = await page.evaluate(
+                """
+                (boxSelector) => {
+                  const isVisible = (el) => {
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 2 || r.height < 2) return false;
+                    let n = el;
+                    while (n && n.nodeType === 1) {
+                      const s = getComputedStyle(n);
+                      if (s.display === 'none') return false;
+                      if (s.visibility === 'hidden' || s.visibility === 'collapse') return false;
+                      if (parseFloat(s.opacity || '1') < 0.1) return false;
+                      n = n.parentElement;
+                    }
+                    return true;
+                  };
+                  const pattern = /number\\s+\\d+/i;
+                  const all = document.querySelectorAll('body *');
+                  const fallback = [];
+                  for (const el of all) {
+                    if (el.matches(boxSelector) || el.closest(boxSelector)) continue;
+                    const txt = (el.innerText || '').trim();
+                    if (!pattern.test(txt)) continue;
+                    if (!isVisible(el)) continue;
+                    if (el.children.length === 0) return txt;   // leaf: the prompt itself
+                    fallback.push(txt);
+                  }
+                  // No leaf matched - use the shortest container text, which is
+                  // the tightest wrapper around the prompt.
+                  if (fallback.length) {
+                    fallback.sort((a, b) => a.length - b.length);
+                    return fallback[0];
+                  }
+                  return null;
+                }
+                """,
+                CAPTCHA_BOX_SELECTOR,
+            )
+        except Exception as exc:
+            logger.warning(f"auth: captcha prompt lookup failed: {exc}")
+            return None
+
+        if not text:
+            return None
+        match = CAPTCHA_NUMBER_REGEX.search(text)
+        if not match:
+            return None
+        logger.debug(f"auth: captcha prompt text {text[:80]!r}")
+        return match.group(1)
+
+    async def _captcha_matching_boxes(
+        self, page: Page, target: str
+    ) -> tuple[list[Any], int]:
+        """Visible boxes whose own number equals ``target``, plus the visible count.
+
+        Compares the box's extracted number for EXACT equality rather than
+        testing whether its text contains the target: a substring test would make
+        target "12" also match boxes showing "123" or "512", poisoning the answer.
+        """
+        try:
+            boxes = await page.query_selector_all(CAPTCHA_BOX_SELECTOR)
+        except Exception as exc:
+            logger.warning(f"auth: could not query captcha boxes: {exc}")
+            return [], 0
+
+        matches: list[Any] = []
+        visible_count = 0
+        for box in boxes:
+            if not await utils.is_really_visible(box):
+                continue
+            visible_count += 1
+            text = await utils.element_text(box)
+            found = CAPTCHA_NUMBER_REGEX.search(text or "")
+            if found and found.group(1) == target:
+                matches.append(box)
+        return matches, visible_count
+
+    async def _click_captcha_submit(self, page: Page) -> bool:
+        for selector in CAPTCHA_SUBMIT_SELECTORS:
+            try:
+                button = page.locator(selector).first
+                await button.wait_for(state="visible", timeout=BUTTON_TIMEOUT_MS)
+                await button.click(timeout=BUTTON_TIMEOUT_MS)
+                logger.info(f"auth: captcha submitted via {selector}")
+                return True
+            except PlaywrightTimeout:
+                continue
+            except Exception as exc:
+                logger.debug(f"auth: captcha submit via {selector} failed: {exc}")
+        return await utils.click_by_text(page, ("submit",), config=self.config)
 
     # ------------------------------------------------------------------ #
     # Session detection + persistence

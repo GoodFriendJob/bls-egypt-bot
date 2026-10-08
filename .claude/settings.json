@@ -20,7 +20,9 @@
       "Bash(cd /d \"e:\\\\Work\\\\bls-egypt-bot\")",
       "Bash(cmd //c \"stop.bat < nul\")",
       "Bash(grep -v \"^$\")",
-      "Bash(./.venv/Scripts/python.exe bot.py)"
+      "Bash(./.venv/Scripts/python.exe bot.py)",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/test_captcha.py\")",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/test_captcha_retry.py\")"
     ]
   }
 }

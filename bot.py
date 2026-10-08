@@ -251,6 +251,12 @@ async def heartbeat_task(config: dict[str, Any], state: BotState, notifier: Noti
     """Periodic STATUS alert so the client knows the bot is alive."""
     hours = float((config.get("telegram") or {}).get("heartbeat_hours", 6) or 0)
     if hours <= 0:
+        # Must NOT return: the caller waits on FIRST_COMPLETED, so a heartbeat
+        # task that finishes immediately would shut the whole bot down on
+        # startup. Idle here until a stop is requested instead.
+        logger.info("heartbeat disabled (telegram.heartbeat_hours = 0)")
+        while not state.stop_requested:
+            await interruptible_sleep(3600, state)
         return
     interval = hours * 3600
     while not state.stop_requested:
