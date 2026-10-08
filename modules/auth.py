@@ -28,6 +28,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from loguru import logger
 from playwright.async_api import (
@@ -105,7 +106,10 @@ CAPTCHA_SELECTED_CLASS = "img-selected"
 CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
 CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
 CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]')
-CAPTCHA_MAX_ATTEMPTS = 3
+# Solving is cheap and the grid reloads on every rejection, so retry hard before
+# bothering a human. Escalating after 3 made MANUAL_REQUIRED alerts far too
+# frequent.
+CAPTCHA_MAX_ATTEMPTS = 10
 CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
 CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
 CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
@@ -620,47 +624,90 @@ class BLSAuth:
         await self._settle(page)
         self._log("password submitted", status="ok")
 
+        # Snapshot the page state immediately, before any waiting, so the real
+        # post-submit state is always on record.
         logger.info(f"auth: post-submit URL is {page.url}")
         await utils.screenshot(page, "after-password-submit")
         await utils.dump_page_html(page, "after-password-submit")
 
-        # A rejected captcha re-renders the challenge instead of redirecting.
-        if await self._captcha_present(page):
-            logger.info("auth: CAPTCHA still present after submit — solving again")
-            if not await self.solve_captcha(page):
-                await self._check_for_captcha(page)
-            await utils.human_delay(self.config)
-            await self._submit_login(page)
-            await self._settle(page)
-            logger.info(f"auth: URL after second submit is {page.url}")
-            await utils.screenshot(page, "after-second-submit")
+        # Wait for whichever lands first: the authenticated URL, or another
+        # CAPTCHA. A rejected challenge re-renders rather than redirecting, and
+        # it can take a moment to appear — checking the URL alone gives up early.
+        for round_no in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
+            outcome = await self._await_login_outcome(page, timeout_s=30.0)
 
-        # Success is the redirect to /Global/bls/... — wait for it explicitly.
-        landed = await self._wait_for_login_landing(page)
-        logger.info(f"auth: landing URL {page.url} (matched={landed})")
+            if outcome == "success":
+                logger.success(f"auth: authenticated URL reached — {page.url}")
+                break
+
+            if outcome == "captcha":
+                logger.info("auth: CAPTCHA detected — solving")
+                if not await self.solve_captcha(page):
+                    # solve_captcha already exhausted its own retries.
+                    await self._check_for_captcha(page)
+                    break
+                await utils.human_delay(self.config)
+                await self._submit_login(page)
+                await self._settle(page)
+                logger.info(f"auth: URL after submit round {round_no} is {page.url}")
+                await utils.screenshot(page, f"after-submit-round{round_no}")
+                continue
+
+            logger.warning(
+                "auth: 30s timeout — no CAPTCHA and no success URL "
+                f"(still at {page.url})"
+            )
+            await utils.screenshot(page, f"login-stalled-round{round_no}")
+            await utils.dump_page_html(page, f"login-stalled-round{round_no}")
+            break
 
         # TODO(unconfirmed): the portal may insert an email/SMS OTP step here.
         # If that is observed, call modules.otp.handle_otp(page, ...) before the
         # check below.
         return await self._is_logged_in(page, navigate=False)
 
-    async def _wait_for_login_landing(self, page: Page, timeout_ms: int = 30000) -> bool:
-        """Wait for the confirmed post-login redirect to /Global/bls/..."""
+    @staticmethod
+    def _authenticated_url(url: str) -> bool:
+        """True only when the URL *path* is an authenticated route.
+
+        Matches the path alone, never the query string. The login page is served
+        as ``/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification``
+        — searching the whole URL finds "visatypeverification" in that parameter
+        and reports success while sitting on the login page.
+        """
         try:
-            await page.wait_for_url(
-                lambda url: any(h in (url or "").lower() for h in LOGGED_IN_URL_HINTS),
-                timeout=timeout_ms,
-            )
-            return True
-        except PlaywrightTimeout:
-            logger.warning(
-                f"auth: no redirect to {LOGGED_IN_URL_HINTS} within "
-                f"{timeout_ms // 1000}s — still at {page.url}"
-            )
+            path = (urlsplit(url or "").path or "").lower()
+        except Exception:
             return False
-        except Exception as exc:
-            logger.debug(f"auth: landing wait failed: {exc}")
+        if not path or "/account/login" in path or "/newcaptcha/" in path:
             return False
+        return any(hint in path for hint in LOGGED_IN_URL_HINTS)
+
+    async def _await_login_outcome(self, page: Page, timeout_s: float = 30.0) -> str:
+        """After submitting, wait for whichever comes first.
+
+        Returns "success" (authenticated URL), "captcha" (a challenge rendered),
+        or "timeout". Polling both beats waiting on the URL alone: the CAPTCHA
+        can appear a second or two after the POST, and a URL-only check gives up
+        while still sitting on the login page.
+        """
+        waited = 0.0
+        step = 0.5
+        while waited < timeout_s:
+            if self._authenticated_url(page.url or ""):
+                return "success"
+            try:
+                container = await page.query_selector(CAPTCHA_CONTAINER_SELECTOR)
+            except Exception:
+                container = None
+            if container is not None and (await self._detect_captcha(page))["present"]:
+                return "captcha"
+            await asyncio.sleep(step)
+            waited += step
+
+        if self._authenticated_url(page.url or ""):
+            return "success"
+        return "timeout"
 
     async def _fill_email(self, page: Page, email: str) -> bool:
         """Fill the one real email field.
@@ -878,9 +925,11 @@ class BLSAuth:
 
             if target is None:
                 logger.warning("auth: captcha present but no target number found")
-                logger.warning(f"auth: visible labels seen: {scan.get('visibleLabels')}")
                 await utils.screenshot(page, f"captcha-no-target-attempt{attempt}")
                 await utils.dump_page_html(page, f"captcha-no-target-attempt{attempt}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(page)
+                    continue
                 return False
 
             # --- Tile recognition -------------------------------------------
@@ -917,10 +966,15 @@ class BLSAuth:
             )
 
             if positions is None:
-                logger.error(
-                    "  outcome         : ABORTED - vision lookup unavailable "
-                    "(no API key, API error, or unparseable reply)"
+                # Transient API errors are common; only give up once the whole
+                # retry budget is gone, so a human is not pestered for a blip.
+                logger.warning(
+                    f"  outcome         : RETRY - vision lookup unavailable "
+                    f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
                 )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await utils.human_delay(self.config)
+                    continue
                 self._log("captcha: vision lookup failed", status="error")
                 return False
 
@@ -963,12 +1017,23 @@ class BLSAuth:
             missing = expected - present
             extra = present - expected
             logger.info(f"  expected ids    : {sorted(expected)}")
-            if missing or extra:
-                logger.error(
-                    f"  SelectedImages mismatch — missing={sorted(missing)} "
-                    f"unexpected={sorted(extra)}"
+
+            # ADVISORY ONLY. Some builds populate SelectedImages on submit rather
+            # than on each Select() call, so an empty field here does not mean the
+            # selection failed. The .img-selected class is the authoritative
+            # signal that the page registered a tile — treating a mismatch as
+            # fatal aborted perfectly good selections.
+            if not present:
+                logger.info(
+                    "  SelectedImages  : empty — the page likely fills it on "
+                    "submit; relying on img-selected confirmations instead"
                 )
-                clicked_ok = False
+            elif missing or extra:
+                logger.warning(
+                    f"  SelectedImages differs — missing={sorted(missing)} "
+                    f"unexpected={sorted(extra)} (proceeding; img-selected is "
+                    "the authoritative signal)"
+                )
             else:
                 logger.info("  SelectedImages  : matches the intended selection")
 
@@ -976,10 +1041,14 @@ class BLSAuth:
             await utils.screenshot(page, f"captcha-attempt{attempt}-before-submit")
 
             if not clicked_ok:
-                logger.error("  outcome         : ABORTED - not every tile could be clicked")
-                self._log("captcha aborted — a tile could not be clicked", status="error")
+                logger.warning(
+                    f"  outcome         : RETRY - not every tile registered "
+                    f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                )
                 await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-click-failed-attempt{attempt}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(page)
+                    continue
                 return False
 
             submitted = await self._click_captcha_submit(page)
@@ -1367,13 +1436,26 @@ class BLSAuth:
             return False
 
     async def _captcha_selected_images(self, page: Page) -> str | None:
-        """Current value of the hidden SelectedImages field, for logging only."""
+        """Live value of the hidden SelectedImages field.
+
+        Must read the DOM *property*, not the attribute: Select() assigns
+        ``input.value`` in JavaScript, which never updates the static ``value="">``
+        attribute. get_attribute() therefore always returned "" and made a
+        correct selection look empty.
+        """
         try:
-            field = await page.query_selector(CAPTCHA_SELECTED_INPUT_SELECTOR)
-            if field is None:
-                return None
-            return await field.get_attribute("value") or ""
-        except Exception:
+            return await page.evaluate(
+                """
+                (sel) => {
+                  const el = document.querySelector(sel);
+                  if (!el) return null;
+                  return el.value == null ? '' : String(el.value);
+                }
+                """,
+                CAPTCHA_SELECTED_INPUT_SELECTOR,
+            )
+        except Exception as exc:
+            logger.debug(f"auth: could not read SelectedImages: {exc}")
             return None
 
     async def _click_captcha_submit(self, page: Page) -> bool:
@@ -1432,7 +1514,9 @@ class BLSAuth:
             return False
 
         # --- confirmed positive --------------------------------------------
-        if any(hint in url for hint in LOGGED_IN_URL_HINTS):
+        # Path only: the login URL carries the destination in its ReturnUrl query
+        # parameter, so a whole-URL match reports success on the login page.
+        if self._authenticated_url(page.url or ""):
             logger.success(f"auth: logged in — landed on {page.url}")
             return True
 
