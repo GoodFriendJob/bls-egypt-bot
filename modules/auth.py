@@ -106,7 +106,9 @@ CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
 CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
 CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]')
 CAPTCHA_MAX_ATTEMPTS = 3
-CAPTCHA_CLICK_DELAY = 0.5
+CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
+CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
+CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
 
 # One pass over the DOM: resolve every visible tile to the number its label
 # states, and report which labels are prompts rather than per-tile labels.
@@ -269,6 +271,19 @@ _CAPTCHA_SCAN_JS = r"""
     if (!ancestorsVisible(tile)) return;
     const r = tile.getBoundingClientRect();
     if (r.width < 10 || r.height < 10) return;
+
+    // CRITICAL: several grids are stacked at the same coordinates. They all pass
+    // display/opacity/size checks, so those alone reported 36 "visible" tiles
+    // across 4 grids - and positions then mapped into grids sitting BEHIND the
+    // front one, whose clicks the front grid intercepts.
+    // elementFromPoint answers the only question that matters: at this tile's
+    // centre, is this tile the thing a user would actually hit?
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) return;
+    const topEl = document.elementFromPoint(cx, cy);
+    if (!topEl) return;
+    if (!(topEl === tile || tile.contains(topEl))) return;
 
     const img = tile.querySelector(imgSel) || tile.querySelector('img');
     const info = labelFor(tile);
@@ -878,6 +893,14 @@ class BLSAuth:
                 "  grid order      : "
                 + ", ".join(f"{i}:{t.get('id') or '?'}" for i, t in enumerate(ordered, 1))
             )
+            if len(ordered) != 9:
+                # The challenge is a 3x3 grid. Anything else means the visibility
+                # filter is picking up stacked grids again, which silently
+                # corrupts the position -> tile mapping.
+                logger.warning(
+                    f"  grid size       : {len(ordered)} tiles — expected 9. "
+                    "The visible-tile filter may be matching stacked grids."
+                )
 
             grid_png = await self._screenshot_grid(page, ordered, attempt)
             sample = vision.save_sample(
@@ -927,8 +950,27 @@ class BLSAuth:
                     f"img-selected={entry['selected_confirmed']}"
                 )
 
+            # Let the page finish updating its hidden field before reading it.
+            await asyncio.sleep(CAPTCHA_PRE_SUBMIT_WAIT)
+
             selected = await self._captcha_selected_images(page)
             logger.info(f"  SelectedImages  : {selected!r}")
+
+            # Verify the hidden field really holds every tile we chose — this is
+            # what the server reads, so a mismatch means submitting a wrong answer.
+            expected = {t.get("id") for t in matches if t.get("id")}
+            present = {p.strip() for p in (selected or "").replace(";", ",").split(",") if p.strip()}
+            missing = expected - present
+            extra = present - expected
+            logger.info(f"  expected ids    : {sorted(expected)}")
+            if missing or extra:
+                logger.error(
+                    f"  SelectedImages mismatch — missing={sorted(missing)} "
+                    f"unexpected={sorted(extra)}"
+                )
+                clicked_ok = False
+            else:
+                logger.info("  SelectedImages  : matches the intended selection")
 
             # Visual record of the selection actually made, before submitting.
             await utils.screenshot(page, f"captcha-attempt{attempt}-before-submit")
@@ -1217,68 +1259,112 @@ class BLSAuth:
                 }
             )
 
-        try:
-            tiles = await page.query_selector_all(CAPTCHA_TILE_SELECTOR)
-        except Exception as exc:
-            logger.warning(f"auth: could not re-query captcha tiles: {exc}")
-            for info in matches:
-                record(info, False, "no-query")
-            return False, confirmations
-
         all_ok = True
         for position, tile_info in enumerate(matches, start=1):
-            index = tile_info.get("domIndex")
-            if index is None or index >= len(tiles):
-                logger.warning(f"auth: captcha tile index {index} is out of range")
-                record(tile_info, False, "index-out-of-range")
+            tile_id = tile_info.get("id") or ""
+            if not tile_id:
+                logger.warning(f"auth: captcha tile {position} has no id — cannot select")
+                record(tile_info, False, "no-id")
                 all_ok = False
                 continue
 
-            tile = tiles[index]
-            target_el = await tile.query_selector(CAPTCHA_IMG_SELECTOR)
-            if target_el is None:
-                target_el = await tile.query_selector("img")
-            if target_el is None:
-                logger.warning(f"auth: captcha tile {index} has no <img> to click")
-                record(tile_info, False, "no-img")
-                all_ok = False
-                continue
-
+            # Call the page's own Select() handler rather than dispatching a
+            # synthetic click. Select() is what actually records the choice, and
+            # calling it directly sidesteps pointer-interception from the other
+            # grids stacked at the same coordinates.
             try:
-                await target_el.click()
-                logger.debug(
-                    f"auth: clicked captcha tile {position}/{len(matches)} "
-                    f"(id={tile_info.get('id') or '?'}, number={tile_info.get('num')})"
+                result = await page.evaluate(
+                    """
+                    (id) => {
+                      const tile = document.getElementById(id);
+                      if (!tile) return 'no-tile';
+                      const img = tile.querySelector('img');
+                      if (!img) return 'no-img';
+                      if (typeof Select !== 'function') return 'no-select-fn';
+                      Select(id, img);
+                      return 'ok';
+                    }
+                    """,
+                    tile_id,
                 )
             except Exception as exc:
-                logger.warning(f"auth: could not click captcha tile {index}: {exc}")
-                record(tile_info, False, "click-error")
+                logger.warning(f"auth: Select('{tile_id}') threw: {exc}")
+                record(tile_info, False, "select-error")
                 all_ok = False
                 continue
 
-            await asyncio.sleep(CAPTCHA_CLICK_DELAY)
+            if result != "ok":
+                logger.warning(f"auth: Select('{tile_id}') could not run: {result}")
+                # Fall back to a real click if the page has no Select function.
+                if result == "no-select-fn":
+                    clicked = await self._click_tile_element(page, tile_id)
+                    if not clicked:
+                        record(tile_info, False, result)
+                        all_ok = False
+                        continue
+                else:
+                    record(tile_info, False, result)
+                    all_ok = False
+                    continue
 
-            # The page marks a chosen tile with class "img-selected"; if that did
-            # not appear, the click did not register and submitting now would
-            # send an incomplete answer.
-            try:
-                confirmed: Any = await target_el.evaluate(
-                    "(el, cls) => el.classList.contains(cls)", CAPTCHA_SELECTED_CLASS
-                )
-            except Exception as exc:
-                logger.debug(f"auth: could not read {CAPTCHA_SELECTED_CLASS}: {exc}")
-                confirmed = "unknown"
-
+            # Wait for the page to mark the tile before touching the next one.
+            confirmed = await self._await_tile_selected(page, tile_id)
+            logger.debug(
+                f"auth: tile {position}/{len(matches)} id={tile_id} "
+                f"selected={confirmed}"
+            )
             if confirmed is False:
                 logger.warning(
-                    f"auth: captcha tile {index} did not gain "
-                    f".{CAPTCHA_SELECTED_CLASS} after the click"
+                    f"auth: tile {tile_id} never gained .{CAPTCHA_SELECTED_CLASS}"
                 )
                 all_ok = False
 
             record(tile_info, True, confirmed)
+            await asyncio.sleep(CAPTCHA_CLICK_DELAY)
 
         return all_ok, confirmations
+
+    async def _await_tile_selected(self, page: Page, tile_id: str) -> Any:
+        """Poll until the tile's <img> carries the selected class, or time out."""
+        deadline = CAPTCHA_SELECT_CONFIRM_MS / 1000
+        waited = 0.0
+        step = 0.1
+        while waited < deadline:
+            try:
+                marked = await page.evaluate(
+                    """
+                    (args) => {
+                      const tile = document.getElementById(args.id);
+                      if (!tile) return null;
+                      const img = tile.querySelector('img');
+                      if (!img) return null;
+                      return img.classList.contains(args.cls);
+                    }
+                    """,
+                    {"id": tile_id, "cls": CAPTCHA_SELECTED_CLASS},
+                )
+            except Exception as exc:
+                logger.debug(f"auth: selection probe failed for {tile_id}: {exc}")
+                return "unknown"
+            if marked:
+                return True
+            if marked is None:
+                return "unknown"
+            await asyncio.sleep(step)
+            waited += step
+        return False
+
+    async def _click_tile_element(self, page: Page, tile_id: str) -> bool:
+        """Last-resort real click, used only when the page exposes no Select()."""
+        try:
+            element = await page.query_selector(f"#{tile_id} img")
+            if element is None:
+                return False
+            await element.click(timeout=5000)
+            return True
+        except Exception as exc:
+            logger.warning(f"auth: fallback click on {tile_id} failed: {exc}")
+            return False
 
     async def _captcha_selected_images(self, page: Page) -> str | None:
         """Current value of the hidden SelectedImages field, for logging only."""
