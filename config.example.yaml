@@ -1,0 +1,170 @@
+# ---------------------------------------------------------------------------
+# BLS Spain Egypt Appointment Bot — configuration template
+#
+# Copy this file to `config.yaml` and fill in the real values.
+# `config.yaml` is gitignored and must never be committed.
+#
+#   Windows:  copy config.example.yaml config.yaml
+#   Linux:    cp config.example.yaml config.yaml
+# ---------------------------------------------------------------------------
+
+bls:
+  # Portal entry point. Leave as-is unless BLS changes domains.
+  url: "https://egypt.blsspainglobal.com/"
+
+  # BLS account credentials (the account used to book).
+  email: ""
+  password: ""
+
+  # Locations to monitor. Valid values: cairo, alexandria
+  locations:
+    - cairo
+    - alexandria
+
+  # Visa category exactly as it appears in the portal dropdown.
+  visa_type: "Short Stay / Tourist"
+
+  # Optional: exact option labels the portal shows for each location.
+  # The bot matches these case-insensitively against dropdown options.
+  location_labels:
+    cairo: "Cairo"
+    alexandria: "Alexandria"
+
+  # Relative paths on the portal.
+  paths:
+    # CONFIRMED: the first login page.
+    login: "/Global/account/login"
+    # NOT yet confirmed — placeholders. Capture the real URLs after a successful
+    # login. (The login form POSTs to /Global/account/LoginSubmit, so the
+    # authenticated routes are likely also under /Global/.)
+    dashboard: "/account"
+    appointment: "/appointment/newappointment"
+
+applicant:
+  full_name: ""
+  passport_number: ""
+  nationality: "Egyptian"
+  dob: "DD/MM/YYYY"            # format exactly as the portal expects
+  phone: "+20XXXXXXXXXX"
+  email: ""
+
+  # Optional extras — filled only when a matching field exists on the form.
+  passport_issue_date: ""      # DD/MM/YYYY
+  passport_expiry_date: ""     # DD/MM/YYYY
+  gender: ""                   # Male / Female
+  place_of_birth: ""
+  address: ""
+  city: ""
+
+  documents:
+    passport_scan: "docs/passport.pdf"
+    photo: "docs/photo.jpg"
+    # Add any extra documents the form asks for; the key is matched
+    # against the upload field's label / name.
+    # bank_statement: "docs/bank.pdf"
+    # travel_insurance: "docs/insurance.pdf"
+
+telegram:
+  # Create a bot with @BotFather and paste the token here.
+  token: ""
+  # Your numeric chat id (talk to @userinfobot to get it).
+  chat_id: ""
+  # Heartbeat STATUS message interval, in hours. 0 disables heartbeats.
+  heartbeat_hours: 6
+
+otp:
+  method: "email"              # "email" → auto-read via IMAP, "sms" → ask on Telegram
+  imap_host: "imap.gmail.com"
+  imap_port: 993
+  imap_user: ""
+  imap_pass: ""                # Gmail: use an App Password, not the account password
+  imap_folder: "INBOX"
+  # Only mails whose sender or subject contains one of these is considered.
+  sender_contains:
+    - "blsspainglobal"
+    - "bls"
+  subject_contains:
+    - "otp"
+    - "verification"
+    - "code"
+  poll_attempts: 10            # IMAP polls before giving up
+  poll_delay: 5                # seconds between IMAP polls
+  timeout: 300                 # hard timeout for the whole OTP step, seconds
+
+# Seconds between availability checks (per full cycle of all locations).
+poll_interval: 90
+
+# false opens a visible browser window — use while debugging selectors.
+headless: true
+
+proxy:
+  enabled: false
+  server: ""                   # e.g. "http://host:port" or "socks5://host:port"
+  username: ""
+  password: ""
+
+browser:
+  # Playwright navigation / action timeouts in milliseconds.
+  navigation_timeout: 60000
+  action_timeout: 20000
+  # Random human-like delay range between actions, in seconds.
+  min_delay: 0.5
+  max_delay: 2.0
+  locale: "en-US"
+  timezone: "Africa/Cairo"
+  user_agent: ""               # blank → Playwright default for Chromium
+
+dashboard:
+  enabled: true
+  host: "127.0.0.1"
+  port: 5000
+  # Start monitoring immediately, or wait for the dashboard "Start" button.
+  autostart: true
+  # Entries kept in the in-memory live log table.
+  log_limit: 300
+  # Default UI language: "ar" (RTL) or "en" (LTR).
+  default_language: "ar"
+
+logging:
+  level: "INFO"                # DEBUG / INFO / WARNING / ERROR
+  file: "logs/bot.log"
+  rotation: "10 MB"
+  retention: "14 days"
+
+retry:
+  max_attempts: 3              # Playwright action/navigation retries
+  page_error_wait: 30          # seconds to wait after a page error
+  network_error_wait: 60       # seconds to wait after a network error
+  login_attempts: 2            # login tries before alerting and pausing
+
+# Text fragments used to decide whether slots exist. Case-insensitive.
+# These are heuristics over the rendered page — adjust if BLS changes wording.
+detection:
+  unavailable_phrases:
+    - "no appointment"
+    - "no appointments"
+    - "not available"
+    - "no slot"
+    - "no slots"
+    - "fully booked"
+    - "currently unavailable"
+    - "try again later"
+    - "لا توجد مواعيد"
+  available_phrases:
+    - "appointment available"
+    - "available slot"
+    - "select a date"
+    - "select date"
+    - "choose your slot"
+  # Phrases that mean a human must finish the step.
+  liveness_phrases:
+    - "liveness"
+    - "facial"
+    - "face verification"
+    - "selfie"
+    - "take a photo of yourself"
+  captcha_phrases:
+    - "captcha"
+    - "select the image"
+    - "verify you are human"
+    - "i'm not a robot"

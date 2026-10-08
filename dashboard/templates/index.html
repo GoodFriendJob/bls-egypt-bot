@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-lang="{{ default_language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BLS Spain Egypt — Appointment Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" id="live-dot"></span>
+      <h1 data-i18n="title">لوحة متابعة مواعيد BLS</h1>
+    </div>
+    <div class="actions">
+      <button id="btn-start" class="btn btn-ok" data-i18n="start">تشغيل</button>
+      <button id="btn-pause" class="btn btn-warn" data-i18n="pause">إيقاف مؤقت</button>
+      <button id="btn-stop" class="btn btn-danger" data-i18n="stop">إيقاف</button>
+      <button id="btn-lang" class="btn btn-ghost">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Bot state ------------------------------------------------------- -->
+    <section class="card">
+      <h2 data-i18n="botState">حالة البوت</h2>
+      <div class="grid">
+        <div class="stat"><label data-i18n="state">الحالة</label><strong id="bot-state">—</strong></div>
+        <div class="stat"><label data-i18n="uptime">مدة التشغيل</label><strong id="uptime">—</strong></div>
+        <div class="stat"><label data-i18n="interval">فترة الفحص</label><strong id="interval">{{ poll_interval }}s</strong></div>
+        <div class="stat"><label data-i18n="cycles">عدد الدورات</label><strong id="cycles">0</strong></div>
+        <div class="stat"><label data-i18n="slots">مواعيد تم إيجادها</label><strong id="slots">0</strong></div>
+        <div class="stat"><label data-i18n="errors">الأخطاء</label><strong id="errors">0</strong></div>
+      </div>
+      <p id="pause-banner" class="banner hidden"></p>
+      <p id="error-banner" class="banner err hidden"></p>
+    </section>
+
+    <!-- Locations ------------------------------------------------------- -->
+    <section class="card">
+      <h2 data-i18n="locations">حالة المتابعة لكل مدينة</h2>
+      <div id="locations" class="locations"></div>
+    </section>
+
+    <!-- Appointment ----------------------------------------------------- -->
+    <section class="card hidden" id="appointment-card">
+      <h2 data-i18n="appointment">تفاصيل الموعد المؤكد</h2>
+      <table class="kv" id="appointment-table"></table>
+    </section>
+
+    <!-- Applicant ------------------------------------------------------- -->
+    <section class="card">
+      <h2 data-i18n="applicant">بيانات مقدم الطلب</h2>
+      <table class="kv">
+        <tr><th data-i18n="fullName">الاسم الكامل</th><td id="ap-name">—</td></tr>
+        <tr><th data-i18n="passport">رقم جواز السفر</th><td id="ap-passport">—</td></tr>
+        <tr><th data-i18n="nationality">الجنسية</th><td id="ap-nat">—</td></tr>
+        <tr><th data-i18n="dob">تاريخ الميلاد</th><td id="ap-dob">—</td></tr>
+        <tr><th data-i18n="phone">الهاتف</th><td id="ap-phone">—</td></tr>
+        <tr><th data-i18n="email">البريد الإلكتروني</th><td id="ap-email">—</td></tr>
+        <tr><th data-i18n="visaType">نوع التأشيرة</th><td id="ap-visa">—</td></tr>
+      </table>
+    </section>
+
+    <!-- Live log -------------------------------------------------------- -->
+    <section class="card">
+      <h2 data-i18n="log">السجل المباشر</h2>
+      <div class="table-wrap">
+        <table class="log">
+          <thead>
+            <tr>
+              <th data-i18n="time">الوقت</th>
+              <th data-i18n="location">الموقع</th>
+              <th data-i18n="event">الحدث</th>
+              <th data-i18n="status">الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span data-i18n="refreshed">آخر تحديث</span>: <span id="refreshed">—</span>
+    <span class="sep">·</span>
+    <span data-i18n="autoRefresh">تحديث تلقائي كل 30 ثانية</span>
+  </footer>
+
+<script>
+const I18N = {
+  ar: {
+    title: "لوحة متابعة مواعيد BLS", start: "تشغيل", pause: "إيقاف مؤقت", stop: "إيقاف",
+    botState: "حالة البوت", state: "الحالة", uptime: "مدة التشغيل", interval: "فترة الفحص",
+    cycles: "عدد الدورات", slots: "مواعيد تم إيجادها", errors: "الأخطاء",
+    locations: "حالة المتابعة لكل مدينة", appointment: "تفاصيل الموعد المؤكد",
+    applicant: "بيانات مقدم الطلب", fullName: "الاسم الكامل", passport: "رقم جواز السفر",
+    nationality: "الجنسية", dob: "تاريخ الميلاد", phone: "الهاتف", email: "البريد الإلكتروني",
+    visaType: "نوع التأشيرة", log: "السجل المباشر", time: "الوقت", location: "الموقع",
+    event: "الحدث", status: "الحالة", refreshed: "آخر تحديث",
+    autoRefresh: "تحديث تلقائي كل 30 ثانية", lastChecked: "آخر فحص", never: "لم يتم بعد",
+    checks: "عدد الفحوصات",
+    st_running: "يعمل", st_idle: "متوقف", st_checking: "جاري الفحص", st_no_slots: "لا توجد مواعيد",
+    st_slot_found: "تم إيجاد موعد", st_booking: "جاري الحجز", st_booked: "تم الحجز",
+    st_paused: "متوقف مؤقتاً", st_error: "خطأ", st_stopping: "جاري الإيقاف",
+    pausedFor: "متوقف في انتظار إجراء يدوي", lastError: "آخر خطأ"
+  },
+  en: {
+    title: "BLS Appointment Bot Dashboard", start: "Start", pause: "Pause", stop: "Stop",
+    botState: "Bot state", state: "Status", uptime: "Uptime", interval: "Check interval",
+    cycles: "Cycles", slots: "Slots found", errors: "Errors",
+    locations: "Monitoring status per location", appointment: "Confirmed appointment",
+    applicant: "Applicant data", fullName: "Full name", passport: "Passport number",
+    nationality: "Nationality", dob: "Date of birth", phone: "Phone", email: "Email",
+    visaType: "Visa type", log: "Live log", time: "Time", location: "Location",
+    event: "Event", status: "Status", refreshed: "Last refreshed",
+    autoRefresh: "Auto-refresh every 30s", lastChecked: "Last checked", never: "never",
+    checks: "Checks",
+    st_running: "Running", st_idle: "Idle", st_checking: "Checking", st_no_slots: "No slots",
+    st_slot_found: "Slot found", st_booking: "Booking", st_booked: "Booked",
+    st_paused: "Paused", st_error: "Error", st_stopping: "Stopping",
+    pausedFor: "Paused — waiting for a manual step", lastError: "Last error"
+  }
+};
+
+let lang = document.documentElement.dataset.lang === "en" ? "en" : "ar";
+
+function t(key) { return (I18N[lang] && I18N[lang][key]) || key; }
+
+function applyLanguage() {
+  const html = document.documentElement;
+  html.lang = lang;
+  html.dir = lang === "ar" ? "rtl" : "ltr";
+  document.getElementById("btn-lang").textContent = lang === "ar" ? "EN" : "ع";
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  render();
+}
+
+function fmtTime(iso) {
+  if (!iso) return t("never");
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleString(lang === "ar" ? "ar-EG" : "en-GB");
+}
+
+function fmtUptime(seconds) {
+  const s = Number(seconds) || 0;
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+let snapshot = null, logEntries = [];
+
+function render() {
+  if (!snapshot) return;
+
+  let stateKey = "st_idle";
+  if (snapshot.stopping) stateKey = "st_stopping";
+  else if (snapshot.paused) stateKey = "st_paused";
+  else if (snapshot.running) stateKey = "st_running";
+
+  document.getElementById("bot-state").textContent = t(stateKey);
+  document.getElementById("live-dot").className = "dot " + (snapshot.running ? "on" : "off");
+  document.getElementById("uptime").textContent = fmtUptime(snapshot.uptime_seconds);
+  document.getElementById("interval").textContent = snapshot.poll_interval + "s";
+  document.getElementById("cycles").textContent = snapshot.counters.cycles;
+  document.getElementById("slots").textContent = snapshot.counters.slots_found;
+  document.getElementById("errors").textContent = snapshot.counters.errors;
+
+  const pauseBanner = document.getElementById("pause-banner");
+  if (snapshot.paused) {
+    pauseBanner.textContent = `${t("pausedFor")}: ${snapshot.pause_reason || ""}`;
+    pauseBanner.classList.remove("hidden");
+  } else {
+    pauseBanner.classList.add("hidden");
+  }
+
+  const errBanner = document.getElementById("error-banner");
+  if (snapshot.last_error) {
+    errBanner.textContent = `${t("lastError")}: ${snapshot.last_error}`;
+    errBanner.classList.remove("hidden");
+  } else {
+    errBanner.classList.add("hidden");
+  }
+
+  // Locations
+  const wrap = document.getElementById("locations");
+  wrap.innerHTML = "";
+  Object.entries(snapshot.locations).forEach(([name, info]) => {
+    const card = document.createElement("div");
+    card.className = "loc " + info.status;
+    card.innerHTML = `
+      <div class="loc-head">
+        <span class="loc-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+        <span class="pill ${info.status}">${t("st_" + info.status) }</span>
+      </div>
+      <div class="loc-row"><span>${t("lastChecked")}</span><span>${fmtTime(info.last_checked)}</span></div>
+      <div class="loc-row"><span>${t("checks")}</span><span>${info.checks}</span></div>
+      <div class="loc-detail">${info.detail || ""}</div>`;
+    wrap.appendChild(card);
+  });
+
+  // Applicant
+  const a = snapshot.applicant || {};
+  const set = (id, val) => document.getElementById(id).textContent = val || "—";
+  set("ap-name", a.full_name); set("ap-passport", a.passport_number);
+  set("ap-nat", a.nationality); set("ap-dob", a.dob);
+  set("ap-phone", a.phone); set("ap-email", a.email);
+  set("ap-visa", snapshot.visa_type);
+
+  // Appointment
+  const apCard = document.getElementById("appointment-card");
+  const apTable = document.getElementById("appointment-table");
+  if (snapshot.appointment) {
+    apTable.innerHTML = Object.entries(snapshot.appointment)
+      .filter(([, v]) => v)
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+    apCard.classList.remove("hidden");
+  } else {
+    apCard.classList.add("hidden");
+  }
+
+  // Log (already newest-first from the API)
+  document.getElementById("log-body").innerHTML = logEntries.map(e => `
+    <tr>
+      <td class="mono">${fmtTime(e.timestamp)}</td>
+      <td>${e.location}</td>
+      <td>${e.event}</td>
+      <td><span class="pill ${e.status}">${e.status}</span></td>
+    </tr>`).join("");
+
+  document.getElementById("refreshed").textContent =
+    new Date().toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-GB");
+}
+
+async function refresh() {
+  try {
+    const [statusRes, logRes] = await Promise.all([
+      fetch("/api/status"), fetch("/api/log?limit=150")
+    ]);
+    snapshot = await statusRes.json();
+    logEntries = (await logRes.json()).entries || [];
+    render();
+  } catch (err) {
+    console.error("refresh failed", err);
+  }
+}
+
+async function control(action) {
+  try {
+    await fetch("/api/control", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({action})
+    });
+    refresh();
+  } catch (err) { console.error("control failed", err); }
+}
+
+document.getElementById("btn-start").onclick = () => control("start");
+document.getElementById("btn-pause").onclick = () => control("pause");
+document.getElementById("btn-stop").onclick = () => control("stop");
+document.getElementById("btn-lang").onclick = () => {
+  lang = lang === "ar" ? "en" : "ar";
+  applyLanguage();
+};
+
+applyLanguage();
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

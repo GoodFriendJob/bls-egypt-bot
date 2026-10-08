@@ -1,0 +1,13 @@
+# BLS Spain Egypt Appointment Bot — pinned dependencies
+# Install:  pip install -r requirements.txt
+# Then:     python -m playwright install chromium
+
+playwright==1.48.0
+# 2.x required: 1.0.6 imports pkg_resources, which no longer ships with
+# Python 3.12+ — it fails at import and stealth silently never applies.
+playwright-stealth==2.0.3
+python-telegram-bot==21.6
+Flask==3.0.3
+PyYAML==6.0.2
+loguru==0.7.2
+python-dateutil==2.9.0.post0

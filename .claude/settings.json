@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la --time-style=full-iso CLAUDE.md; md5sum CLAUDE.md; echo \"--- grep ---\"; grep -n -i \"portal research\\\\|findings\\\\|confirmed\" CLAUDE.md || echo \"NO MATCH for research/findings/confirmed\"; echo \"--- any other CLAUDE.md on disk ---\"; find /e/Work -maxdepth 3 -iname \"CLAUDE*.md\" 2>/dev/null)",
+      "Read(//e/Work/**)",
+      "Bash(python -m compileall -q bot.py modules dashboard)",
+      "Bash(echo \"=== compile exit: $? ===\")",
+      "Bash(python -c ' *)",
+      "Bash(python \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/ifacecheck.py\")",
+      "Bash(python -m venv .venv)",
+      "Bash(./.venv/Scripts/python.exe --version)",
+      "Bash(./.venv/Scripts/python.exe -m pip install --upgrade pip)",
+      "Bash(./.venv/Scripts/python.exe -m pip install -r requirements.txt)",
+      "Bash(./.venv/Scripts/python.exe -m playwright install chromium)",
+      "Bash(./.venv/Scripts/python.exe -c ' *)",
+      "Bash(./.venv/Scripts/python.exe -m compileall -q bot.py modules dashboard)",
+      "Bash(./.venv/Scripts/python.exe bot.py --headful --once)",
+      "Bash(./.venv/Scripts/python.exe -m pip index versions playwright-stealth)",
+      "Bash(./.venv/Scripts/python.exe -m pip install -q \"playwright-stealth==2.0.3\")"
+    ]
+  }
+}

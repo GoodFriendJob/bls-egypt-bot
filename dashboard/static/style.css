@@ -1,0 +1,252 @@
+/* BLS appointment bot dashboard — minimal, mobile-friendly, RTL/LTR aware. */
+
+:root {
+  --bg: #0f1420;
+  --card: #171e2e;
+  --card-2: #1e2638;
+  --line: #2a3447;
+  --text: #e8edf6;
+  --muted: #94a1b8;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --err: #f87171;
+  --info: #60a5fa;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* --- Top bar ------------------------------------------------------------ */
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.topbar h1 { font-size: 1.05rem; margin: 0; font-weight: 600; }
+
+.dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--muted); flex: 0 0 auto;
+}
+.dot.on { background: var(--ok); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.18); }
+.dot.off { background: var(--err); }
+
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--card-2);
+  color: var(--text);
+  font-family: inherit;
+}
+.btn:hover { filter: brightness(1.18); }
+.btn-ok { background: rgba(52, 211, 153, 0.16); color: var(--ok); border-color: rgba(52, 211, 153, 0.35); }
+.btn-warn { background: rgba(251, 191, 36, 0.16); color: var(--warn); border-color: rgba(251, 191, 36, 0.35); }
+.btn-danger { background: rgba(248, 113, 113, 0.16); color: var(--err); border-color: rgba(248, 113, 113, 0.35); }
+.btn-ghost { border-color: var(--line); color: var(--muted); }
+
+/* --- Layout ------------------------------------------------------------- */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.card h2 {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hidden { display: none !important; }
+
+/* --- Stat grid ---------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+.stat {
+  background: var(--card-2);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat label { font-size: 0.72rem; color: var(--muted); }
+.stat strong { font-size: 1.15rem; font-weight: 700; }
+
+/* --- Banners ------------------------------------------------------------ */
+.banner {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--warn);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.banner.err {
+  background: rgba(248, 113, 113, 0.14);
+  color: var(--err);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+/* --- Locations ---------------------------------------------------------- */
+.locations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.loc {
+  background: var(--card-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.loc.slot_found { border-color: rgba(52, 211, 153, 0.55); }
+.loc.booked { border-color: var(--ok); }
+.loc.error { border-color: rgba(248, 113, 113, 0.55); }
+
+.loc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.loc-name { font-weight: 700; font-size: 1rem; }
+.loc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 3px 0;
+}
+.loc-detail {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+/* --- Pills -------------------------------------------------------------- */
+.pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(96, 165, 250, 0.16);
+  color: var(--info);
+  white-space: nowrap;
+}
+.pill.ok, .pill.running, .pill.booked, .pill.slot_found {
+  background: rgba(52, 211, 153, 0.16); color: var(--ok);
+}
+.pill.warn, .pill.paused, .pill.booking, .pill.checking {
+  background: rgba(251, 191, 36, 0.16); color: var(--warn);
+}
+.pill.error { background: rgba(248, 113, 113, 0.16); color: var(--err); }
+.pill.no_slots, .pill.idle, .pill.info {
+  background: rgba(148, 161, 184, 0.16); color: var(--muted);
+}
+
+/* --- Tables ------------------------------------------------------------- */
+.kv { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+.kv th, .kv td {
+  text-align: start;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.kv th { color: var(--muted); font-weight: 500; width: 38%; }
+.kv tr:last-child th, .kv tr:last-child td { border-bottom: none; }
+
+.table-wrap { overflow-x: auto; max-height: 460px; overflow-y: auto; }
+.log { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 520px; }
+.log thead th {
+  position: sticky;
+  top: 0;
+  background: var(--card-2);
+  text-align: start;
+  padding: 9px 10px;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+.log tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(42, 52, 71, 0.6);
+  word-break: break-word;
+}
+.log tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+.mono { font-family: Consolas, "Courier New", monospace; font-size: 0.76rem; color: var(--muted); white-space: nowrap; }
+
+/* --- Footer ------------------------------------------------------------- */
+footer {
+  text-align: center;
+  padding: 18px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.sep { margin: 0 6px; }
+
+/* --- Mobile ------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .topbar { padding: 12px 14px; }
+  .topbar h1 { font-size: 0.95rem; }
+  main { padding: 14px; gap: 14px; }
+  .card { padding: 14px; }
+  .btn { padding: 6px 11px; font-size: 0.8rem; }
+  .kv th { width: 45%; }
+}
+
+/* --- Light mode --------------------------------------------------------- */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --card-2: #f0f3f8;
+    --line: #dde3ec;
+    --text: #1a2234;
+    --muted: #5e6b82;
+  }
+}
