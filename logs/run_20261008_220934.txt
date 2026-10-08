@@ -1,0 +1,107 @@
+BLS appointment bot - run transcript
+started : 2026-10-08T22:09:34
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+22:09:34 | INFO    | __main__ - ==============================================================
+22:09:34 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+22:09:34 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261008_220934.txt
+22:09:34 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+22:09:34 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+22:09:34 | INFO    | __main__ - ==============================================================
+22:09:34 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+22:09:34 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+22:09:34 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+22:09:34 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+22:09:35 | INFO    | modules.notifier - notifier: telegram listener started
+22:09:36 | INFO    | __main__ - single-cycle mode (--once)
+22:09:37 | INFO    | modules.auth - auth: browser launched
+22:09:38 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:09:38 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/account/login was interrupted — retrying once
+22:09:46 | INFO    | modules.utils - find_real_input: real 'text' field is index 9 of 10 (parent div.mb-3 display:block)
+22:09:49 | INFO    | modules.auth - auth: email filled
+22:09:49 | INFO    | modules.auth - auth: email submitted
+22:09:52 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+22:09:53 | INFO    | modules.utils - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+22:09:55 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+22:09:55 | INFO    | modules.auth - auth: password filled
+22:09:55 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh7GmWlMH0dE7o7Tljtw8oo1z%2BuAhk58qi9ZkIEE88KkbE7eh6IvcQdOI6si%2F2lIj9akeeLzK%2BgsbpuO9RxcDJHgC7Q8ynF%2FZwhsK530xbIOjmcCSZB6KuSJ9In9ysuXKHk%3D
+22:09:55 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-220955_password-page-filled.png
+22:09:55 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-220955_password-page-filled.html
+22:09:55 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+22:09:56 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=8 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=31
+22:09:56 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+22:09:56 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+22:09:56 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-220956_captcha-before.png
+22:09:56 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-220956_captcha-detected.html
+22:09:56 | WARNING | modules.auth - auth: 30 different prompt numbers visible (['120', '158', '196', '236', '241', '271', '288', '310', '311', '373', '381', '409', '415', '427', '511', '512', '559', '580', '592', '605', '631', '672', '720', '770', '773', '810', '838', '869', '915', '916']) — using the first in document order
+22:09:56 | INFO    | modules.auth - ------------------------------------------------------------
+22:09:56 | INFO    | modules.auth - CAPTCHA attempt 1 of 3
+22:09:56 | INFO    | modules.auth -   target number   : 631
+22:09:56 | INFO    | modules.auth -   visible tiles   : 8 (of 54 col-4 divs in the DOM)
+22:09:56 | INFO    | modules.auth -   visible labels  : 31 (of 31 box-labels in the DOM)
+22:09:56 | INFO    | modules.auth -   tile numbers    : zjvoxuhjt=None, audnbqtfx=None, rywzi=None, rwrvvvw=None, vfirsc=None, dmwerbzw=None, fxmeyi=None, pkvphub=None
+22:09:56 | INFO    | modules.auth -   label sources   : unresolved
+22:09:56 | INFO    | modules.auth - auth: captcha attempt 1: target=631, 8 visible tiles
+22:09:56 | WARNING | modules.auth - auth: 8 visible tile(s) have no readable number — refusing to guess
+22:09:56 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-220956_captcha-unresolved-attempt1.html
+22:09:56 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-220956_login-captcha.png
+22:09:56 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-220956_login-captcha.html
+22:09:59 | INFO    | modules.utils - widget DOM dumped: logs\dom\20261008-220959_login-captcha_widget.html (197 match(es))
+22:09:59 | WARNING | modules.auth - auth: captcha detected ('please select all boxes with number') — manual step required
+22:09:59 | WARNING | modules.auth - auth: captcha url=https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh7GmWlMH0dE7o7Tljtw8oo1z%2BuAhk58qi9ZkIEE88KkbE7eh6IvcQdOI6si%2F2lIj9akeeLzK%2BgsbpuO9RxcDJHgC7Q8ynF%2FZwhsK530xbIOjmcCSZB6KuSJ9In9ysuXKHk%3D
+22:09:59 | WARNING | modules.auth - auth: captcha artefacts — screenshot=logs\screenshots\20261008-220956_login-captcha.png full_dom=logs\dom\20261008-220956_login-captcha.html widget_dom=logs\dom\20261008-220959_login-captcha_widget.html matches=197 iframes=[]
+22:09:59 | INFO    | modules.auth - auth: captcha detected: please select all boxes with number
+22:10:01 | INFO    | modules.notifier - notifier: waiting for /resume…
+22:10:37 | INFO    | modules.notifier - notifier: /resume command received
+22:10:37 | INFO    | modules.notifier - notifier: /resume received
+22:10:59 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+22:10:59 | INFO    | modules.auth - auth: password submitted
+22:10:59 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/account/login
+22:10:59 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-221059_after-password-submit.png
+22:10:59 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-221059_after-password-submit.html
+22:11:29 | WARNING | modules.auth - auth: no redirect to ('visatypeverification', '/global/bls/') within 30s — still at https://egypt.blsspainglobal.com/Global/account/login
+22:11:29 | INFO    | modules.auth - auth: landing URL https://egypt.blsspainglobal.com/Global/account/login (matched=False)
+22:11:29 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login)
+22:11:30 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-221129_login-failed-attempt1.png
+22:11:35 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+22:11:41 | INFO    | modules.utils - find_real_input: real 'text' field is index 9 of 10 (parent div.mb-3 display:block)
+22:11:44 | INFO    | modules.auth - auth: email filled
+22:11:44 | INFO    | modules.auth - auth: email submitted
+22:11:46 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+22:11:47 | INFO    | modules.utils - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+22:11:49 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+22:11:49 | INFO    | modules.auth - auth: password filled
+22:11:49 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh52qenyTYWLURubjH0LAmD%2BJVypyVKSvWfdkoWKM%2BsG2Xdz7SwUtxU%2F%2FFai6xjaRin8Un7XCmq5xMSS2RLW08IDPXBKkzS1zPOpwFTpEFTHDh0Eq%2B%2B4J%2FkV3Dza%2BGZ%2BbRE%3D
+22:11:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-221149_password-page-filled.png
+22:11:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-221150_password-page-filled.html
+22:11:50 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+22:11:50 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=27
+22:11:50 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+22:11:50 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+22:11:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-221150_captcha-before.png
+22:11:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-221150_captcha-detected.html
+22:11:50 | WARNING | modules.auth - auth: 25 different prompt numbers visible (['122', '199', '257', '258', '288', '326', '327', '335', '338', '387', '496', '510', '562', '591', '621', '643', '644', '669', '724', '739', '758', '781', '791', '982', '988']) — using the first in document order
+22:11:50 | INFO    | modules.auth - ------------------------------------------------------------
+22:11:50 | INFO    | modules.auth - CAPTCHA attempt 1 of 3
+22:11:50 | INFO    | modules.auth -   target number   : 791
+22:11:50 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+22:11:50 | INFO    | modules.auth -   visible labels  : 27 (of 27 box-labels in the DOM)
+22:11:50 | INFO    | modules.auth -   tile numbers    : sbwbgxmxx=None, ifnrpfw=None, okynlec=None, uynwflna=None, vxfwzf=None, qnwyitx=None, ewrlha=None, avdtgff=None, qmwoy=None
+22:11:50 | INFO    | modules.auth -   label sources   : unresolved
+22:11:50 | INFO    | modules.auth - auth: captcha attempt 1: target=791, 9 visible tiles
+22:11:50 | WARNING | modules.auth - auth: 9 visible tile(s) have no readable number — refusing to guess
+22:11:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-221150_captcha-unresolved-attempt1.html
+22:11:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261008-221150_login-captcha.png
+22:11:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261008-221150_login-captcha.html
+22:11:53 | INFO    | modules.utils - widget DOM dumped: logs\dom\20261008-221153_login-captcha_widget.html (193 match(es))
+22:11:53 | WARNING | modules.auth - auth: captcha detected ('please select all boxes with number') — manual step required
+22:11:53 | WARNING | modules.auth - auth: captcha url=https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh52qenyTYWLURubjH0LAmD%2BJVypyVKSvWfdkoWKM%2BsG2Xdz7SwUtxU%2F%2FFai6xjaRin8Un7XCmq5xMSS2RLW08IDPXBKkzS1zPOpwFTpEFTHDh0Eq%2B%2B4J%2FkV3Dza%2BGZ%2BbRE%3D
+22:11:53 | WARNING | modules.auth - auth: captcha artefacts — screenshot=logs\screenshots\20261008-221150_login-captcha.png full_dom=logs\dom\20261008-221150_login-captcha.html widget_dom=logs\dom\20261008-221153_login-captcha_widget.html matches=193 iframes=[]
+22:11:53 | INFO    | modules.auth - auth: captcha detected: please select all boxes with number
+22:11:55 | INFO    | modules.notifier - notifier: waiting for /resume…
+22:12:03 | INFO    | __main__ - cancelled — shutting down
+======================================================================
+finished: 2026-10-08T22:12:04
