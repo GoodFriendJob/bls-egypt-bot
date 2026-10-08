@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import re
 import signal
 import sys
 import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -132,7 +134,97 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
 }
 
-REQUIRED_DIRS = ("session", "logs", "logs/screenshots", "docs")
+REQUIRED_DIRS = ("session", "logs", "logs/screenshots", "logs/dom", "docs")
+
+# --------------------------------------------------------------------------- #
+# Per-run transcript
+#
+# Every run mirrors the complete terminal output into logs/run_<stamp>.txt so it
+# can be committed and read from another machine. stdout/stderr are teed rather
+# than adding a second loguru sink, because that also captures output written
+# outside loguru (the Flask banner, bare tracebacks, library warnings).
+# --------------------------------------------------------------------------- #
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_run_log_handle: Any = None
+
+
+class _Tee:
+    """Write through to the real stream, mirroring a plain-text copy to a file."""
+
+    def __init__(self, stream: Any, handle: Any, lock: threading.Lock) -> None:
+        self._stream = stream
+        self._handle = handle
+        self._lock = lock
+
+    def write(self, data: str) -> int:
+        written = self._stream.write(data)
+        try:
+            with self._lock:
+                # Strip colour codes so the committed file stays readable.
+                self._handle.write(_ANSI_RE.sub("", data))
+        except Exception:
+            pass
+        return written if isinstance(written, int) else len(data)
+
+    def flush(self) -> None:
+        for target in (self._stream, self._handle):
+            try:
+                target.flush()
+            except Exception:
+                pass
+
+    def isatty(self) -> bool:
+        try:
+            return bool(self._stream.isatty())
+        except Exception:
+            return False
+
+    def fileno(self) -> int:
+        return self._stream.fileno()
+
+    @property
+    def encoding(self) -> str:
+        return getattr(self._stream, "encoding", "utf-8") or "utf-8"
+
+
+def start_run_log(stamp: str, command: str) -> Path:
+    """Begin mirroring stdout/stderr into logs/run_<stamp>.txt."""
+    global _run_log_handle
+    path = ROOT / "logs" / f"run_{stamp}.txt"
+    try:
+        handle = path.open("w", encoding="utf-8", buffering=1, errors="replace")
+    except OSError as exc:  # never let logging break the run
+        print(f"WARNING: could not open run log {path}: {exc}", file=sys.stderr)
+        return path
+
+    _run_log_handle = handle
+    handle.write(f"BLS appointment bot - run transcript\n")
+    handle.write(f"started : {datetime.now().isoformat(timespec='seconds')}\n")
+    handle.write(f"command : {command}\n")
+    handle.write(f"python  : {sys.version.split()[0]}\n")
+    handle.write("=" * 70 + "\n")
+
+    lock = threading.Lock()
+    sys.stdout = _Tee(sys.stdout, handle, lock)
+    sys.stderr = _Tee(sys.stderr, handle, lock)
+    return path
+
+
+def close_run_log() -> None:
+    global _run_log_handle
+    if _run_log_handle is None:
+        return
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+        _run_log_handle.write(
+            "=" * 70 + f"\nfinished: {datetime.now().isoformat(timespec='seconds')}\n"
+        )
+        _run_log_handle.close()
+    except Exception:
+        pass
+    finally:
+        _run_log_handle = None
 
 
 # --------------------------------------------------------------------------- #
@@ -287,6 +379,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     ensure_dirs()
+
+    # Start the transcript before anything else can print.
+    run_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_log = start_run_log(run_stamp, " ".join(sys.argv))
+
+    try:
+        return _main_inner(args, run_log)
+    finally:
+        close_run_log()
+
+
+def _main_inner(args: argparse.Namespace, run_log: Path) -> int:
     config = load_config(Path(args.config))
 
     if args.headful:
@@ -297,6 +401,7 @@ def main(argv: list[str] | None = None) -> int:
     setup_logging(config)
     logger.info("=" * 62)
     logger.info("BLS Spain Egypt appointment bot starting")
+    logger.info(f"run transcript: {run_log}")
     logger.info(f"portal={config['bls']['url']} locations={config['bls']['locations']}")
     logger.info(f"visa_type={config['bls']['visa_type']} poll_interval={config['poll_interval']}s")
     logger.info("=" * 62)

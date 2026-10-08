@@ -656,10 +656,32 @@ class BLSAuth:
 
             tiles = scan.get("tiles") or []
             target = self._captcha_target(scan)
+
+            # --- attempt header: everything needed to debug from the log alone --
+            logger.info("-" * 60)
+            logger.info(f"CAPTCHA attempt {attempt} of {CAPTCHA_MAX_ATTEMPTS}")
+            logger.info(f"  target number   : {target}")
             logger.info(
-                f"auth: captcha attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS} — "
-                f"target={target}, {len(tiles)} visible tile(s) of "
-                f"{scan.get('totalTiles')} in the DOM"
+                f"  visible tiles   : {len(tiles)} "
+                f"(of {scan.get('totalTiles')} col-4 divs in the DOM)"
+            )
+            logger.info(
+                f"  visible labels  : {len(scan.get('visibleLabels') or [])} "
+                f"(of {scan.get('totalLabels')} box-labels in the DOM)"
+            )
+            logger.info(
+                "  tile numbers    : "
+                + ", ".join(
+                    f"{t.get('id') or '?'}={t.get('num')}" for t in tiles
+                )
+            )
+            logger.info(
+                "  label sources   : "
+                + ", ".join(sorted({str(t.get("labelSource")) for t in tiles}))
+            )
+            self._log(
+                f"captcha attempt {attempt}: target={target}, {len(tiles)} visible tiles",
+                status="warn",
             )
 
             if target is None:
@@ -681,10 +703,8 @@ class BLSAuth:
                 return False
 
             matches = [t for t in tiles if t.get("num") == target]
-            logger.info(
-                f"auth: {len(matches)} tile(s) match number {target} "
-                f"(label source: {matches[0]['labelSource'] if matches else 'n/a'})"
-            )
+            matched_ids = [t.get("id") or "?" for t in matches]
+            logger.info(f"  matched tiles   : {len(matches)} -> {matched_ids}")
 
             if not matches:
                 logger.warning(f"auth: no visible tile carries number {target}")
@@ -692,31 +712,54 @@ class BLSAuth:
                 await utils.dump_page_html(page, f"captcha-no-match-attempt{attempt}")
                 return False
 
-            if not await self._captcha_click_tiles(page, matches):
-                await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
-                return False
+            clicked_ok, confirmations = await self._captcha_click_tiles(page, matches)
+
+            logger.info("  click results   :")
+            for entry in confirmations:
+                logger.info(
+                    f"      id={entry['id']:<14} number={entry['number']:<6} "
+                    f"clicked={entry['clicked']}  "
+                    f"img-selected={entry['selected_confirmed']}"
+                )
 
             selected = await self._captcha_selected_images(page)
-            if selected is not None:
-                logger.info(f"auth: SelectedImages now holds {selected!r}")
+            logger.info(f"  SelectedImages  : {selected!r}")
 
-            if not await self._click_captcha_submit(page):
-                logger.warning("auth: captcha Submit button not found")
+            # Visual record of the selection actually made, before submitting.
+            await utils.screenshot(page, f"captcha-attempt{attempt}-before-submit")
+
+            if not clicked_ok:
+                logger.error("  outcome         : ABORTED - not every tile could be clicked")
+                self._log("captcha aborted — a tile could not be clicked", status="error")
+                await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-click-failed-attempt{attempt}")
+                return False
+
+            submitted = await self._click_captcha_submit(page)
+            logger.info(f"  submit clicked  : {submitted}")
+            if not submitted:
+                logger.error("  outcome         : ABORTED - Submit button not found")
+                self._log("captcha aborted — no Submit button", status="error")
                 await utils.screenshot(page, f"captcha-no-submit-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-no-submit-attempt{attempt}")
                 return False
 
             await self._settle(page)
 
             if not await self._captcha_present(page):
-                logger.success(f"auth: captcha solved on attempt {attempt}")
+                logger.success(f"  outcome         : SOLVED on attempt {attempt}")
+                logger.info("-" * 60)
                 self._log(f"captcha solved (attempt {attempt})", status="ok")
                 await utils.screenshot(page, "captcha-solved")
                 return True
 
             logger.warning(
-                f"auth: captcha still present after attempt {attempt} — "
-                "selection was rejected, grid reloaded"
+                f"  outcome         : REJECTED - captcha still present after "
+                f"attempt {attempt}, grid reloaded"
             )
+            logger.info("-" * 60)
+            self._log(f"captcha attempt {attempt} rejected", status="warn")
+            await utils.screenshot(page, f"captcha-attempt{attempt}-rejected")
             await utils.human_delay(self.config)
 
         logger.error(f"auth: captcha not solved after {CAPTCHA_MAX_ATTEMPTS} attempts")
@@ -783,26 +826,46 @@ class BLSAuth:
 
     async def _captcha_click_tiles(
         self, page: Page, matches: list[dict[str, Any]]
-    ) -> bool:
+    ) -> tuple[bool, list[dict[str, Any]]]:
         """Click the <img> inside each matching tile, verifying each registered.
+
+        Returns ``(all_clicked, confirmations)`` where each confirmation records
+        the tile id, its number, whether the click was dispatched, and whether the
+        ``img-selected`` class appeared afterwards.
 
         Tiles are addressed by their position in ``document.querySelectorAll`` so
         the random per-load ids are never used as selectors. Clicking lets the
         page's own ``Select()`` handler populate the hidden ``SelectedImages``
         field — the bot never writes that field itself.
         """
+        confirmations: list[dict[str, Any]] = []
+
+        def record(info: dict[str, Any], clicked: bool, confirmed: Any) -> None:
+            confirmations.append(
+                {
+                    "id": str(info.get("id") or "?"),
+                    "number": str(info.get("num")),
+                    "clicked": clicked,
+                    "selected_confirmed": confirmed,
+                }
+            )
+
         try:
             tiles = await page.query_selector_all(CAPTCHA_TILE_SELECTOR)
         except Exception as exc:
             logger.warning(f"auth: could not re-query captcha tiles: {exc}")
-            return False
+            for info in matches:
+                record(info, False, "no-query")
+            return False, confirmations
 
-        clicked = 0
+        all_ok = True
         for position, tile_info in enumerate(matches, start=1):
             index = tile_info.get("domIndex")
             if index is None or index >= len(tiles):
                 logger.warning(f"auth: captcha tile index {index} is out of range")
-                return False
+                record(tile_info, False, "index-out-of-range")
+                all_ok = False
+                continue
 
             tile = tiles[index]
             target_el = await tile.query_selector(CAPTCHA_IMG_SELECTOR)
@@ -810,18 +873,21 @@ class BLSAuth:
                 target_el = await tile.query_selector("img")
             if target_el is None:
                 logger.warning(f"auth: captcha tile {index} has no <img> to click")
-                return False
+                record(tile_info, False, "no-img")
+                all_ok = False
+                continue
 
             try:
                 await target_el.click()
-                clicked += 1
                 logger.debug(
                     f"auth: clicked captcha tile {position}/{len(matches)} "
                     f"(id={tile_info.get('id') or '?'}, number={tile_info.get('num')})"
                 )
             except Exception as exc:
                 logger.warning(f"auth: could not click captcha tile {index}: {exc}")
-                return False
+                record(tile_info, False, "click-error")
+                all_ok = False
+                continue
 
             await asyncio.sleep(CAPTCHA_CLICK_DELAY)
 
@@ -829,19 +895,23 @@ class BLSAuth:
             # not appear, the click did not register and submitting now would
             # send an incomplete answer.
             try:
-                is_selected = await target_el.evaluate(
+                confirmed: Any = await target_el.evaluate(
                     "(el, cls) => el.classList.contains(cls)", CAPTCHA_SELECTED_CLASS
                 )
-            except Exception:
-                is_selected = None
-            if is_selected is False:
-                logger.warning(
-                    f"auth: captcha tile {index} did not gain .{CAPTCHA_SELECTED_CLASS} "
-                    "after the click"
-                )
+            except Exception as exc:
+                logger.debug(f"auth: could not read {CAPTCHA_SELECTED_CLASS}: {exc}")
+                confirmed = "unknown"
 
-        logger.info(f"auth: clicked {clicked}/{len(matches)} matching captcha tile(s)")
-        return clicked == len(matches)
+            if confirmed is False:
+                logger.warning(
+                    f"auth: captcha tile {index} did not gain "
+                    f".{CAPTCHA_SELECTED_CLASS} after the click"
+                )
+                all_ok = False
+
+            record(tile_info, True, confirmed)
+
+        return all_ok, confirmations
 
     async def _captcha_selected_images(self, page: Page) -> str | None:
         """Current value of the hidden SelectedImages field, for logging only."""

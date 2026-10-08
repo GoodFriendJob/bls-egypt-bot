@@ -1,11 +1,19 @@
 # --- Secrets & runtime state (NEVER commit) ---
 config.yaml
+config.local.yaml
 session/
 !session/.gitkeep
-logs/
-!logs/.gitkeep
 docs/
 !docs/.gitkeep
+
+# --- Run artifacts ARE committed on purpose ---
+# logs/, logs/screenshots/ and logs/dom/ are deliberately NOT ignored: the Egypt
+# machine pushes them with push_logs.bat so the run can be reviewed elsewhere.
+#
+# WARNING: screenshots and DOM dumps capture whatever was on screen, which
+# includes applicant details (name, passport number, date of birth) once the
+# booking form is reached. Keep this repository PRIVATE.
+# Scanned documents themselves stay ignored via docs/ above.
 
 # --- Python ---
 __pycache__/

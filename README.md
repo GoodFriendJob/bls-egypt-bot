@@ -234,7 +234,7 @@ Run `python bot.py --headful --once` and watch the browser to fill these in.
 
 | Symptom | Fix |
 |---|---|
-| `portal returned HTTP 403 ... (server: awselb/2.0)` | **The IP is blocked, not the bot.** See §10 — you need an Egyptian IP |
+| `portal returned HTTP 403 ... (server: awselb/2.0)` | **The IP is blocked, not the bot.** See §11 — you need an Egyptian IP |
 | `Config not found` | `copy config.example.yaml config.yaml` |
 | `refusing to start — fix the config problems` | Read the warnings above it; `--ignore-config-warnings` overrides |
 | Browser never launches | `python -m playwright install chromium` |
@@ -248,7 +248,58 @@ Logs: `logs/bot.log`. Screenshots of unexpected pages: `logs/screenshots/`.
 
 ---
 
-## 10. The portal blocks non-Egyptian IPs — confirmed
+## 10. Run logs — collecting them from the Egypt machine
+
+Every run writes a complete transcript, so a run on one machine can be reviewed
+on another.
+
+**What gets saved automatically, every run:**
+
+| Artifact | Path |
+|---|---|
+| Full terminal transcript (one file per run) | `logs/run_YYYYMMDD_HHMMSS.txt` |
+| Rolling combined log | `logs/bot.log` |
+| Screenshots — captcha attempts, login failures, HTTP errors, unexpected pages | `logs/screenshots/` |
+| Page/DOM dumps on captcha or markup problems | `logs/dom/` |
+
+The transcript mirrors stdout **and** stderr, so it also captures output that
+does not go through the logger (the Flask banner, raw tracebacks, library
+warnings). Colour codes are stripped so the file stays readable.
+
+**Workflow**
+
+1. Egypt PC: run `start_headful.bat` (or `start.bat`)
+2. Logs and screenshots are written automatically — nothing to do
+3. Egypt PC: run `push_logs.bat`
+4. Other PC: `git pull`, then read `logs/run_*.txt`
+
+`push_logs.bat` resolves its own folder, so it works wherever the repo is cloned.
+First-time git setup on the Egypt machine:
+
+```bat
+git init
+git remote add origin YOUR_REPO_URL
+git branch -M main
+git add .
+git commit -m "initial"
+git push -u origin main
+```
+
+> **Keep this repository private.** `logs/` is deliberately **not** ignored so
+> the artifacts can be shared — but screenshots and DOM dumps capture whatever
+> was on screen, which includes applicant name, passport number and date of
+> birth once the booking form is reached. `config.yaml`, `session/` and `docs/`
+> remain ignored and are never committed.
+
+### What a captcha attempt records
+
+Each attempt logs a block containing the target number, how many tiles were
+visible, every tile's id and resolved number, which tiles matched, a per-click
+`img-selected` confirmation, the `SelectedImages` value before submit, and the
+outcome (`SOLVED` / `REJECTED` / `ABORTED`). A screenshot is taken before each
+submit and after each rejection, so the log and the images can be read together.
+
+## 11. The portal blocks non-Egyptian IPs — confirmed
 
 Verified 2026-10-08. `https://egypt.blsspainglobal.com/` returns:
 
@@ -285,7 +336,7 @@ The bot now detects this state explicitly: `auth._goto()` checks the HTTP status
 on every navigation and raises `PortalUnreachableError` immediately rather than
 retrying a login against an error page.
 
-## 11. Security notes
+## 12. Security notes
 
 - `config.yaml`, `session/`, `logs/` and `docs/` are gitignored — never commit them.
 - No credentials appear anywhere in the source; everything comes from `config.yaml`.
