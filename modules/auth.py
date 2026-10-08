@@ -90,6 +90,9 @@ BUTTON_TIMEOUT_MS = 5000
 # --------------------------------------------------------------------------- #
 CAPTCHA_BOX_LABEL_SELECTOR = "div.col-12.box-label"
 CAPTCHA_TILE_SELECTOR = "div.col-4"
+CAPTCHA_CONTAINER_SELECTOR = "div.main-div-container"
+# Strongest, most specific signal that a challenge is on screen.
+CAPTCHA_PROMPT_TEXT = "please select all boxes with number"
 CAPTCHA_IMG_SELECTOR = "img.captcha-img"
 CAPTCHA_SELECTED_CLASS = "img-selected"
 CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
@@ -105,6 +108,40 @@ CAPTCHA_CLICK_DELAY = 0.5
 # normalised, so both "display: block" and "display:block" match) AND by an
 # ancestor walk - an inline display:block inside a hidden grid still computes to
 # "block", so the inline marker alone is not sufficient.
+_CAPTCHA_DETECT_JS = r"""
+(args) => {
+  const { containerSel, tileSel, imgSel, labelSel, promptText } = args;
+  const needle = (promptText || '').toLowerCase();
+  const bodyText = (document.body ? (document.body.innerText || '') : '').toLowerCase();
+
+  const containers = Array.from(document.querySelectorAll(containerSel));
+  // A container only counts as a captcha signal when it actually holds captcha
+  // content. "main-div-container" may well be a generic page wrapper present on
+  // every page - treating its mere existence as "captcha" would make every
+  // normal login look like a challenge and stall the bot.
+  let containerHasCaptcha = false;
+  for (const c of containers) {
+    if (c.querySelector(imgSel) || c.querySelector(tileSel) || c.querySelector(labelSel)) {
+      containerHasCaptcha = true;
+      break;
+    }
+    if ((c.innerText || '').toLowerCase().includes(needle)) {
+      containerHasCaptcha = true;
+      break;
+    }
+  }
+
+  return {
+    promptTextFound: needle ? bodyText.includes(needle) : false,
+    containerCount: containers.length,
+    containerHasCaptcha: containerHasCaptcha,
+    captchaImgCount: document.querySelectorAll(imgSel).length,
+    tileCount: document.querySelectorAll(tileSel).length,
+    labelCount: document.querySelectorAll(labelSel).length,
+  };
+}
+"""
+
 _CAPTCHA_SCAN_JS = r"""
 (args) => {
   const { tileSel, labelSel, imgSel, selectedClass } = args;
@@ -478,9 +515,12 @@ class BLSAuth:
         await self._submit_login(page)
         await self._settle(page)
 
-        # The BLS captcha is DOM-based, so try to solve it automatically first.
-        # Only if that fails do we fall back to pausing for a human.
+        # CAPTCHA FIRST. The challenge renders instead of the account page, so
+        # checking "am I logged in?" before handling it always fails and reports a
+        # misleading reason. solve_captcha() is a no-op when nothing is on screen.
+        logger.info("auth: checking for a CAPTCHA before the login check")
         if not await self.solve_captcha(page):
+            # Unsolved (or markup we do not recognise) -> hand over to a human.
             await self._check_for_captcha(page)
 
         # TODO(unconfirmed): the live portal may insert an email/SMS OTP step
@@ -640,12 +680,19 @@ class BLSAuth:
         submit. A rejected selection reloads the grid with a new number, so every
         round re-scans from scratch. Up to ``CAPTCHA_MAX_ATTEMPTS`` rounds.
         """
-        if not await self._captcha_present(page):
+        signals = await self._detect_captcha(page)
+        logger.info(f"auth: captcha signals -> {self._signal_summary(signals)}")
+
+        if not signals["present"]:
+            logger.info("auth: no CAPTCHA detected")
             return True
 
-        logger.info("auth: captcha detected — attempting DOM-based solve")
-        self._log("captcha detected — solving", status="warn")
+        logger.info("auth: CAPTCHA detected, attempting to solve")
+        self._log("CAPTCHA detected — solving", status="warn")
         await utils.screenshot(page, "captcha-before")
+        # Always keep the markup of a real challenge: if the tile selectors turn
+        # out not to match, this dump is what identifies the correct ones.
+        await utils.dump_page_html(page, "captcha-detected")
 
         for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
             scan = await self._captcha_scan(page)
@@ -656,6 +703,24 @@ class BLSAuth:
 
             tiles = scan.get("tiles") or []
             target = self._captcha_target(scan)
+
+            if not tiles:
+                # A challenge is on screen but no tile matched the selectors.
+                # Bail out loudly rather than silently reporting "solved".
+                logger.error(
+                    "auth: CAPTCHA is on screen but no tile matched "
+                    f"{CAPTCHA_TILE_SELECTOR!r} with an inline display:block "
+                    f"(DOM has {scan.get('totalTiles')} col-4 divs, "
+                    f"{scan.get('totalLabels')} box-labels)"
+                )
+                logger.error(
+                    "auth: the tile selectors need updating — see the DOM dump "
+                    "in logs/dom/ for the real markup"
+                )
+                self._log("CAPTCHA tiles not found — selectors need updating", status="error")
+                await utils.screenshot(page, f"captcha-no-tiles-attempt{attempt}")
+                await utils.dump_page_html(page, f"captcha-no-tiles-attempt{attempt}")
+                return False
 
             # --- attempt header: everything needed to debug from the log alone --
             logger.info("-" * 60)
@@ -769,11 +834,77 @@ class BLSAuth:
         return False
 
     async def _captcha_present(self, page: Page) -> bool:
-        """True while at least one captcha tile is visible on the page."""
+        """True while a captcha challenge is on screen."""
+        return (await self._detect_captcha(page))["present"]
+
+    async def _detect_captcha(self, page: Page) -> dict[str, Any]:
+        """Decide whether a captcha is on screen, and report every signal.
+
+        Deliberately broader than the tile scan: the page can be a challenge even
+        when ``div.col-4`` tiles do not match, and in that case the bot must say
+        so loudly rather than report "no captcha" and let the login check fail
+        with a misleading error.
+
+        Signals, strongest first:
+          * prompt text "Please select all boxes with number" anywhere on the page
+          * at least one visible tile found by the full scan
+          * ``img.captcha-img`` elements present
+          * ``div.main-div-container`` that *contains* captcha content
+
+        The container is only counted when it holds captcha content, because a
+        name like "main-div-container" may be a generic page wrapper — treating
+        its bare presence as a captcha would misfire on every normal page.
+        """
+        signals: dict[str, Any] = {
+            "promptTextFound": False,
+            "containerCount": 0,
+            "containerHasCaptcha": False,
+            "captchaImgCount": 0,
+            "tileCount": 0,
+            "labelCount": 0,
+            "visibleTiles": 0,
+            "present": False,
+        }
+
+        try:
+            found = await page.evaluate(
+                _CAPTCHA_DETECT_JS,
+                {
+                    "containerSel": CAPTCHA_CONTAINER_SELECTOR,
+                    "tileSel": CAPTCHA_TILE_SELECTOR,
+                    "imgSel": CAPTCHA_IMG_SELECTOR,
+                    "labelSel": CAPTCHA_BOX_LABEL_SELECTOR,
+                    "promptText": CAPTCHA_PROMPT_TEXT,
+                },
+            )
+            signals.update(found or {})
+        except Exception as exc:
+            logger.warning(f"auth: captcha detection failed: {exc}")
+            return signals
+
         scan = await self._captcha_scan(page)
-        if scan is None:
-            return False
-        return bool(scan.get("tiles"))
+        if scan is not None:
+            signals["visibleTiles"] = len(scan.get("tiles") or [])
+
+        signals["present"] = bool(
+            signals["promptTextFound"]
+            or signals["visibleTiles"] > 0
+            or signals["captchaImgCount"] > 0
+            or signals["containerHasCaptcha"]
+        )
+        return signals
+
+    @staticmethod
+    def _signal_summary(signals: dict[str, Any]) -> str:
+        return (
+            f"prompt_text={signals['promptTextFound']} "
+            f"visible_tiles={signals['visibleTiles']} "
+            f"captcha_imgs={signals['captchaImgCount']} "
+            f"container={signals['containerCount']}"
+            f"(has_captcha={signals['containerHasCaptcha']}) "
+            f"col4_total={signals['tileCount']} "
+            f"box_labels={signals['labelCount']}"
+        )
 
     async def _captcha_scan(self, page: Page) -> dict[str, Any] | None:
         """Run the single-pass DOM scan. None when it could not be evaluated."""

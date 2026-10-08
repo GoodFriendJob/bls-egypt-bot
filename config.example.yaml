@@ -164,6 +164,9 @@ detection:
     - "selfie"
     - "take a photo of yourself"
   captcha_phrases:
+    # BLS's own wording — the specific one that matters.
+    - "please select all boxes with number"
+    - "select all boxes"
     - "captcha"
     - "select the image"
     - "verify you are human"
