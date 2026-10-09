@@ -149,6 +149,29 @@ _VERIFY_SCAN_JS = r"""
 }
 """
 
+# Where in the journey a URL puts us. Ordered: the first match wins, so the more
+# specific verification path is tested before the generic /bls/ one.
+PAGE_STAGES = (
+    ("/account/login", "login"),
+    ("/newcaptcha/logincaptcha", "login-captcha"),
+    ("/newcaptcha/generatecaptcha", "verify-captcha"),
+    ("/bls/visatypeverification", "verification"),
+    ("/bls/visatype", "appointment-form"),
+    ("/blsappointment/", "appointment"),
+)
+
+
+def classify_page(url: str) -> str:
+    """Name the stage a URL belongs to, for navigation tracking."""
+    low = (url or "").lower()
+    if low.startswith("chrome-error") or "chromewebdata" in low:
+        return "browser-error"
+    for fragment, stage in PAGE_STAGES:
+        if fragment in low:
+            return stage
+    return "other"
+
+
 def _frame_gone(frame: Any) -> bool:
     """True once the captcha frame has been detached (the success signal).
 
@@ -341,6 +364,10 @@ class Monitor:
         self._last_form_result: str | None = None
         self._last_visatype_status: int | None = None
         self._form_hooked: set[int] = set()
+        # Live page-stage tracking, fed by the navigation watcher.
+        self._nav_hooked: set[int] = set()
+        self._page_stage: str | None = None
+        self._needs_restart = False
 
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
@@ -406,6 +433,8 @@ class Monitor:
         """One full pass: log in, clear the verification gate, check each location."""
         page = await self.auth.ensure_logged_in()
         self.state.mark_cycle()
+
+        self.install_navigation_watch(page)
 
         if not await self.ensure_visa_type_verified(page):
             logger.error("monitor: visa-type verification not cleared — skipping cycle")
@@ -517,6 +546,9 @@ class Monitor:
 
         for attempt in range(1, VERIFY_MAX_ATTEMPTS + 1):
             logger.info(f"monitor: verification attempt {attempt}/{VERIFY_MAX_ATTEMPTS}")
+            if self._restart_requested():
+                logger.warning("monitor: dropped to login mid-verification — aborting")
+                return False
 
             if _frame_gone(work):
                 # The frame is torn down on success; the outcome is on the parent.
@@ -733,6 +765,7 @@ class Monitor:
             return False
 
         self._install_form_listener(page)
+        self.install_navigation_watch(page)
 
         bls = self.config.get("bls", {}) or {}
         labels = bls.get("location_labels", {}) or {}
@@ -788,6 +821,10 @@ class Monitor:
                 return await self._form_failed(page, label.lower().replace(" ", "-"))
 
         await utils.screenshot(page, "visatype-form-filled")
+
+        if self._restart_requested():
+            logger.warning("monitor: dropped to login before submit — aborting")
+            return False
 
         self._last_visatype_status = None
         if not await utils.click_by_text(page, ("submit",), config=self.config):
@@ -908,6 +945,56 @@ class Monitor:
         self.state.log_event(
             "bot", "appointment submit failed — restarting from login", status="warn"
         )
+
+    def install_navigation_watch(self, page: Any) -> None:
+        """Track every main-frame navigation and name the stage it lands on.
+
+        The portal can drop the session at any moment — a redirect to the login
+        page can happen mid-step, not only at the checkpoints the code happens
+        to test. Watching navigations catches it wherever it occurs, and sets a
+        restart flag the running step checks so the journey begins again from
+        the login page instead of continuing against a dead session.
+        """
+        if id(page) in self._nav_hooked:
+            return
+
+        def _on_nav(frame: Any) -> None:
+            try:
+                if frame != page.main_frame:
+                    return  # iframes navigate constantly; only the page matters
+                url = frame.url or ""
+            except Exception:
+                return
+
+            stage = classify_page(url)
+            previous = self._page_stage
+            self._page_stage = stage
+            if stage != previous:
+                logger.info(f"monitor: page -> {stage}  ({url[:110]})")
+
+            # Landing back on login from anywhere further along means the
+            # session died; the journey has to restart.
+            if stage == "login" and previous not in (None, "login", "login-captcha"):
+                logger.warning(
+                    f"monitor: bounced to the login page from {previous!r} — "
+                    "session lost, restarting the journey"
+                )
+                self._needs_restart = True
+
+        try:
+            page.on("framenavigated", _on_nav)
+            self._nav_hooked.add(id(page))
+            self._page_stage = classify_page(page.url or "")
+            logger.info(f"monitor: navigation watch installed (now: {self._page_stage})")
+        except Exception as exc:
+            logger.debug(f"monitor: could not install the navigation watch: {exc}")
+
+    def _restart_requested(self) -> bool:
+        """True once a navigation showed we were dropped back at login."""
+        if self._needs_restart:
+            self._needs_restart = False
+            return True
+        return False
 
     def _install_form_listener(self, page: Any) -> None:
         """Record the status of the appointment form's own POST."""
