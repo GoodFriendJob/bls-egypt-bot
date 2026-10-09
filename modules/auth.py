@@ -105,7 +105,18 @@ CAPTCHA_IMG_SELECTOR = "img.captcha-img"
 CAPTCHA_SELECTED_CLASS = "img-selected"
 CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
 CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
-CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]')
+CAPTCHA_SUBMIT_SELECTORS = (
+    # The verification modal labels it "Submit Selection" and renders it as a
+    # div/anchor with an icon, not a <button> — match that first.
+    ':text("Submit Selection")',
+    '[onclick*="Submit"]',
+    'button:has-text("Submit")',
+    'input[value="Submit"]',
+)
+CAPTCHA_SUBMIT_TEXTS = ("submit selection", "submit")
+# Clearing between attempts matters because Select() TOGGLES: re-clicking a tile
+# that is already chosen unselects it.
+CAPTCHA_CLEAR_TEXTS = ("clear selection", "clear")
 # Solving is cheap and the grid reloads on every rejection, so retry hard before
 # bothering a human. Escalating after 3 made MANUAL_REQUIRED alerts far too
 # frequent.
@@ -292,7 +303,13 @@ _CAPTCHA_SCAN_JS = r"""
     if (!topEl) return;
     if (!(topEl === tile || tile.contains(topEl))) return;
 
+    // A tile MUST hold a captcha image. The modal's footer controls
+    // ("Clear Selection", "Reload Images", "Submit Selection") are col-4 divs
+    // too, and counting them gave 12 tiles for a 3x3 grid — which broke the
+    // per-tile read (9 crops vs 12 expected) and made the fallback positions
+    // index into the wrong list.
     const img = tile.querySelector(imgSel) || tile.querySelector('img');
+    if (!img) return;
     const info = labelFor(tile);
     if (info.idx !== null && info.idx !== undefined) claimed.add(info.idx);
     tiles.push({
@@ -1179,6 +1196,8 @@ class BLSAuth:
             matched_ids = [t.get("id") or "?" for t in matches]
             logger.info(f"  matched tiles   : {len(matches)} -> {matched_ids}")
 
+            # Select() toggles — start every attempt from a clean slate.
+            await self._clear_captcha_selection(ctx)
             clicked_ok, confirmations = await self._captcha_click_tiles(ctx, matches)
 
             logger.info("  click results   :")
@@ -1815,10 +1834,10 @@ class BLSAuth:
             logger.debug(f"auth: could not read SelectedImages: {exc}")
             return None
 
-    async def _click_captcha_submit(self, page: Page) -> bool:
+    async def _click_captcha_submit(self, ctx: Any) -> bool:
         for selector in CAPTCHA_SUBMIT_SELECTORS:
             try:
-                button = page.locator(selector).first
+                button = ctx.locator(selector).first
                 await button.wait_for(state="visible", timeout=BUTTON_TIMEOUT_MS)
                 await button.click(timeout=BUTTON_TIMEOUT_MS)
                 logger.info(f"auth: captcha submitted via {selector}")
@@ -1827,7 +1846,89 @@ class BLSAuth:
                 continue
             except Exception as exc:
                 logger.debug(f"auth: captcha submit via {selector} failed: {exc}")
-        return await utils.click_by_text(page, ("submit",), config=self.config)
+
+        # The control may be a div/span with an onclick rather than a button, so
+        # widen the roles beyond click_by_text's defaults.
+        if await utils.click_by_text(
+            ctx,
+            CAPTCHA_SUBMIT_TEXTS,
+            roles=("button", "a", 'input[type="submit"]', 'input[type="button"]',
+                   "div", "span", "label"),
+            config=self.config,
+        ):
+            return True
+
+        # Last resort: find it by text in JS and click it directly.
+        try:
+            clicked = await ctx.evaluate(
+                """
+                (texts) => {
+                  const wanted = texts.map((t) => t.toLowerCase());
+                  for (const el of document.querySelectorAll('*')) {
+                    if (el.children.length > 2) continue;
+                    const t = (el.innerText || '').trim().toLowerCase();
+                    if (!t) continue;
+                    if (wanted.some((w) => t === w || t.startsWith(w))) {
+                      el.click();
+                      return t;
+                    }
+                  }
+                  return null;
+                }
+                """,
+                list(CAPTCHA_SUBMIT_TEXTS),
+            )
+            if clicked:
+                logger.info(f"auth: captcha submitted via JS click on {clicked!r}")
+                return True
+        except Exception as exc:
+            logger.debug(f"auth: JS submit click failed: {exc}")
+        return False
+
+    async def _clear_captcha_selection(self, ctx: Any) -> None:
+        """Deselect everything before a fresh attempt.
+
+        Select() toggles, so re-clicking a tile that is still selected from the
+        previous attempt turns it OFF. Without clearing, retries flip tiles in
+        and out and img-selected appears to flap at random.
+        """
+        try:
+            selected = await ctx.evaluate(
+                "(cls) => document.querySelectorAll('img.' + cls).length",
+                CAPTCHA_SELECTED_CLASS,
+            )
+        except Exception:
+            selected = 0
+        if not selected:
+            return
+
+        logger.info(f"auth: clearing {selected} tile(s) left selected from the last try")
+        if await utils.click_by_text(
+            ctx,
+            CAPTCHA_CLEAR_TEXTS,
+            roles=("button", "a", "div", "span", "label"),
+            config=self.config,
+        ):
+            await asyncio.sleep(0.6)
+            return
+        # No Clear control — toggle them off individually.
+        try:
+            await ctx.evaluate(
+                """
+                (cls) => {
+                  document.querySelectorAll('img.' + cls).forEach((img) => {
+                    const tile = img.closest('div.col-4');
+                    if (tile && tile.id && typeof Select === 'function') {
+                      Select(tile.id, img);
+                    }
+                  });
+                }
+                """,
+                CAPTCHA_SELECTED_CLASS,
+            )
+            await asyncio.sleep(0.6)
+        except Exception as exc:
+            logger.debug(f"auth: could not clear the selection: {exc}")
 
     # ------------------------------------------------------------------ #
     # Session detection + persistence
