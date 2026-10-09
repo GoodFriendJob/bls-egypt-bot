@@ -1123,23 +1123,65 @@ class BLSAuth:
         detail leaves the machine, and nothing identifying lands in the samples
         folder that gets committed to git.
         """
-        rects = [t["rect"] for t in ordered if t.get("rect")]
-        if rects:
-            pad = 6
-            left = min(r["x"] for r in rects) - pad
-            top = min(r["y"] for r in rects) - pad
-            right = max(r["x"] + r["w"] for r in rects) + pad
-            bottom = max(r["y"] + r["h"] for r in rects) + pad
-            clip = {
-                "x": max(0, left),
-                "y": max(0, top),
-                "width": max(1, right - max(0, left)),
-                "height": max(1, bottom - max(0, top)),
-            }
+        tile_ids = [t.get("id") for t in ordered if t.get("id")]
+        if tile_ids:
+            # Rects must be re-read in VIEWPORT space here. The scan stores
+            # document coordinates (rect + scrollX/scrollY), but a non-fullPage
+            # screenshot clips against the viewport — on a scrolled page those
+            # differ and the clip lands outside the image. Scroll the grid into
+            # view first, then measure fresh and clamp to the viewport.
             try:
-                return await page.screenshot(clip=clip)
+                box = await page.evaluate(
+                    """
+                    (args) => {
+                      const els = args.ids
+                        .map((id) => document.getElementById(id))
+                        .filter(Boolean);
+                      if (!els.length) return null;
+                      els[0].scrollIntoView({ block: 'center', inline: 'center' });
+                      let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+                      for (const el of els) {
+                        const q = el.getBoundingClientRect();
+                        l = Math.min(l, q.left);
+                        t = Math.min(t, q.top);
+                        r = Math.max(r, q.right);
+                        b = Math.max(b, q.bottom);
+                      }
+                      const pad = args.pad;
+                      l = Math.max(0, l - pad);
+                      t = Math.max(0, t - pad);
+                      r = Math.min(window.innerWidth, r + pad);
+                      b = Math.min(window.innerHeight, b + pad);
+                      return { x: l, y: t, width: r - l, height: b - t,
+                               vw: window.innerWidth, vh: window.innerHeight,
+                               tiles: els.length };
+                    }
+                    """,
+                    {"ids": tile_ids, "pad": 10},
+                )
             except Exception as exc:
-                logger.warning(f"auth: clipped grid screenshot failed: {exc}")
+                logger.warning(f"auth: could not measure the grid: {exc}")
+                box = None
+
+            if box and box["width"] > 10 and box["height"] > 10:
+                clip = {
+                    "x": round(box["x"], 2),
+                    "y": round(box["y"], 2),
+                    "width": round(box["width"], 2),
+                    "height": round(box["height"], 2),
+                }
+                logger.info(
+                    f"  grid clip       : x={clip['x']} y={clip['y']} "
+                    f"w={clip['width']} h={clip['height']} "
+                    f"(viewport {box['vw']}x{box['vh']}, {box['tiles']} tiles)"
+                )
+                try:
+                    await asyncio.sleep(0.2)  # let the scroll settle
+                    return await page.screenshot(clip=clip)
+                except Exception as exc:
+                    logger.warning(f"auth: clipped grid screenshot failed: {exc}")
+            else:
+                logger.warning(f"auth: grid measurement unusable: {box}")
 
         # Fall back to the captcha container element.
         try:

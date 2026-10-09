@@ -29,13 +29,15 @@ except ImportError:  # pragma: no cover - dependency not installed
 SAMPLE_DIR = Path("logs/captcha_samples")
 
 PROMPT_TEMPLATE = (
-    "This is a CAPTCHA grid. The task says to select all boxes showing the "
-    "number {target}.\n"
-    "Look at the {rows}x{cols} grid of images. Each box shows a {digits}-digit number.\n"
-    "Tell me which grid positions (1-{count}, left-to-right top-to-bottom) show "
-    "the number {target}.\n"
-    "Reply with ONLY a comma-separated list of position numbers, e.g: 1,4,7\n"
-    "If none match, reply: none"
+    "This is a {rows}x{cols} image grid ({cols} columns, {rows} rows = {count} "
+    "tiles total). Each tile contains a number. The tiles are numbered "
+    "left-to-right, top-to-bottom: position 1=top-left, 2=top-center, "
+    "3=top-right, 4=middle-left, 5=middle-center, 6=middle-right, "
+    "7=bottom-left, 8=bottom-center, 9=bottom-right. "
+    "The target number is {target}. "
+    "Reply with ONLY the position numbers (1-{count}) that contain {target}, "
+    "comma-separated. Example: 2,5,9\n"
+    "If no tile shows {target}, reply: none"
 )
 
 _POSITION_RE = re.compile(r"\d+")
