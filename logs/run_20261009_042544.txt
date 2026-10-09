@@ -1,0 +1,119 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T04:25:44
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+04:25:44 | INFO    | __main__ - ==============================================================
+04:25:44 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+04:25:44 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_042544.txt
+04:25:44 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+04:25:44 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+04:25:44 | INFO    | __main__ - ==============================================================
+04:25:44 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+04:25:44 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+04:25:44 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+04:25:44 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+04:25:45 | INFO    | modules.notifier - notifier: telegram listener started
+04:25:45 | INFO    | __main__ - single-cycle mode (--once)
+04:25:46 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+04:25:46 | INFO    | modules.auth - auth: browser launched
+04:25:50 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+04:25:50 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+04:25:56 | INFO    | modules.utils - find_real_input: real 'text' field is index 0 of 10 (parent div.mb-3 display:block)
+04:25:59 | INFO    | modules.auth - auth: email filled
+04:25:59 | INFO    | modules.auth - auth: email submitted
+04:26:01 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+04:26:02 | INFO    | modules.utils - find_real_input: real 'password' field is index 8 of 10 (parent div.mb-3 display:block)
+04:26:04 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+04:26:04 | INFO    | modules.auth - auth: password filled
+04:26:04 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh704phmKF9SPSdDmR24kfbl1oroo00roePSybVNsV7hU6iXApuE2zaMJC2I4Jt0ChfceszV1eHmEt9TqYMfrkUQ4OCtFU%2FTLrEoZ%2FV2VOTamNH61mi7ia5ceTY6qxA30XM%3D
+04:26:04 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042604_password-page-filled.png
+04:26:04 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-042604_password-page-filled.html
+04:26:04 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+04:26:04 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=33
+04:26:04 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+04:26:04 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+04:26:04 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042604_captcha-before.png
+04:26:04 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-042604_captcha-detected.html
+04:26:04 | INFO    | modules.auth - auth: 33 stacked prompt(s); 1 readable (contrast >= 2.0)
+04:26:04 | INFO    | modules.auth - auth: prompt 798 chosen (contrast=15.43, z-index=974, color=rgb(33, 37, 41))
+04:26:04 | INFO    | modules.auth - ------------------------------------------------------------
+04:26:04 | INFO    | modules.auth - CAPTCHA attempt 1 of 10
+04:26:04 | INFO    | modules.auth -   target number   : 798
+04:26:04 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+04:26:04 | INFO    | modules.auth -   visible labels  : 33 (of 33 box-labels in the DOM)
+04:26:04 | INFO    | modules.auth - auth: captcha attempt 1: target=798, 9 visible tiles
+04:26:04 | INFO    | modules.auth -   grid order      : 1:gyevo, 2:eovweqj, 3:uaiio, 4:zogqrnid, 5:ecngtuel, 6:qnovytlyo, 7:vtdgh, 8:qnbxhd, 9:jzhnanwa
+04:26:04 | INFO    | modules.auth -   grid clip       : x=618.16 y=149 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+04:26:04 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-042604_target798_attempt1.png
+04:26:04 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-042604_target798_attempt1.png
+04:26:07 | INFO    | modules.vision - vision: model replied '1, 3, 4, 5, 8'
+04:26:07 | INFO    | modules.auth -   vision positions: [1, 3, 4, 5, 8]
+04:26:07 | INFO    | modules.auth -   matched tiles   : 5 -> ['gyevo', 'uaiio', 'zogqrnid', 'ecngtuel', 'qnbxhd']
+04:26:11 | INFO    | modules.auth -   click results   :
+04:26:11 | INFO    | modules.auth -       id=gyevo          number=None   clicked=True  img-selected=True
+04:26:11 | INFO    | modules.auth -       id=uaiio          number=None   clicked=True  img-selected=True
+04:26:11 | INFO    | modules.auth -       id=zogqrnid       number=None   clicked=True  img-selected=True
+04:26:11 | INFO    | modules.auth -       id=ecngtuel       number=None   clicked=True  img-selected=True
+04:26:11 | INFO    | modules.auth -       id=qnbxhd         number=None   clicked=True  img-selected=True
+04:26:12 | INFO    | modules.auth -   SelectedImages  : ''
+04:26:12 | INFO    | modules.auth -   expected ids    : ['ecngtuel', 'gyevo', 'qnbxhd', 'uaiio', 'zogqrnid']
+04:26:12 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+04:26:13 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042612_captcha-attempt1-before-submit.png
+04:26:13 | INFO    | modules.auth - auth: captcha submitted via button:has-text("Submit")
+04:26:13 | INFO    | modules.auth -   submit clicked  : True
+04:26:14 | WARNING | modules.auth -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+04:26:14 | INFO    | modules.auth - ------------------------------------------------------------
+04:26:14 | INFO    | modules.auth - auth: captcha attempt 1 rejected
+04:26:14 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042614_captcha-attempt1-rejected.png
+04:26:16 | INFO    | modules.auth - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+04:26:16 | INFO    | modules.auth - auth: prompt 189 chosen (contrast=14.92, z-index=958, color=rgb(33, 37, 41))
+04:26:16 | INFO    | modules.auth - ------------------------------------------------------------
+04:26:16 | INFO    | modules.auth - CAPTCHA attempt 2 of 10
+04:26:16 | INFO    | modules.auth -   target number   : 189
+04:26:16 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+04:26:16 | INFO    | modules.auth -   visible labels  : 39 (of 39 box-labels in the DOM)
+04:26:16 | INFO    | modules.auth - auth: captcha attempt 2: target=189, 9 visible tiles
+04:26:16 | INFO    | modules.auth -   grid order      : 1:kcoootrwj, 2:hkxkymaey, 3:jcfwfbxm, 4:tjgfe, 5:dzippjhgl, 6:mokgm, 7:ragjhfq, 8:tnvtcehh, 9:bokoxgzxu
+04:26:16 | INFO    | modules.auth -   grid clip       : x=617.48 y=319 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+04:26:17 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-042617_target189_attempt2.png
+04:26:17 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-042617_target189_attempt2.png
+04:26:18 | INFO    | modules.vision - vision: model replied '1, 3, 7, 9'
+04:26:18 | INFO    | modules.auth -   vision positions: [1, 3, 7, 9]
+04:26:18 | INFO    | modules.auth -   matched tiles   : 4 -> ['kcoootrwj', 'jcfwfbxm', 'ragjhfq', 'bokoxgzxu']
+04:26:21 | INFO    | modules.auth -   click results   :
+04:26:21 | INFO    | modules.auth -       id=kcoootrwj      number=None   clicked=True  img-selected=True
+04:26:21 | INFO    | modules.auth -       id=jcfwfbxm       number=None   clicked=True  img-selected=True
+04:26:21 | INFO    | modules.auth -       id=ragjhfq        number=None   clicked=True  img-selected=True
+04:26:21 | INFO    | modules.auth -       id=bokoxgzxu      number=None   clicked=True  img-selected=True
+04:26:22 | INFO    | modules.auth -   SelectedImages  : ''
+04:26:22 | INFO    | modules.auth -   expected ids    : ['bokoxgzxu', 'jcfwfbxm', 'kcoootrwj', 'ragjhfq']
+04:26:22 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+04:26:23 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042622_captcha-attempt2-before-submit.png
+04:26:23 | INFO    | modules.auth - auth: captcha submitted via button:has-text("Submit")
+04:26:23 | INFO    | modules.auth -   submit clicked  : True
+04:26:24 | WARNING | modules.auth -   outcome         : REJECTED - captcha still present after attempt 2, grid reloaded
+04:26:24 | INFO    | modules.auth - ------------------------------------------------------------
+04:26:24 | INFO    | modules.auth - auth: captcha attempt 2 rejected
+04:26:25 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042624_captcha-attempt2-rejected.png
+04:26:26 | INFO    | modules.auth - auth: 42 stacked prompt(s); 1 readable (contrast >= 2.0)
+04:26:26 | INFO    | modules.auth - auth: prompt 874 chosen (contrast=15.16, z-index=944, color=rgb(33, 37, 41))
+04:26:26 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile matched 'div.col-4' with an inline display:block (DOM has 54 col-4 divs, 42 box-labels)
+04:26:26 | ERROR   | modules.auth - auth: the tile selectors need updating — see the DOM dump in logs/dom/ for the real markup
+04:26:26 | INFO    | modules.auth - auth: CAPTCHA tiles not found — selectors need updating
+04:26:26 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042626_captcha-no-tiles-attempt3.png
+04:26:26 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-042626_captcha-no-tiles-attempt3.html
+04:26:27 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-042627_login-captcha.png
+04:26:27 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-042627_login-captcha.html
+04:26:30 | INFO    | modules.utils - widget DOM dumped: logs\dom\20261009-042630_login-captcha_widget.html (208 match(es))
+04:26:30 | WARNING | modules.auth - auth: captcha detected ('please select all boxes with number') — manual step required
+04:26:30 | WARNING | modules.auth - auth: captcha url=https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptcha?data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh704phmKF9SPSdDmR24kfbl1oroo00roePSybVNsV7hU6iXApuE2zaMJC2I4Jt0ChfceszV1eHmEt9TqYMfrkUQ4OCtFU%2FTLrEoZ%2FV2VOTamNH61mi7ia5ceTY6qxA30XM%3D&err=gzEz5XPfNfgshcHL8veBNg%3D%3D
+04:26:30 | WARNING | modules.auth - auth: captcha artefacts — screenshot=logs\screenshots\20261009-042627_login-captcha.png full_dom=logs\dom\20261009-042627_login-captcha.html widget_dom=logs\dom\20261009-042630_login-captcha_widget.html matches=208 iframes=[]
+04:26:30 | INFO    | modules.auth - auth: captcha detected: please select all boxes with number
+04:26:35 | INFO    | modules.notifier - notifier: waiting for /resume…
+04:31:00 | INFO    | __main__ - cancelled — shutting down
+04:31:00 | INFO    | __main__ - interrupted by user
+======================================================================
+finished: 2026-10-09T04:31:00
