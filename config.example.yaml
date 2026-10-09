@@ -22,14 +22,14 @@ bls:
     - alexandria
 
   # Visa category exactly as it appears in the portal dropdown.
-  visa_type: "Short Stay / Tourist"
+  visa_type: "Schengen visa"
 
   # Appointment form fields on /Global/bls/visatype. Leave blank to let the bot
   # pick the first real option (they are required fields with a "--Select--"
   # placeholder, so any valid choice beats leaving one unset).
-  visa_sub_type: ""
-  appointment_category: ""
-  appointment_for: "individual"      # individual | family
+  visa_sub_type: "Schengen Visa"
+  appointment_category: "Normal"
+  appointment_for: "Individual"      # individual | family
 
   # Optional: exact option labels the portal shows for each location.
   # The bot matches these case-insensitively against dropdown options.
@@ -175,6 +175,9 @@ retry:
 # These are heuristics over the rendered page — adjust if BLS changes wording.
 detection:
   unavailable_phrases:
+    - "no appointments available"
+    - "no slots are available"
+    - "slots are released basis instructions"
     - "no appointment"
     - "no appointments"
     - "not available"

@@ -167,6 +167,128 @@ def _frame_gone(frame: Any) -> bool:
     return False
 
 
+# --------------------------------------------------------------------------- #
+# "Book New Appointment" form  (/Global/bls/visatype)  — CONFIRMED markup
+#
+# Two traps here:
+#
+# 1. The controls are Kendo UI DropDownLists, NOT <select> elements. The real
+#    field is a hidden <input data-role="dropdownlist"> wrapped in a
+#    <span class="k-widget k-dropdown">, so querying "select" finds nothing and
+#    setting .value on the input does nothing either. Values must go through the
+#    widget: $(el).data('kendoDropDownList').value(id) then trigger('change').
+#
+# 2. Every field is duplicated as decoys — AppointmentCategoryId1/2/3/5,
+#    Location2/3/5, VisaType2/5, VisaSubType2/5, AppointmentFor1/2/3 — hidden by
+#    the same random-class obfuscation as the login honeypots. Only one of each
+#    is genuinely visible, so each must be picked by visibility, never by id.
+#
+# The dropdowns cascade: onLocationChangeN() refilters the Visa Type source and
+# onVisaTypeChangeN() refilters Visa Sub Type, so 'change' must actually fire
+# and the next field must be given time to repopulate.
+# --------------------------------------------------------------------------- #
+APPOINTMENT_FIELD_ORDER = (
+    ("Appointment Category", "appointment_category"),
+    ("Location", "location"),
+    ("Visa Type", "visa_type"),
+    ("Visa Sub Type", "visa_sub_type"),
+)
+
+_KENDO_SET_JS = r"""
+(args) => {
+  const { label, wanted } = args;
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const vis = (el) => {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width < 5 || r.height < 5) return false;
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none') return false;
+      if (s.visibility === 'hidden' || s.visibility === 'collapse') return false;
+      if (parseFloat(s.opacity || '1') < 0.1) return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+
+  const target = norm(label);
+  const inputs = Array.from(document.querySelectorAll('input[data-role="dropdownlist"]'));
+  const visible = [];
+  for (const inp of inputs) {
+    const lab = inp.id ? document.querySelector('label[for="' + inp.id + '"]') : null;
+    if (!lab) continue;
+    if (!norm(lab.innerText).startsWith(target)) continue;
+    // The <input> itself is display:none by design; judge the Kendo wrapper.
+    const widget = inp.closest('span.k-widget') || inp.parentElement;
+    if (!vis(widget)) continue;
+    visible.push(inp);
+  }
+  if (!visible.length) {
+    return { ok: false, reason: 'no visible widget for this label',
+             candidates: inputs.length };
+  }
+
+  const inp = visible[0];
+  if (!window.jQuery) return { ok: false, reason: 'jQuery missing', id: inp.id };
+  const dd = window.jQuery('#' + inp.id).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'kendo widget not initialised', id: inp.id };
+
+  const data = dd.dataSource.data() || [];
+  const textField = (dd.options && dd.options.dataTextField) || 'Name';
+  const valueField = (dd.options && dd.options.dataValueField) || 'Id';
+  const texts = [];
+  for (let i = 0; i < data.length; i++) texts.push(String(data[i][textField] || ''));
+
+  const isPlaceholder = (t) => !t || /^-+\s*select/i.test(t);
+  let idx = -1;
+  if (wanted) {
+    idx = texts.findIndex((t) => norm(t) === norm(wanted));
+    if (idx < 0) idx = texts.findIndex((t) => norm(t).includes(norm(wanted)));
+  }
+  if (idx < 0) idx = texts.findIndex((t) => !isPlaceholder(t));
+  if (idx < 0) {
+    return { ok: false, reason: 'no selectable option', id: inp.id,
+             options: texts, count: texts.length };
+  }
+
+  dd.value(data[idx][valueField]);
+  // value() alone does not fire change, and the cascade depends on it.
+  dd.trigger('change');
+  return { ok: true, id: inp.id, chosen: texts[idx], options: texts,
+           count: texts.length, visibleWidgets: visible.length };
+}
+"""
+
+_RADIO_SET_JS = r"""
+(wanted) => {
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const vis = (el) => {
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const s = getComputedStyle(n);
+      if (s.display === 'none') return false;
+      if (s.visibility === 'hidden') return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+  const target = norm(wanted);
+  for (const r of document.querySelectorAll('input[type="radio"]')) {
+    if (!vis(r)) continue;
+    const own = norm(r.value);
+    const lab = r.id ? document.querySelector('label[for="' + r.id + '"]') : null;
+    const text = norm((lab && lab.innerText) || '');
+    if (own === target || text === target || text.startsWith(target)) {
+      r.click();
+      return { ok: true, name: r.name, id: r.id, value: r.value };
+    }
+  }
+  return { ok: false };
+}
+"""
+
 # Slot cells on the calendar, used as a structural signal alongside page text.
 SLOT_PROBES = (
     "td.available",
@@ -212,6 +334,7 @@ class Monitor:
         self.critical_login_failures = int(retry.get("critical_login_failures", 8))
         self._login_failures = 0
         self._block_alerted = False
+        self._last_form_result: str | None = None
 
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
@@ -592,16 +715,12 @@ class Monitor:
         return frame
 
     async def complete_visatype_form(self, page: Any, location: str) -> bool:
-        """Fill /Global/bls/visatype and submit it.
+        """Fill and submit /Global/bls/visatype.
 
-        CONFIRMED fields, in this order:
-            Location, Visa Type, Visa Sub Type, Appointment Category  (selects)
-            Appointment For  (Individual / Family radio)
-            Submit
-
-        The selects cascade — choosing Location repopulates Visa Type, and so on
-        — so each one is set in order with a settle in between rather than all
-        at once.
+        Order matters and is fixed: Appointment Category -> Appointment For ->
+        Location -> Visa Type -> Visa Sub Type. Each dropdown's options are
+        filtered from the previous choice, so setting them out of order writes
+        into a list that is about to be replaced.
         """
         if "/bls/visatype" not in (page.url or "").lower():
             logger.warning(f"monitor: not on the appointment form ({page.url})")
@@ -610,134 +729,125 @@ class Monitor:
         bls = self.config.get("bls", {}) or {}
         labels = bls.get("location_labels", {}) or {}
         wanted = {
+            "appointment_category": bls.get("appointment_category", ""),
             "location": labels.get(location, location.title()),
-            "visa type": bls.get("visa_type", ""),
-            "visa sub type": bls.get("visa_sub_type", ""),
-            "appointment category": bls.get("appointment_category", ""),
+            "visa_type": bls.get("visa_type", ""),
+            "visa_sub_type": bls.get("visa_sub_type", ""),
         }
 
-        logger.info("monitor: filling the appointment form")
-        for label, value in wanted.items():
-            chosen = await self._select_by_label(page, label, value)
-            if chosen is None:
-                logger.warning(f"  {label:<22}: NOT SET (wanted {value!r})")
-                await utils.screenshot(page, f"visatype-{label.replace(' ', '-')}-failed")
-                await utils.dump_page_html(page, "visatype-form-failed")
-                return False
-            logger.info(f"  {label:<22}: {chosen!r}")
-            # Let the dependent dropdown repopulate before touching the next.
-            await self._settle(page)
+        logger.info("=" * 60)
+        logger.info("APPOINTMENT FORM")
 
-        # Appointment For — Individual unless configured otherwise.
-        appointment_for = str(bls.get("appointment_for", "individual")).lower()
-        if await utils.click_by_text(
-            page, (appointment_for,), roles=("label", "span", "div"), config=self.config
-        ):
-            logger.info(f"  appointment for       : {appointment_for!r}")
+        # 1. Appointment Category
+        if not await self._set_kendo(page, "Appointment Category",
+                                     wanted["appointment_category"]):
+            return await self._form_failed(page, "appointment-category")
+
+        # 2. Appointment For (radio) — before the cascading dropdowns, because
+        #    choosing Family reveals a "Number Of Members" field.
+        appointment_for = str(bls.get("appointment_for", "Individual"))
+        try:
+            result = await page.evaluate(_RADIO_SET_JS, appointment_for)
+        except Exception as exc:
+            logger.warning(f"monitor: radio set failed: {exc}")
+            result = {"ok": False}
+        if result.get("ok"):
+            logger.info(
+                f"  Appointment For       : {result.get('value')!r} "
+                f"(name={result.get('name')})"
+            )
         else:
-            try:
-                await page.evaluate(
-                    """
-                    (want) => {
-                      for (const r of document.querySelectorAll('input[type=radio]')) {
-                        const lab = (r.closest('label') || {}).innerText
-                                 || (document.querySelector(`label[for="${r.id}"]`) || {}).innerText
-                                 || r.value || '';
-                        if ((lab || '').trim().toLowerCase().startsWith(want)) {
-                          r.click();
-                          return;
-                        }
-                      }
-                    }
-                    """,
-                    appointment_for,
-                )
-                logger.info(f"  appointment for       : {appointment_for!r} (via JS)")
-            except Exception as exc:
-                logger.warning(f"monitor: could not set Appointment For: {exc}")
+            logger.warning(f"  Appointment For       : NOT SET ({appointment_for!r})")
+        await self._settle(page)
+
+        # 3-5. The cascading dropdowns, in order.
+        for label, key in (
+            ("Location", "location"),
+            ("Visa Type", "visa_type"),
+            ("Visa Sub Type", "visa_sub_type"),
+        ):
+            if not await self._set_kendo(page, label, wanted[key]):
+                return await self._form_failed(page, label.lower().replace(" ", "-"))
 
         await utils.screenshot(page, "visatype-form-filled")
-        before = page.url
 
         if not await utils.click_by_text(page, ("submit",), config=self.config):
             logger.warning("monitor: no Submit on the appointment form")
-            await utils.dump_page_html(page, "visatype-no-submit")
-            return False
+            return await self._form_failed(page, "no-submit")
 
+        logger.info("monitor: appointment form submitted")
         await self._settle(page)
-        logger.info(f"monitor: appointment form submitted — {before} -> {page.url}")
+        logger.info(f"monitor: URL after submit — {page.url}")
+        logger.info("=" * 60)
+
+        await utils.screenshot(page, "after-visatype-submit")
+        await utils.dump_page_html(page, "after-visatype-submit")
+
+        # CONFIRMED: when nothing is free the portal answers with a modal —
+        # "No Appointments Available / Currently, no slots are available for the
+        # selected category." That is the no-slots signal for this whole flow,
+        # not an error, so report it and dismiss the dialog cleanly.
+        detection = self.config.get("detection", {}) or {}
+        text = await utils.page_text(page)
+        hit = utils.contains_any(text, detection.get("unavailable_phrases", []))
+        if hit:
+            logger.info(f"monitor: no slots — portal said {hit!r}")
+            await utils.click_by_text(
+                page, ("ok", "close"), roles=("button", "a"), config=self.config
+            )
+            self._last_form_result = "no_slots"
+            return True
+
+        self._last_form_result = "slots_possible"
+        logger.success("monitor: no 'no slots' message — the form advanced")
         await self._survey_page(page, "after-visatype-submit")
         return True
 
-    async def _select_by_label(
-        self, page: Any, label_text: str, wanted: str
-    ) -> str | None:
-        """Set the <select> whose label matches ``label_text``.
+    async def _set_kendo(self, page: Any, label: str, wanted: str) -> bool:
+        """Set one Kendo DropDownList, chosen by visible label.
 
-        Returns the chosen option's text, or None when the select or a matching
-        option could not be found. With no configured value, the first real
-        option is taken — these are required fields with a "--Select--"
-        placeholder, so any valid choice beats leaving it unset.
+        Waits for the widget's data source to populate first: each list is
+        refilled by the previous field's change handler, so it is briefly empty.
         """
-        try:
-            handle = await page.evaluate_handle(
-                """
-                (want) => {
-                  const norm = (s) => (s || '').replace(/\\s+/g, ' ').trim().toLowerCase();
-                  const target = norm(want);
-                  for (const sel of document.querySelectorAll('select')) {
-                    const bits = [];
-                    if (sel.id) {
-                      const l = document.querySelector(`label[for="${sel.id}"]`);
-                      if (l) bits.push(l.innerText);
-                    }
-                    const wrap = sel.closest('.form-group, .mb-3, div');
-                    if (wrap) bits.push(wrap.innerText);
-                    bits.push(sel.name || '', sel.id || '');
-                    if (bits.some((b) => norm(b).includes(target))) return sel;
-                  }
-                  return null;
-                }
-                """,
-                label_text,
-            )
-            element = handle.as_element()
-        except Exception as exc:
-            logger.debug(f"monitor: lookup for {label_text!r} failed: {exc}")
-            element = None
+        deadline = 15.0
+        waited = 0.0
+        result: dict[str, Any] = {}
+        while waited < deadline:
+            try:
+                result = await page.evaluate(
+                    _KENDO_SET_JS, {"label": label, "wanted": wanted}
+                )
+            except Exception as exc:
+                logger.warning(f"monitor: {label!r} set threw: {exc}")
+                result = {"ok": False, "reason": str(exc)}
+            if result.get("ok"):
+                opts = result.get("options") or []
+                logger.info(
+                    f"  {label:<22}: {result.get('chosen')!r} "
+                    f"(of {len(opts)} options, widget {result.get('id')})"
+                )
+                if wanted and result.get("chosen") and                         wanted.lower() not in str(result["chosen"]).lower():
+                    logger.warning(
+                        f"      wanted {wanted!r} but took {result['chosen']!r} — "
+                        f"available: {opts}"
+                    )
+                # Give the dependent list time to be refilled by 'change'.
+                await asyncio.sleep(1.2)
+                return True
+            await asyncio.sleep(0.5)
+            waited += 0.5
 
-        if element is None:
-            logger.warning(f"monitor: no <select> found for {label_text!r}")
-            return None
+        logger.error(
+            f"  {label:<22}: FAILED — {result.get('reason')} "
+            f"(options seen: {result.get('options')})"
+        )
+        return False
 
-        if wanted:
-            chosen = await utils.select_option_like(element, wanted)
-            if chosen:
-                return chosen
-            logger.warning(
-                f"monitor: {label_text!r} has no option matching {wanted!r} — "
-                "falling back to the first real option"
-            )
-
-        # No configured value, or it did not match: take the first real option.
-        try:
-            return await element.evaluate(
-                """
-                (sel) => {
-                  for (const o of sel.options) {
-                    const t = (o.text || '').trim();
-                    if (!o.value || /^-+\\s*select/i.test(t)) continue;
-                    sel.value = o.value;
-                    sel.dispatchEvent(new Event('change', { bubbles: true }));
-                    return t;
-                  }
-                  return null;
-                }
-                """
-            )
-        except Exception as exc:
-            logger.warning(f"monitor: could not set {label_text!r}: {exc}")
-            return None
+    async def _form_failed(self, page: Any, tag: str) -> bool:
+        await utils.screenshot(page, f"visatype-{tag}-failed")
+        await utils.dump_page_html(page, f"visatype-{tag}-failed")
+        await self._survey_page(page, f"visatype-{tag}-failed")
+        return False
 
     @staticmethod
     async def _frame_offset(frame: Any) -> tuple[float, float]:
