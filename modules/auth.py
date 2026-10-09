@@ -634,11 +634,10 @@ class BLSAuth:
                     logger.debug("auth: existing session is still valid")
                     return page
             except PortalUnreachableError:
-                # Blocked at the edge — there is no form to fill. Pause instead of
-                # burning login attempts against an error page.
+                # Blocked at the edge — there is no form to fill. Do NOT set a
+                # manual pause: that would wait for a human /resume forever. The
+                # monitor waits out the cooldown and retries by itself.
                 self._logged_in = False
-                if self.state is not None:
-                    self.state.set_manual_pause("portal blocked (HTTP 403) — needs an Egyptian IP")
                 raise
 
             attempts = max(1, int((self.config.get("retry", {}) or {}).get("login_attempts", 2)))
@@ -654,10 +653,6 @@ class BLSAuth:
                     last_error = LoginError("login did not reach an authenticated page")
                 except PortalUnreachableError:
                     self._logged_in = False
-                    if self.state is not None:
-                        self.state.set_manual_pause(
-                            "portal blocked (HTTP 403) — needs an Egyptian IP"
-                        )
                     raise
                 except PlaywrightTimeout as exc:
                     last_error = exc
@@ -673,9 +668,11 @@ class BLSAuth:
             self._logged_in = False
             message = f"Login failed after {attempts} attempt(s): {last_error}"
             self._log(message, status="error")
-            await self._alert_error(message, retry_info="monitoring paused until /resume")
-            if self.state is not None:
-                self.state.set_manual_pause("login failed — check credentials")
+            # No manual pause: the monitor backs off and retries from scratch.
+            # A human /resume must never be required for the bot to recover.
+            await self._alert_error(
+                message, retry_info="retrying automatically after a back-off"
+            )
             raise LoginError(message)
 
     async def refresh_session(self) -> Page:
@@ -2028,17 +2025,19 @@ class BLSAuth:
             f"iframes={widget.get('iframes')}"
         )
         self._log(f"captcha detected: {hit}", status="warn")
-        if self.state is not None:
-            self.state.set_manual_pause("captcha on the login page")
+        # Informational only. The bot must never block on a human here: this
+        # login attempt simply fails and the monitor backs off and retries from
+        # scratch, which is what an unattended bot needs.
         if self.notifier is not None:
-            await self.notifier.manual_required(
-                f"Captcha on the login page (matched {hit!r}). "
-                "Solve it in the browser window, then send /resume.",
-                screenshot=shot,
+            await self.notifier.error(
+                f"Could not solve the login captcha automatically (matched {hit!r}).",
+                retry_info="retrying automatically after a back-off",
             )
-            await self.notifier.wait_for_resume()
-        if self.state is not None:
-            self.state.clear_manual_pause()
+            if shot:
+                try:
+                    await self.notifier.send_photo(shot, "Unsolved login captcha")
+                except Exception:
+                    pass
 
     # ------------------------------------------------------------------ #
     # Logging / alert plumbing

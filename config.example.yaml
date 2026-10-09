@@ -155,7 +155,11 @@ retry:
   max_attempts: 3              # Playwright action/navigation retries
   page_error_wait: 30          # seconds to wait after a page error
   network_error_wait: 60       # seconds to wait after a network error
-  login_attempts: 2            # login tries before alerting and pausing
+  login_attempts: 2            # login tries before backing off
+  # Minutes to wait after the portal blocks us (HTTP 403) before logging in
+  # again from scratch. The bot waits this out by itself and keeps running —
+  # it never stops and never needs a manual restart.
+  block_cooldown_minutes: 60
 
 # Text fragments used to decide whether slots exist. Case-insensitive.
 # These are heuristics over the rendered page — adjust if BLS changes wording.

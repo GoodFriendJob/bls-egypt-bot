@@ -10,7 +10,7 @@ from loguru import logger
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 
 from modules import utils
-from modules.auth import LoginError
+from modules.auth import LoginError, PortalUnreachableError
 from modules.booking import Booking
 from modules.state import (
     STATUS_CHECKING,
@@ -205,6 +205,11 @@ class Monitor:
         self._consecutive_errors = 0
         self._last_pause_reason: str | None = None
 
+        # Unattended recovery state.
+        self.block_cooldown_minutes = float(retry.get("block_cooldown_minutes", 60))
+        self._login_failures = 0
+        self._block_alerted = False
+
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
         self._dialog_hooked: set[int] = set()
@@ -231,13 +236,29 @@ class Monitor:
                 await self._await_manual_resume()
                 continue
 
+            # Honour a recorded block before touching the portal at all.
+            remaining = utils.block_cooldown_remaining(self.block_cooldown_minutes)
+            if remaining > 0:
+                logger.warning(
+                    f"monitor: portal blocked — waiting {remaining:.0f} more "
+                    "minutes before the next login attempt"
+                )
+                for location in self.locations:
+                    self.state.set_location_status(
+                        location, STATUS_PAUSED, f"blocked — {remaining:.0f} min left"
+                    )
+                await utils.interruptible_sleep(remaining * 60, self.state)
+                continue
+
             try:
                 await self.run_once()
                 self._consecutive_errors = 0
+                self._login_failures = 0
+            except PortalUnreachableError as exc:
+                await self._handle_portal_block(exc)
+                continue
             except LoginError as exc:
-                # ensure_logged_in() already alerted and paused the bot.
-                logger.error(f"monitor: authentication blocked: {exc}")
-                await utils.interruptible_sleep(self.page_error_wait, self.state)
+                await self._handle_login_failure(exc)
                 continue
             except Exception as exc:
                 await self._handle_cycle_error(exc)
@@ -417,13 +438,12 @@ class Monitor:
         logger.error("monitor: verification not cleared after all attempts")
         await utils.screenshot(main_page, "verify-failed")
         await utils.dump_page_html(main_page, "verify-failed")
-        await self.notifier.manual_required(
-            "Could not clear the visa-type verification page automatically. "
-            "Complete it in the browser, then send /resume."
+        # Report, do not block. Waiting for a human /resume here would freeze an
+        # unattended bot indefinitely; the caller retries on the next cycle.
+        await self.notifier.error(
+            "Could not clear the visa-type verification page automatically.",
+            retry_info="retrying automatically on the next cycle",
         )
-        self.state.set_manual_pause("visa-type verification")
-        await self.notifier.wait_for_resume()
-        self.state.clear_manual_pause()
 
         state = await self._gate_state(main_page)
         if state.get("submit") or state.get("verified"):
@@ -931,6 +951,88 @@ class Monitor:
         if shot:
             await self.notifier.send_photo(shot, f"Monitor error — {location.title()}")
         await utils.interruptible_sleep(wait, self.state)
+
+    async def _handle_portal_block(self, exc: Exception) -> None:
+        """403 / blocked: wait out the cooldown, then log in again from scratch.
+
+        Never stops the bot and never asks for a human. The stored session is
+        discarded so the next attempt is a clean login rather than a replay of
+        cookies the portal may already have invalidated.
+        """
+        wait_minutes = self.block_cooldown_minutes
+        logger.error(f"monitor: portal blocked — {exc}")
+        logger.warning(
+            f"monitor: sleeping {wait_minutes:.0f} min, then logging in from scratch"
+        )
+        self.state.log_event(
+            "bot", f"portal blocked — retrying in {wait_minutes:.0f} min", status="error"
+        )
+        for location in self.locations:
+            self.state.set_location_status(
+                location, STATUS_PAUSED, f"blocked — retry in {wait_minutes:.0f} min"
+            )
+
+        # Only alert the first time, so a long block does not spam Telegram.
+        if not self._block_alerted:
+            self._block_alerted = True
+            await self.notifier.error(
+                f"Portal is blocking us (HTTP 403). The bot will keep running and "
+                f"retry automatically in {wait_minutes:.0f} minutes.",
+                retry_info="no action needed — this is handled automatically",
+            )
+
+        await self._reset_session()
+        await utils.interruptible_sleep(wait_minutes * 60, self.state)
+
+    async def _handle_login_failure(self, exc: Exception) -> None:
+        """Login failed for a non-block reason: back off, then try again.
+
+        Backoff grows with consecutive failures so a persistent problem (wrong
+        password, portal change) does not hammer the site, while a transient one
+        recovers quickly.
+        """
+        self._login_failures += 1
+        schedule = [2, 5, 10, 20, 30]
+        idx = min(self._login_failures - 1, len(schedule) - 1)
+        wait_minutes = schedule[idx]
+
+        logger.error(
+            f"monitor: login failed ({self._login_failures} in a row): {exc}"
+        )
+        logger.warning(f"monitor: retrying login in {wait_minutes} min")
+        self.state.log_event(
+            "bot",
+            f"login failed x{self._login_failures} — retry in {wait_minutes} min",
+            status="error",
+        )
+        for location in self.locations:
+            self.state.set_location_status(
+                location, STATUS_ERROR, f"login failed — retry in {wait_minutes} min"
+            )
+
+        # A stale session is a common cause; drop it after the first failure.
+        if self._login_failures >= 1:
+            await self._reset_session()
+
+        if self._login_failures in (1, 3, 6):
+            await self.notifier.error(
+                f"Login failed {self._login_failures} time(s) in a row: {exc}",
+                retry_info=f"retrying automatically in {wait_minutes} min",
+            )
+
+        await utils.interruptible_sleep(wait_minutes * 60, self.state)
+
+    async def _reset_session(self) -> None:
+        """Drop cookies and the browser so the next attempt is a clean login."""
+        try:
+            self.auth._clear_saved_session()
+        except Exception as exc:
+            logger.debug(f"monitor: could not clear the stored session: {exc}")
+        try:
+            await self.auth.stop()
+            logger.info("monitor: browser closed — next cycle logs in fresh")
+        except Exception as exc:
+            logger.debug(f"monitor: could not close the browser: {exc}")
 
     async def _handle_cycle_error(self, exc: Exception) -> None:
         self._consecutive_errors += 1
