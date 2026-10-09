@@ -404,9 +404,18 @@ class Monitor:
             await utils.screenshot(main_page, f"verify-modal-attempt{attempt}")
             await utils.dump_page_html(work, f"verify-frame-attempt{attempt}")
 
-            # STEP 2 — solve and submit the selection, in the popup.
+            # STEP 2 — solve and submit the selection, inside the frame.
+            #
+            # CONFIRMED from the frame dump: this challenge is structurally
+            # IDENTICAL to the login captcha — 54 div.col-4 tiles, img.captcha-img
+            # holding base64 data: URIs, Select() onclick, a SelectedImages
+            # hidden input. The digits are IMAGES, not DOM text, which is why the
+            # text-based scan reported zero tiles. Reuse the vision solver,
+            # pointed at the frame.
             self._dialogs.clear()
-            submitted = await self._solve_text_captcha(work, attempt)
+            submitted = await self.auth.solve_captcha(
+                main_page, ctx=work, offset=await self._frame_offset(work)
+            )
 
             # STEP 3 — a rejected answer arrives as a JS alert, so give the
             # dialog handler a moment to fire before judging the outcome.
@@ -542,9 +551,13 @@ class Monitor:
                         () => {
                           const txt = (document.body && document.body.innerText) || '';
                           const hasPrompt = /number\\s+\\d+/i.test(txt);
-                          const nums = Array.from(document.querySelectorAll('body *'))
-                            .filter((el) => /^\\d{2,5}$/.test((el.innerText || '').trim()));
-                          return { hasPrompt, tiles: nums.length,
+                          // The tiles are IMAGES, not text, so count the images.
+                          // Counting numeric text here always returned 0 and made
+                          // the frame look like it never finished rendering.
+                          const imgs = document.querySelectorAll('img.captcha-img');
+                          const cells = document.querySelectorAll('div.col-4');
+                          return { hasPrompt, tiles: imgs.length || cells.length,
+                                   imgs: imgs.length, cells: cells.length,
                                    chars: txt.trim().length };
                         }
                         """
@@ -572,6 +585,27 @@ class Monitor:
                 f"monitor: captcha frame never finished rendering ({frame.url})"
             )
         return frame
+
+    @staticmethod
+    async def _frame_offset(frame: Any) -> tuple[float, float]:
+        """Where the iframe sits in the page, for converting clip coordinates.
+
+        Tile rects measured inside the frame are frame-relative, but only a Page
+        can screenshot, and its clip is in page coordinates. Adding the iframe's
+        own position bridges the two.
+        """
+        try:
+            element = await frame.frame_element()
+            box = await element.bounding_box()
+            if box:
+                logger.info(
+                    f"monitor: captcha frame at x={box['x']:.0f} y={box['y']:.0f} "
+                    f"({box['width']:.0f}x{box['height']:.0f})"
+                )
+                return float(box["x"]), float(box["y"])
+        except Exception as exc:
+            logger.warning(f"monitor: could not locate the iframe: {exc}")
+        return 0.0, 0.0
 
     async def _probe_captcha_endpoint(self, page: Any) -> None:
         """Fetch /Global/NewCaptcha/GenerateCaptcha directly and report back.

@@ -973,7 +973,13 @@ class BLSAuth:
     # ------------------------------------------------------------------ #
     # CAPTCHA
     # ------------------------------------------------------------------ #
-    async def solve_captcha(self, page: Page) -> bool:
+    async def solve_captcha(
+        self,
+        page: Page,
+        *,
+        ctx: Any = None,
+        offset: tuple[float, float] = (0.0, 0.0),
+    ) -> bool:
         """Solve the DOM-based BLS captcha.
 
         Returns True when there is no captcha, or when one was solved. Returns
@@ -986,7 +992,12 @@ class BLSAuth:
         submit. A rejected selection reloads the grid with a new number, so every
         round re-scans from scratch. Up to ``CAPTCHA_MAX_ATTEMPTS`` rounds.
         """
-        signals = await self._detect_captcha(page)
+        # ctx is where the DOM lives (a Page, or the GenerateCaptcha iframe used
+        # by the visa-type verification gate). page is always a real Page,
+        # because only a Page can take a screenshot; offset converts the frame's
+        # coordinates into page coordinates for the grid clip.
+        ctx = ctx or page
+        signals = await self._detect_captcha(ctx)
         logger.info(f"auth: captcha signals -> {self._signal_summary(signals)}")
 
         if not signals["present"]:
@@ -998,7 +1009,7 @@ class BLSAuth:
         await utils.screenshot(page, "captcha-before")
         # Always keep the markup of a real challenge: if the tile selectors turn
         # out not to match, this dump is what identifies the correct ones.
-        await utils.dump_page_html(page, "captcha-detected")
+        await utils.dump_page_html(ctx, "captcha-detected")
 
         for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
             # elementFromPoint only resolves inside the viewport, so make sure
@@ -1006,11 +1017,11 @@ class BLSAuth:
             # Clear the previous attempt's status so a stale 403 cannot be read
             # as this attempt's result.
             self._last_captcha_submit_status = None
-            await self._scroll_captcha_into_view(page)
-            scan = await self._captcha_scan(page)
+            await self._scroll_captcha_into_view(ctx)
+            scan = await self._captcha_scan(ctx)
             if scan is None:
                 await utils.screenshot(page, f"captcha-scan-failed-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-scan-failed-attempt{attempt}")
+                await utils.dump_page_html(ctx, f"captcha-scan-failed-attempt{attempt}")
                 return False
 
             tiles = scan.get("tiles") or []
@@ -1025,9 +1036,9 @@ class BLSAuth:
                     f"(DOM has {scan.get('totalTiles')} col-4 divs, "
                     f"{scan.get('totalLabels')} box-labels) — rescanning"
                 )
-                await self._scroll_captcha_into_view(page)
+                await self._scroll_captcha_into_view(ctx)
                 await asyncio.sleep(1.0)
-                scan = await self._captcha_scan(page) or {}
+                scan = await self._captcha_scan(ctx) or {}
                 tiles = scan.get("tiles") or []
                 target = self._captcha_target(scan) if scan else None
 
@@ -1037,9 +1048,9 @@ class BLSAuth:
                     "rescan — the tile selectors may need updating"
                 )
                 await utils.screenshot(page, f"captcha-no-tiles-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-no-tiles-attempt{attempt}")
+                await utils.dump_page_html(ctx, f"captcha-no-tiles-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(page)
+                    await self._reload_captcha(ctx)
                     continue
                 self._log("CAPTCHA tiles not found", status="error")
                 return False
@@ -1064,9 +1075,9 @@ class BLSAuth:
             if target is None:
                 logger.warning("auth: captcha present but no target number found")
                 await utils.screenshot(page, f"captcha-no-target-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-no-target-attempt{attempt}")
+                await utils.dump_page_html(ctx, f"captcha-no-target-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(page)
+                    await self._reload_captcha(ctx)
                     continue
                 return False
 
@@ -1089,7 +1100,7 @@ class BLSAuth:
                     "The visible-tile filter may be matching stacked grids."
                 )
 
-            grid_png = await self._screenshot_grid(page, ordered, attempt)
+            grid_png = await self._screenshot_grid(ctx, ordered, attempt, shot_page=page, offset=offset)
             # Save exactly what the model is sent (upscaled), not the raw crop —
             # otherwise the audit image and the model's input differ.
             sample = vision.save_sample(
@@ -1160,7 +1171,7 @@ class BLSAuth:
                     "reading as wrong and retrying with a fresh grid"
                 )
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(page)
+                    await self._reload_captcha(ctx)
                     continue
                 return False
 
@@ -1168,7 +1179,7 @@ class BLSAuth:
             matched_ids = [t.get("id") or "?" for t in matches]
             logger.info(f"  matched tiles   : {len(matches)} -> {matched_ids}")
 
-            clicked_ok, confirmations = await self._captcha_click_tiles(page, matches)
+            clicked_ok, confirmations = await self._captcha_click_tiles(ctx, matches)
 
             logger.info("  click results   :")
             for entry in confirmations:
@@ -1181,7 +1192,7 @@ class BLSAuth:
             # Let the page finish updating its hidden field before reading it.
             await asyncio.sleep(CAPTCHA_PRE_SUBMIT_WAIT)
 
-            selected = await self._captcha_selected_images(page)
+            selected = await self._captcha_selected_images(ctx)
             logger.info(f"  SelectedImages  : {selected!r}")
 
             # Verify the hidden field really holds every tile we chose — this is
@@ -1221,7 +1232,7 @@ class BLSAuth:
                 )
                 await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(page)
+                    await self._reload_captcha(ctx)
                     continue
                 return False
 
@@ -1229,15 +1240,15 @@ class BLSAuth:
             # an EMPTY password box. Without refilling, every retry submits a
             # blank password and the portal answers "Please enter your account
             # password" — which looks like a captcha rejection but is not.
-            await self._ensure_password_filled(page)
+            await self._ensure_password_filled(ctx)
 
-            submitted = await self._click_captcha_submit(page)
+            submitted = await self._click_captcha_submit(ctx)
             logger.info(f"  submit clicked  : {submitted}")
             if not submitted:
                 logger.error("  outcome         : ABORTED - Submit button not found")
                 self._log("captcha aborted — no Submit button", status="error")
                 await utils.screenshot(page, f"captcha-no-submit-attempt{attempt}")
-                await utils.dump_page_html(page, f"captcha-no-submit-attempt{attempt}")
+                await utils.dump_page_html(ctx, f"captcha-no-submit-attempt{attempt}")
                 return False
 
             await self._settle(page)
@@ -1259,15 +1270,15 @@ class BLSAuth:
                     )
                     self._log("captcha POST blocked (403) — backing off", status="error")
                     await utils.screenshot(page, f"captcha-403-attempt{attempt}")
-                    await utils.dump_page_html(page, f"captcha-403-attempt{attempt}")
+                    await utils.dump_page_html(ctx, f"captcha-403-attempt{attempt}")
                     return False
                 await utils.screenshot(page, f"captcha-rejected-{status}-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(page)
+                    await self._reload_captcha(ctx)
                     continue
                 return False
 
-            if not await self._captcha_present(page):
+            if not await self._captcha_present(ctx):
                 logger.success(f"  outcome         : SOLVED on attempt {attempt}")
                 logger.info("-" * 60)
                 self._log(f"captcha solved (attempt {attempt})", status="ok")
@@ -1276,7 +1287,7 @@ class BLSAuth:
 
             # The portal's own message says WHY it was rejected — a wrong grid
             # and a blank password look identical without it.
-            banner = await self._page_error_banner(page)
+            banner = await self._page_error_banner(ctx)
             if banner:
                 logger.warning(f"  portal message  : {banner!r}")
 
@@ -1292,7 +1303,7 @@ class BLSAuth:
         logger.error(f"auth: captcha not solved after {CAPTCHA_MAX_ATTEMPTS} attempts")
         self._log(f"captcha unsolved after {CAPTCHA_MAX_ATTEMPTS} attempts", status="error")
         await utils.screenshot(page, "captcha-failed")
-        await utils.dump_page_html(page, "captcha-failed")
+        await utils.dump_page_html(ctx, "captcha-failed")
         return False
 
     @staticmethod
@@ -1325,7 +1336,13 @@ class BLSAuth:
         return ordered
 
     async def _screenshot_grid(
-        self, page: Page, ordered: list[dict[str, Any]], attempt: int
+        self,
+        ctx: Any,
+        ordered: list[dict[str, Any]],
+        attempt: int,
+        *,
+        shot_page: Page | None = None,
+        offset: tuple[float, float] = (0.0, 0.0),
     ) -> bytes | None:
         """Capture just the tile grid, as PNG bytes.
 
@@ -1342,7 +1359,7 @@ class BLSAuth:
             # differ and the clip lands outside the image. Scroll the grid into
             # view first, then measure fresh and clamp to the viewport.
             try:
-                box = await page.evaluate(
+                box = await ctx.evaluate(
                     """
                     (args) => {
                       const els = args.ids
@@ -1375,9 +1392,12 @@ class BLSAuth:
                 box = None
 
             if box and box["width"] > 10 and box["height"] > 10:
+                # Frame coordinates are relative to the frame; the page
+                # screenshot needs page coordinates, so shift by the
+                # iframe's own position.
                 clip = {
-                    "x": round(box["x"], 2),
-                    "y": round(box["y"], 2),
+                    "x": round(box["x"] + offset[0], 2),
+                    "y": round(box["y"] + offset[1], 2),
                     "width": round(box["width"], 2),
                     "height": round(box["height"], 2),
                 }
@@ -1388,7 +1408,7 @@ class BLSAuth:
                 )
                 try:
                     await asyncio.sleep(0.2)  # let the scroll settle
-                    return await page.screenshot(clip=clip)
+                    return await (shot_page or ctx).screenshot(clip=clip)
                 except Exception as exc:
                     logger.warning(f"auth: clipped grid screenshot failed: {exc}")
             else:
@@ -1396,7 +1416,7 @@ class BLSAuth:
 
         # Fall back to the captcha container element.
         try:
-            container = await page.query_selector(CAPTCHA_CONTAINER_SELECTOR)
+            container = await ctx.query_selector(CAPTCHA_CONTAINER_SELECTOR)
             if container is not None:
                 return await container.screenshot()
         except Exception as exc:
