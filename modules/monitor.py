@@ -339,6 +339,8 @@ class Monitor:
         self._login_failures = 0
         self._block_alerted = False
         self._last_form_result: str | None = None
+        self._last_visatype_status: int | None = None
+        self._form_hooked: set[int] = set()
 
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
@@ -730,6 +732,8 @@ class Monitor:
             logger.warning(f"monitor: not on the appointment form ({page.url})")
             return False
 
+        self._install_form_listener(page)
+
         bls = self.config.get("bls", {}) or {}
         labels = bls.get("location_labels", {}) or {}
         wanted = {
@@ -785,6 +789,7 @@ class Monitor:
 
         await utils.screenshot(page, "visatype-form-filled")
 
+        self._last_visatype_status = None
         if not await utils.click_by_text(page, ("submit",), config=self.config):
             logger.warning("monitor: no Submit on the appointment form")
             return await self._form_failed(page, "no-submit")
@@ -792,6 +797,22 @@ class Monitor:
         logger.info("monitor: appointment form submitted")
         await self._settle(page)
         logger.info(f"monitor: URL after submit — {page.url}")
+
+        # The POST can fail outright — an expired session or a stale token comes
+        # back as 4xx, or the portal simply bounces to the login page. Neither
+        # is recoverable here: the whole journey has to start again.
+        status = self._last_visatype_status
+        url_now = (page.url or "").lower()
+        bounced = "/account/login" in url_now
+        if (status is not None and status >= 400) or bounced:
+            logger.error(
+                f"monitor: appointment submit failed "
+                f"(HTTP {status}, url={page.url}) — session looks dead"
+            )
+            await utils.screenshot(page, "visatype-submit-failed")
+            await utils.dump_page_html(page, "visatype-submit-failed")
+            await self._restart_journey(page)
+            return False
         logger.info("=" * 60)
 
         await utils.screenshot(page, "after-visatype-submit")
@@ -856,6 +877,54 @@ class Monitor:
             f"(options seen: {result.get('options')})"
         )
         return False
+
+    async def _restart_journey(self, page: Any) -> None:
+        """Reload, and if the portal has dropped us at login, start over.
+
+        Reached when the appointment POST fails (4xx) or bounces to login —
+        typically an expired session. Reloading alone is not enough: the stored
+        cookies are stale too, so they are discarded and the next cycle performs
+        a full login, verification captcha and form fill from scratch.
+        """
+        logger.warning("monitor: restarting the journey from the login page")
+        try:
+            await page.reload(wait_until="domcontentloaded")
+            await self._settle(page)
+        except Exception as exc:
+            logger.debug(f"monitor: reload failed: {exc}")
+
+        url_now = (page.url or "").lower()
+        at_login = "/account/login" in url_now
+        logger.info(f"monitor: after reload — {page.url} (login page: {at_login})")
+
+        # Drop the saved session either way: whatever state produced a 4xx is
+        # not worth replaying on the next cycle.
+        try:
+            self.auth._clear_saved_session()
+            logger.info("monitor: stored session discarded — next cycle logs in fresh")
+        except Exception as exc:
+            logger.debug(f"monitor: could not clear the session: {exc}")
+
+        self.state.log_event(
+            "bot", "appointment submit failed — restarting from login", status="warn"
+        )
+
+    def _install_form_listener(self, page: Any) -> None:
+        """Record the status of the appointment form's own POST."""
+        if id(page) in self._form_hooked:
+            return
+
+        def _on_response(response: Any) -> None:
+            url = (response.url or "").lower()
+            if "/bls/visatype" in url and "verification" not in url:
+                self._last_visatype_status = response.status
+                logger.info(f"monitor: [net] {response.status} {response.url[:120]}")
+
+        try:
+            page.on("response", _on_response)
+            self._form_hooked.add(id(page))
+        except Exception as exc:
+            logger.debug(f"monitor: could not install the form listener: {exc}")
 
     async def _handle_form_modals(self, page: Any) -> None:
         """Dismiss the modals the appointment form raises while being filled.
