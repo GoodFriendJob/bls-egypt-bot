@@ -459,12 +459,82 @@ class BLSAuth:
         )
         self._context.set_default_timeout(int(browser_cfg.get("action_timeout", 20000)))
 
-        if await utils.apply_stealth(self._context):
-            logger.debug("auth: stealth applied to context")
+        # Stealth is now optional. Its injected script throws
+        # "Cannot redefine property: offsetHeight" on this portal, which leaves
+        # the page half-patched and is a prime suspect for the captcha iframe
+        # being served a login redirect. Set browser.stealth: false to rule it
+        # out without touching code.
+        if bool(browser_cfg.get("stealth", True)):
+            if await utils.apply_stealth(self._context):
+                logger.debug("auth: stealth applied to context")
+        else:
+            logger.warning("auth: stealth DISABLED by config (browser.stealth: false)")
+
+        await self._install_https_upgrade(self._context)
 
         self._page = await self._context.new_page()
-        await utils.apply_stealth(self._page)
+        if bool(browser_cfg.get("stealth", True)):
+            await utils.apply_stealth(self._page)
+        self._install_network_logging(self._page)
         self._log("browser launched", status="ok")
+
+    async def _install_https_upgrade(self, context: BrowserContext) -> None:
+        """Rewrite the portal's plain-HTTP redirects to HTTPS.
+
+        The captcha iframe is 302'd to
+        http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=...
+        and Chrome blocks it as mixed content on an HTTPS page, so the frame
+        never renders and the Kendo spinner hangs forever. The app is almost
+        certainly building redirects from the ELB's forwarded http scheme.
+        Upgrading the scheme lets the request proceed instead of being blocked.
+        """
+
+        async def _upgrade(route: Any, request: Any) -> None:
+            url = request.url or ""
+            try:
+                if url.startswith("http://"):
+                    secure = "https://" + url[len("http://"):]
+                    logger.warning(f"auth: upgrading insecure request -> {secure[:120]}")
+                    await route.continue_(url=secure)
+                    return
+                await route.continue_()
+            except Exception as exc:
+                logger.debug(f"auth: route continue failed: {exc}")
+                try:
+                    await route.continue_()
+                except Exception:
+                    pass
+
+        try:
+            await context.route("http://*/**", _upgrade)
+            logger.info("auth: http->https upgrade route installed")
+        except Exception as exc:
+            logger.warning(f"auth: could not install the https upgrade route: {exc}")
+
+    def _install_network_logging(self, page: Page) -> None:
+        """Log the captcha endpoints' responses, including redirects.
+
+        Without this the iframe failure is invisible from Python — the block
+        happens in the browser and only shows in the devtools console.
+        """
+        interesting = ("newcaptcha", "generatecaptcha", "visatypeverification")
+
+        def _on_response(response: Any) -> None:
+            url = (response.url or "").lower()
+            if any(hint in url for hint in interesting):
+                logger.info(f"auth: [net] {response.status} {response.url[:150]}")
+
+        def _on_failed(request: Any) -> None:
+            url = (request.url or "").lower()
+            if any(hint in url for hint in interesting):
+                failure = getattr(request, "failure", None)
+                logger.warning(f"auth: [net] FAILED {request.url[:130]} — {failure}")
+
+        try:
+            page.on("response", _on_response)
+            page.on("requestfailed", _on_failed)
+        except Exception as exc:
+            logger.debug(f"auth: could not install network logging: {exc}")
 
     async def stop(self) -> None:
         """Close everything, saving the session first on a best-effort basis."""

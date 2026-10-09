@@ -73,6 +73,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "headless": True,
     "proxy": {"enabled": False, "server": "", "username": "", "password": ""},
     "browser": {
+        "stealth": True,
+        "device_scale_factor": 2,
         "navigation_timeout": 60000,
         "action_timeout": 20000,
         "min_delay": 0.5,

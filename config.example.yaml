@@ -115,6 +115,10 @@ proxy:
   password: ""
 
 browser:
+  # Apply playwright-stealth. Its script throws
+  # "Cannot redefine property: offsetHeight" on this portal; set to false if
+  # the CAPTCHA iframe is being redirected to the login page.
+  stealth: true
   # Playwright navigation / action timeouts in milliseconds.
   navigation_timeout: 60000
   action_timeout: 20000
