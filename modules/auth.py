@@ -122,11 +122,18 @@ CAPTCHA_CLEAR_FN = "onUndo"
 CAPTCHA_RELOAD_FN = "onReload"
 CAPTCHA_ACTION_DIV = "div.img-action-div"
 
+# ORDER MATTERS. The LOGIN captcha page has a real <button>Submit</button> and
+# its own submit pipeline; the verification MODAL has a div with
+# onclick="onSubmit()". Calling onSubmit() on the login page submits without
+# populating SelectedImages, so a correct selection is rejected — that regressed
+# a previously working login. Always prefer a real button, and fall back to the
+# modal's handler only when no button exists.
 CAPTCHA_SUBMIT_SELECTORS = (
+    'button:has-text("Submit")',
+    'input[type="submit"][value*="Submit"]',
+    'input[value="Submit"]',
     'div.img-action-div[onclick*="onSubmit"]',
     '[onclick*="onSubmit"]',
-    'button:has-text("Submit")',
-    'input[value="Submit"]',
 )
 CAPTCHA_SUBMIT_TEXTS = ("submit selection", "submit")
 # Clearing between attempts matters because Select() TOGGLES: re-clicking a tile
@@ -605,6 +612,14 @@ class BLSAuth:
                 # and was being reported as SOLVED.
                 if "captchasubmit" in url:
                     self._last_captcha_submit_status = response.status
+                # A 403 on ANY portal response means the edge is blocking us.
+                # Previously only _goto recorded this, so a 403 arriving on an
+                # XHR went unrecorded and the bot kept hammering into the block.
+                if response.status == 403:
+                    logger.error(
+                        f"auth: [net] 403 — the portal is blocking {response.url[:110]}"
+                    )
+                    utils.record_block(f"403 on {response.url[:120]}")
 
         def _on_failed(request: Any) -> None:
             url = (request.url or "").lower()
@@ -1133,16 +1148,20 @@ class BLSAuth:
                     target = self._captcha_target(scan) if scan else None
 
             if not tiles:
+                # The DOM still holds the tiles but none are visible: after a
+                # rejection the login page hides the grid and shows an error
+                # instead. Reloading from here costs a 302 and, seen twice now,
+                # a follow-up 403 — so bail out and let the login restart
+                # cleanly rather than spinning for minutes against a dead page.
+                in_dom = (scan or {}).get("totalTiles", 0)
                 logger.error(
-                    "auth: CAPTCHA is on screen but no tile is visible after a "
-                    "rescan — the tile selectors may need updating"
+                    f"auth: no visible tile though {in_dom} exist in the DOM — "
+                    "the challenge was replaced (usually a rejected answer). "
+                    "Abandoning this captcha so the login can restart."
                 )
                 await utils.screenshot(page, f"captcha-no-tiles-attempt{attempt}")
                 await utils.dump_page_html(ctx, f"captcha-no-tiles-attempt{attempt}")
-                if attempt < CAPTCHA_MAX_ATTEMPTS:
-                    await self._reload_captcha(ctx)
-                    continue
-                self._log("CAPTCHA tiles not found", status="error")
+                self._log("CAPTCHA grid disappeared — restarting login", status="error")
                 return False
 
             # --- attempt header: everything needed to debug from the log alone --
@@ -1652,7 +1671,7 @@ class BLSAuth:
             return None
 
     async def _wait_for_captcha_tiles(
-        self, ctx: Any, timeout: float = 20.0
+        self, ctx: Any, timeout: float = 8.0
     ) -> list[dict[str, Any]]:
         """Wait until the grid has actually rendered, then return its tiles.
 
@@ -2001,10 +2020,8 @@ class BLSAuth:
         return False
 
     async def _click_captcha_submit(self, ctx: Any) -> bool:
-        # The portal's own handler first — it is what the real click invokes.
-        if await self._call_captcha_action(ctx, CAPTCHA_SUBMIT_FN):
-            return True
-
+        # Real controls first — see CAPTCHA_SUBMIT_SELECTORS for why calling
+        # onSubmit() on the login page breaks a correct selection.
         for selector in CAPTCHA_SUBMIT_SELECTORS:
             try:
                 button = ctx.locator(selector).first
@@ -2016,6 +2033,10 @@ class BLSAuth:
                 continue
             except Exception as exc:
                 logger.debug(f"auth: captcha submit via {selector} failed: {exc}")
+
+        # No real control found — now try the modal's own handler.
+        if await self._call_captcha_action(ctx, CAPTCHA_SUBMIT_FN):
+            return True
 
         # The control may be a div/span with an onclick rather than a button, so
         # widen the roles beyond click_by_text's defaults.
