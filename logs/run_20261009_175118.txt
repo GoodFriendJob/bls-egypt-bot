@@ -1,0 +1,313 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T17:51:18
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+17:51:18 | INFO    | __main__ - ==============================================================
+17:51:18 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+17:51:18 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_175118.txt
+17:51:18 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+17:51:18 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+17:51:18 | INFO    | __main__ - ==============================================================
+17:51:18 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+17:51:18 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+17:51:18 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+17:51:18 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+17:51:19 | INFO    | modules.notifier - notifier: telegram listener started
+17:51:19 | INFO    | __main__ - single-cycle mode (--once)
+17:51:19 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+17:51:19 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+17:51:19 | INFO    | modules.auth - auth: http->https upgrade route installed
+17:51:20 | INFO    | modules.auth - auth: browser launched
+17:51:21 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:51:21 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+17:51:24 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+17:51:24 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+17:51:32 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:51:32 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+17:51:33 | INFO    | modules.utils - find_real_input: real 'text' field is index 7 of 10 (parent div.mb-3 display:block)
+17:51:36 | INFO    | modules.auth - auth: email filled
+17:51:36 | INFO    | modules.auth - auth: email submitted
+17:51:37 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy
+17:51:37 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+17:51:39 | INFO    | modules.utils - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+17:51:40 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+17:51:40 | INFO    | modules.auth - auth: password filled
+17:51:40 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh6O5GyxDoe3b4NEKe5sRWhh04kyqXVR9c%2BRKmrgBpH6HuXnlTDmvyzpYfTd5ltyd2tlgsjLepny57KNSXE%2BfPduNR5GHOoM%2BSlIeM1JyYxLNywLEShg2INreddCyCa9bsc%3D
+17:51:41 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175140_password-page-filled.png
+17:51:41 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175141_password-page-filled.html
+17:51:41 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+17:51:41 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=23
+17:51:41 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+17:51:41 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+17:51:41 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175141_captcha-before.png
+17:51:41 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175141_captcha-detected.html
+17:51:42 | INFO    | modules.auth - auth: 23 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:51:42 | INFO    | modules.auth - auth: prompt 435 chosen (contrast=14.59, z-index=955, color=rgb(33, 37, 41))
+17:51:42 | INFO    | modules.auth - ------------------------------------------------------------
+17:51:42 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+17:51:42 | INFO    | modules.auth -   target number   : 435
+17:51:42 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+17:51:42 | INFO    | modules.auth -   visible labels  : 23 (of 23 box-labels in the DOM)
+17:51:42 | INFO    | modules.auth - auth: captcha attempt 1: target=435, 9 visible tiles
+17:51:42 | INFO    | modules.auth -   grid order      : 1:xcjjmhx, 2:yuoolo, 3:qjdqzyjzu, 4:iqtemnuoj, 5:ejnldx, 6:whhsuwbh, 7:bjjly, 8:eypvjtc, 9:vmatcfdo
+17:51:42 | INFO    | modules.auth -   grid clip       : x=839.98 y=273.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+17:51:42 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+17:51:42 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-175142_target435_attempt1.png
+17:51:42 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-175142_target435_attempt1.png
+17:51:43 | INFO    | modules.vision - vision: split 702x700 grid into 9 tiles (~234x233 each)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:51:43 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:51:57 | INFO    | modules.vision - vision: per-tile reply '435,435,435,355,435,435,794,392,435'
+17:51:57 | INFO    | modules.auth -   tiles read      : 1:435, 2:435, 3:435, 4:355, 5:435, 6:435, 7:794, 8:392, 9:435
+17:51:57 | INFO    | modules.auth -   matching 435      : positions [1, 2, 3, 5, 6, 9]
+17:51:57 | INFO    | modules.auth -   vision positions: [1, 2, 3, 5, 6, 9]
+17:51:57 | INFO    | modules.auth -   matched tiles   : 6 -> ['xcjjmhx', 'yuoolo', 'qjdqzyjzu', 'ejnldx', 'whhsuwbh', 'vmatcfdo']
+17:52:02 | INFO    | modules.auth -   click results   :
+17:52:02 | INFO    | modules.auth -       id=xcjjmhx        number=None   clicked=True  img-selected=True
+17:52:02 | INFO    | modules.auth -       id=yuoolo         number=None   clicked=True  img-selected=True
+17:52:02 | INFO    | modules.auth -       id=qjdqzyjzu      number=None   clicked=True  img-selected=True
+17:52:02 | INFO    | modules.auth -       id=ejnldx         number=None   clicked=True  img-selected=True
+17:52:02 | INFO    | modules.auth -       id=whhsuwbh       number=None   clicked=True  img-selected=True
+17:52:02 | INFO    | modules.auth -       id=vmatcfdo       number=None   clicked=True  img-selected=True
+17:52:03 | INFO    | modules.auth -   SelectedImages  : ''
+17:52:03 | INFO    | modules.auth -   expected ids    : ['ejnldx', 'qjdqzyjzu', 'vmatcfdo', 'whhsuwbh', 'xcjjmhx', 'yuoolo']
+17:52:03 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:52:03 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175203_captcha-attempt1-before-submit.png
+17:52:04 | INFO    | modules.utils - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+17:52:04 | INFO    | modules.auth - auth: captcha action onSubmit() -> called
+17:52:04 | INFO    | modules.auth -   submit clicked  : True
+17:52:04 | WARNING | modules.auth -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+17:52:04 | INFO    | modules.auth - ------------------------------------------------------------
+17:52:04 | INFO    | modules.auth - auth: captcha attempt 1 rejected
+17:52:04 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175204_captcha-attempt1-rejected.png
+17:52:28 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:52:28 | INFO    | modules.auth - auth: 23 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:52:28 | INFO    | modules.auth - auth: prompt 435 chosen (contrast=14.59, z-index=955, color=rgb(33, 37, 41))
+17:52:28 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 54 col-4 divs, 23 box-labels) — waiting for render
+17:52:50 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:52:50 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:52:51 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175250_captcha-no-tiles-attempt2.png
+17:52:51 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175251_captcha-no-tiles-attempt2.html
+17:52:51 | INFO    | modules.auth - auth: captcha action onReload() -> called
+17:52:51 | INFO    | modules.auth - auth: requested a fresh captcha grid
+17:52:51 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy
+17:53:13 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:53:15 | WARNING | modules.auth - auth: no visible tile on attempt 3 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+17:53:36 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:53:36 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:53:36 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175336_captcha-no-tiles-attempt3.png
+17:53:36 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175336_captcha-no-tiles-attempt3.html
+17:53:44 | WARNING | modules.auth - auth: no visible tile on attempt 4 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+17:54:05 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:54:05 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:54:05 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175405_captcha-no-tiles-attempt4.png
+17:54:05 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175405_captcha-no-tiles-attempt4.html
+17:54:05 | INFO    | modules.auth - auth: CAPTCHA tiles not found
+17:54:27 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+17:54:27 | INFO    | modules.auth - auth: password submitted
+17:54:27 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/account/login
+17:54:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175427_after-password-submit.png
+17:54:28 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175428_after-password-submit.html
+17:54:59 | WARNING | modules.auth - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/account/login)
+17:54:59 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175459_login-stalled-round1.png
+17:54:59 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175459_login-stalled-round1.html
+17:54:59 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login)
+17:54:59 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175459_login-failed-attempt1.png
+17:55:04 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+17:55:11 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:55:11 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+17:55:12 | INFO    | modules.utils - find_real_input: real 'text' field is index 2 of 10 (parent div.mb-3 display:block)
+17:55:15 | INFO    | modules.auth - auth: email filled
+17:55:15 | INFO    | modules.auth - auth: email submitted
+17:55:16 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy
+17:55:17 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+17:55:18 | INFO    | modules.utils - find_real_input: real 'password' field is index 6 of 10 (parent div.mb-3 display:block)
+17:55:20 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+17:55:20 | INFO    | modules.auth - auth: password filled
+17:55:20 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh704phmKF9SPSdDmR24kfblCvZyV2msB80SXAv83LRMEkmPgKDhxFp59mi8pWlWj8vjPekQK%2FYFF6%2B5Zwniprtnp%2FUCidHd7h2W68FzZVjfiGI0IZCwNr49nbDxZrkwnNw%3D
+17:55:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175520_password-page-filled.png
+17:55:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175520_password-page-filled.html
+17:55:20 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+17:55:20 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=34
+17:55:20 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+17:55:20 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+17:55:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175520_captcha-before.png
+17:55:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175520_captcha-detected.html
+17:55:21 | INFO    | modules.auth - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:55:21 | INFO    | modules.auth - auth: prompt 799 chosen (contrast=15.43, z-index=991, color=rgb(33, 37, 41))
+17:55:21 | INFO    | modules.auth - ------------------------------------------------------------
+17:55:21 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+17:55:21 | INFO    | modules.auth -   target number   : 799
+17:55:21 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+17:55:21 | INFO    | modules.auth -   visible labels  : 34 (of 34 box-labels in the DOM)
+17:55:21 | INFO    | modules.auth - auth: captcha attempt 1: target=799, 9 visible tiles
+17:55:21 | INFO    | modules.auth -   grid order      : 1:tkzsrv, 2:vqcmnxjnp, 3:jvimfj, 4:bkkwdzwi, 5:wwuhajsam, 6:xmhgz, 7:yfhihbyv, 8:somnr, 9:ilkfvuq
+17:55:21 | INFO    | modules.auth -   grid clip       : x=497.48 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-175522_target799_attempt1.png
+17:55:22 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-175522_target799_attempt1.png
+17:55:22 | INFO    | modules.vision - vision: split 702x700 grid into 9 tiles (~234x233 each)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:55:22 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+17:55:35 | INFO    | modules.vision - vision: per-tile reply '799,799,799,799,799,799,836,799,341,386'
+17:55:35 | WARNING | modules.vision - vision: per-tile reply held 10 numbers, expected 9
+17:55:35 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+17:55:48 | INFO    | modules.vision - vision: model replied '799,799,799,799,799,836,799,341,386'
+17:55:48 | INFO    | modules.auth -   tiles read      : 1:799, 2:799, 3:799, 4:799, 5:799, 6:836, 7:799, 8:341, 9:386
+17:55:48 | INFO    | modules.auth -   matching 799      : positions [1, 2, 3, 4, 5, 7]
+17:55:48 | INFO    | modules.auth -   vision positions: [1, 2, 3, 4, 5, 7]
+17:55:48 | INFO    | modules.auth -   matched tiles   : 6 -> ['tkzsrv', 'vqcmnxjnp', 'jvimfj', 'bkkwdzwi', 'wwuhajsam', 'yfhihbyv']
+17:55:53 | INFO    | modules.auth -   click results   :
+17:55:53 | INFO    | modules.auth -       id=tkzsrv         number=None   clicked=True  img-selected=True
+17:55:53 | INFO    | modules.auth -       id=vqcmnxjnp      number=None   clicked=True  img-selected=True
+17:55:53 | INFO    | modules.auth -       id=jvimfj         number=None   clicked=True  img-selected=True
+17:55:53 | INFO    | modules.auth -       id=bkkwdzwi       number=None   clicked=True  img-selected=True
+17:55:53 | INFO    | modules.auth -       id=wwuhajsam      number=None   clicked=True  img-selected=True
+17:55:53 | INFO    | modules.auth -       id=yfhihbyv       number=None   clicked=True  img-selected=True
+17:55:54 | INFO    | modules.auth -   SelectedImages  : ''
+17:55:54 | INFO    | modules.auth -   expected ids    : ['bkkwdzwi', 'jvimfj', 'tkzsrv', 'vqcmnxjnp', 'wwuhajsam', 'yfhihbyv']
+17:55:54 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:55:55 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175554_captcha-attempt1-before-submit.png
+17:55:55 | INFO    | modules.utils - find_real_input: real 'password' field is index 6 of 10 (parent div.mb-3 display:block)
+17:55:55 | INFO    | modules.auth - auth: captcha action onSubmit() -> called
+17:55:55 | INFO    | modules.auth -   submit clicked  : True
+17:55:56 | WARNING | modules.auth -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+17:55:56 | INFO    | modules.auth - ------------------------------------------------------------
+17:55:56 | INFO    | modules.auth - auth: captcha attempt 1 rejected
+17:55:56 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175556_captcha-attempt1-rejected.png
+17:56:19 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:56:19 | INFO    | modules.auth - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:56:19 | INFO    | modules.auth - auth: prompt 799 chosen (contrast=15.43, z-index=991, color=rgb(33, 37, 41))
+17:56:19 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 54 col-4 divs, 34 box-labels) — waiting for render
+17:56:42 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:56:42 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:56:42 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175642_captcha-no-tiles-attempt2.png
+17:56:42 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175642_captcha-no-tiles-attempt2.html
+17:56:42 | INFO    | modules.auth - auth: captcha action onReload() -> called
+17:56:42 | INFO    | modules.auth - auth: requested a fresh captcha grid
+17:56:42 | INFO    | modules.auth - auth: [net] 403 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy
+17:57:04 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:57:05 | WARNING | modules.auth - auth: no visible tile on attempt 3 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+17:57:27 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:57:27 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:57:27 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175727_captcha-no-tiles-attempt3.png
+17:57:27 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175727_captcha-no-tiles-attempt3.html
+17:57:29 | WARNING | modules.auth - auth: no visible tile on attempt 4 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+17:57:50 | WARNING | modules.auth - auth: no captcha tiles rendered within 20s
+17:57:50 | ERROR   | modules.auth - auth: CAPTCHA is on screen but no tile is visible after a rescan — the tile selectors may need updating
+17:57:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175750_captcha-no-tiles-attempt4.png
+17:57:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175750_captcha-no-tiles-attempt4.html
+17:57:50 | INFO    | modules.auth - auth: CAPTCHA tiles not found
+17:58:11 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+17:58:12 | INFO    | modules.auth - auth: password submitted
+17:58:12 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh704phmKF9SPSdDmR24kfblCvZyV2msB80SXAv83LRMEkmPgKDhxFp59mi8pWlWj8vjPekQK%2FYFF6%2B5Zwniprtnp%2FUCidHd7h2W68FzZVjfiGI0IZCwNr49nbDxZrkwnNw%3D
+17:58:13 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175812_after-password-submit.png
+17:58:13 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175813_after-password-submit.html
+17:58:29 | INFO    | modules.notifier - notifier: /stop command received
+17:58:44 | WARNING | modules.auth - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh704phmKF9SPSdDmR24kfblCvZyV2msB80SXAv83LRMEkmPgKDhxFp59mi8pWlWj8vjPekQK%2FYFF6%2B5Zwniprtnp%2FUCidHd7h2W68FzZVjfiGI0IZCwNr49nbDxZrkwnNw%3D)
+17:58:44 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175844_login-stalled-round1.png
+17:58:44 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-175844_login-stalled-round1.html
+17:58:44 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/newcaptcha/logincaptcha?returnurl=%2fglobal%2fbls%2fvisatypeverification&data=8jv4wkemuamyka815dkxdc91dprhwdgy00ire%2f29vh704phmkf9spsddmr24kfblcvzyv2msb80sxav83lrmekmpgkdhxfp59mi8pwlwj8vjpekqk%2fyff6%2b5zwniprtnp%2fucidhd7h2w68fzzvjfigi0izcwnr49nbdxzrkwnnw%3d)
+17:58:44 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-175844_login-failed-attempt2.png
+17:58:44 | INFO    | modules.auth - auth: Login failed after 2 attempt(s): login did not reach an authenticated page
+17:58:45 | ERROR   | __main__ - fatal error: Login failed after 2 attempt(s): login did not reach an authenticated page
+Traceback (most recent call last):
+
+  File "D:\bls-egypt-bot\bot.py", line 561, in <module>
+    sys.exit(main())
+    │   │    └ <function main at 0x000001D52F222840>
+    │   └ <built-in function exit>
+    └ <module 'sys' (built-in)>
+
+  File "D:\bls-egypt-bot\bot.py", line 430, in main
+    return _main_inner(args, run_log)
+           │           │     └ WindowsPath('D:/bls-egypt-bot/logs/run_20261009_175118.txt')
+           │           └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_cooldown=False, ignore...
+           └ <function _main_inner at 0x000001D52F2228E0>
+
+  File "D:\bls-egypt-bot\bot.py", line 487, in _main_inner
+    return asyncio.run(_bootstrap())
+           │       │   └ <function _main_inner.<locals>._bootstrap at 0x000001D52F223420>
+           │       └ <function run at 0x000001D52BE79120>
+           └ <module 'asyncio' from 'C:\\Users\\Beka\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object _main_inner.<locals>._bootstrap at 0x000001D52F1CBD30>
+           │      └ <function Runner.run at 0x000001D52C301760>
+           └ <asyncio.runners.Runner object at 0x000001D52F226F50>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<_main_inner.<locals>._bootstrap() running at D:\bls-egypt-bot\bot.py:484> cb=[_run_until_co...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000001D52C2FF240>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000001D52F226F50>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000001D52C3DB560>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000001D52C300FE0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000001D52BE5A3E0>
+    └ <Handle <TaskStepMethWrapper object at 0x000001D5305E5960>()>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <TaskStepMethWrapper object at 0x000001D5305E5960>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <TaskStepMethWrapper object at 0x000001D5305E5960>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <TaskStepMethWrapper object at 0x000001D5305E5960>()>
+
+  File "D:\bls-egypt-bot\bot.py", line 484, in _bootstrap
+    return await _run_with_state(config, args, state)
+                 │               │       │     └ <modules.state.BotState object at 0x000001D52F237050>
+                 │               │       └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_cooldown=False, ignore...
+                 │               └ {'bls': {'url': 'https://egypt.blsspainglobal.com/', 'email': 'fadysawairas@gmail.com', 'password': 'Fady@Shady89', 'location...
+                 └ <function _run_with_state at 0x000001D52F222980>
+
+> File "D:\bls-egypt-bot\bot.py", line 525, in _run_with_state
+    await monitor.run_once()
+          │       └ <function Monitor.run_once at 0x000001D52DE17880>
+          └ <modules.monitor.Monitor object at 0x000001D52F695050>
+
+  File "D:\bls-egypt-bot\modules\monitor.py", line 278, in run_once
+    page = await self.auth.ensure_logged_in()
+                 │    │    └ <function BLSAuth.ensure_logged_in at 0x000001D52DDCA200>
+                 │    └ <modules.auth.BLSAuth object at 0x000001D52F22B750>
+                 └ <modules.monitor.Monitor object at 0x000001D52F695050>
+
+  File "D:\bls-egypt-bot\modules\auth.py", line 714, in ensure_logged_in
+    raise LoginError(message)
+          │          └ 'Login failed after 2 attempt(s): login did not reach an authenticated page'
+          └ <class 'modules.auth.LoginError'>
+
+modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an authenticated page
+17:58:52 | INFO    | modules.auth - auth: browser closed
+17:58:55 | INFO    | modules.notifier - notifier: telegram listener stopped
+17:58:55 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-09T17:58:55

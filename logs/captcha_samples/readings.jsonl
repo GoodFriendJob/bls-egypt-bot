@@ -13,3 +13,5 @@
 {"sample": "20261009-171315_target412_attempt3.png", "target": "412", "tiles": null, "positions": [3, 5, 8, 9], "method": "positions"}
 {"sample": "20261009-171351_target412_attempt4.png", "target": "412", "tiles": null, "positions": [3, 5, 8, 9], "method": "positions"}
 {"sample": "20261009-173534_target930_attempt1.png", "target": "930", "tiles": ["930", "310", "930", "930", "183", "537", "930", "930", "183"], "positions": [1, 3, 4, 7, 8], "method": "per-tile"}
+{"sample": "20261009-175142_target435_attempt1.png", "target": "435", "tiles": ["435", "435", "435", "355", "435", "435", "794", "392", "435"], "positions": [1, 2, 3, 5, 6, 9], "method": "per-tile"}
+{"sample": "20261009-175522_target799_attempt1.png", "target": "799", "tiles": ["799", "799", "799", "799", "799", "836", "799", "341", "386"], "positions": [1, 2, 3, 4, 5, 7], "method": "whole-grid"}
