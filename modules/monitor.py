@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from typing import Any
 
 from loguru import logger
@@ -352,6 +353,7 @@ class Monitor:
             )
             await utils.screenshot(opened, "verify-no-frame")
             await utils.dump_page_html(opened, "verify-no-frame")
+            await self._probe_captcha_endpoint(opened)
             return False
         await utils.human_delay(self.config)
 
@@ -547,6 +549,52 @@ class Monitor:
                 f"monitor: captcha frame never finished rendering ({frame.url})"
             )
         return frame
+
+    async def _probe_captcha_endpoint(self, page: Any) -> None:
+        """Fetch /Global/NewCaptcha/GenerateCaptcha directly and report back.
+
+        Separates the two candidate causes. If this returns the grid, the frame
+        failed for transport reasons (mixed-content blocking). If it returns the
+        login page, the session is not valid for that endpoint and no amount of
+        frame handling will help.
+        """
+        base = (self.config.get("bls", {}) or {}).get("url", "").rstrip("/")
+        url = f"{base}/Global/NewCaptcha/GenerateCaptcha"
+        logger.info(f"monitor: probing the captcha endpoint directly — {url}")
+        probe = None
+        try:
+            probe = await page.context.new_page()
+            response = await probe.goto(url, wait_until="domcontentloaded")
+            status = response.status if response else "?"
+            text = (await probe.inner_text("body"))[:300] if response else ""
+            looks_login = "/account/login" in (probe.url or "").lower()
+            has_grid = bool(re.search(r"number\s+\d+", text, re.I))
+            logger.info(f"  probe status    : {status}")
+            logger.info(f"  probe final url : {probe.url}")
+            logger.info(f"  looks like login: {looks_login}")
+            logger.info(f"  has number prompt: {has_grid}")
+            logger.info(f"  body starts     : {text[:160]!r}")
+            await utils.screenshot(probe, "captcha-endpoint-probe")
+            await utils.dump_page_html(probe, "captcha-endpoint-probe")
+            if looks_login:
+                logger.error(
+                    "monitor: the captcha endpoint redirects to login — the "
+                    "session is not accepted for it. This is an auth problem, "
+                    "not an iframe problem."
+                )
+            elif has_grid:
+                logger.warning(
+                    "monitor: the endpoint serves the grid fine on its own, so "
+                    "the iframe is being blocked in the browser (mixed content)."
+                )
+        except Exception as exc:
+            logger.warning(f"monitor: captcha endpoint probe failed: {exc}")
+        finally:
+            if probe is not None:
+                try:
+                    await probe.close()
+                except Exception:
+                    pass
 
     async def _open_verification_popup(self, page: Any) -> Any | None:
         """Click "Verify Selection" and return the page holding the challenge.

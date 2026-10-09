@@ -73,7 +73,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "headless": True,
     "proxy": {"enabled": False, "server": "", "username": "", "password": ""},
     "browser": {
-        "stealth": True,
+        # Default OFF: on this portal the stealth script throws
+        # "Cannot redefine property: offsetHeight" from inside FingerprintJS's
+        # font probing, corrupting the fingerprint the server expects.
+        "stealth": False,
+        "allow_insecure_content": True,
         "device_scale_factor": 2,
         "navigation_timeout": 60000,
         "action_timeout": 20000,

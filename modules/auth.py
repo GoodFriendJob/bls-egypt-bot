@@ -422,9 +422,20 @@ class BLSAuth:
 
         self._playwright = await async_playwright().start()
 
+        args = list(LAUNCH_ARGS)
+        if bool(browser_cfg.get("allow_insecure_content", True)):
+            # The portal 302s its own captcha iframe to http://, which Chrome
+            # blocks as mixed content *in the renderer* — before the request is
+            # issued, so Playwright routing cannot intercept or upgrade it. The
+            # only way to let that frame load is to permit insecure subresources.
+            args += [
+                "--allow-running-insecure-content",
+                "--disable-features=BlockInsecurePrivateNetworkRequests",
+            ]
+
         launch_kwargs: dict[str, Any] = {
             "headless": bool(self.config.get("headless", True)),
-            "args": LAUNCH_ARGS,
+            "args": args,
         }
         if proxy_cfg.get("enabled") and proxy_cfg.get("server"):
             proxy: dict[str, Any] = {"server": proxy_cfg["server"]}
@@ -464,16 +475,21 @@ class BLSAuth:
         # the page half-patched and is a prime suspect for the captcha iframe
         # being served a login redirect. Set browser.stealth: false to rule it
         # out without touching code.
-        if bool(browser_cfg.get("stealth", True)):
+        if bool(browser_cfg.get("stealth", False)):
+            logger.warning(
+                "auth: stealth ENABLED — note its script throws "
+                "'Cannot redefine property: offsetHeight' inside FingerprintJS "
+                "on this portal"
+            )
             if await utils.apply_stealth(self._context):
                 logger.debug("auth: stealth applied to context")
         else:
-            logger.warning("auth: stealth DISABLED by config (browser.stealth: false)")
+            logger.info("auth: stealth disabled (browser.stealth: false)")
 
         await self._install_https_upgrade(self._context)
 
         self._page = await self._context.new_page()
-        if bool(browser_cfg.get("stealth", True)):
+        if bool(browser_cfg.get("stealth", False)):
             await utils.apply_stealth(self._page)
         self._install_network_logging(self._page)
         self._log("browser launched", status="ok")

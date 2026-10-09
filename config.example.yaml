@@ -115,10 +115,15 @@ proxy:
   password: ""
 
 browser:
-  # Apply playwright-stealth. Its script throws
-  # "Cannot redefine property: offsetHeight" on this portal; set to false if
-  # the CAPTCHA iframe is being redirected to the login page.
-  stealth: true
+  # Apply playwright-stealth. DEFAULT OFF: on this portal its script throws
+  # "Cannot redefine property: offsetHeight" from inside FingerprintJS's font
+  # probing, which corrupts the fingerprint the server expects and makes the
+  # CAPTCHA iframe be redirected to the login page.
+  stealth: false
+  # Let the browser load the portal's own http:// captcha iframe. The site
+  # 302s it to http on an https page; Chrome blocks that as mixed content in
+  # the renderer, before Playwright can see or upgrade the request.
+  allow_insecure_content: true
   # Playwright navigation / action timeouts in milliseconds.
   navigation_timeout: 60000
   action_timeout: 20000
