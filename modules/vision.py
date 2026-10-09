@@ -12,11 +12,15 @@ None and the caller falls back to a manual solve over Telegram.
 from __future__ import annotations
 
 import base64
+import io
 import re
 from pathlib import Path
 from typing import Any
 
 from loguru import logger
+
+# Tiles are ~110px square with ~40px digits; 3x gives the model far more to read.
+UPSCALE_FACTOR = 3
 
 try:
     from openai import AsyncOpenAI
@@ -27,6 +31,22 @@ except ImportError:  # pragma: no cover - dependency not installed
     OPENAI_AVAILABLE = False
 
 SAMPLE_DIR = Path("logs/captcha_samples")
+
+# Preferred strategy: ask the model to READ all nine tiles, then do the matching
+# in Python. Pure OCR is an easier task than "OCR + compare + report positions",
+# it makes every misread visible in the log, and the reply can be sanity-checked
+# (exactly N numbers expected) instead of trusted blindly.
+READ_PROMPT_TEMPLATE = (
+    "This is a {rows}x{cols} grid of {count} tiles, each showing a number.\n"
+    "Read the number in every tile and output them in order, "
+    "left-to-right then top-to-bottom "
+    "(position 1=top-left, {cols}=top-right, {count}=bottom-right).\n"
+    "The numbers may be coloured, styled, crossed out, underlined or have "
+    "decorative lines through them. Ignore all colour and decoration and read "
+    "only the digit shapes. Look carefully at each tile.\n"
+    "Output ONLY the {count} numbers separated by commas, nothing else.\n"
+    "Example: 123,456,789,234,567,890,345,678,901"
+)
 
 PROMPT_TEMPLATE = (
     "This is a {rows}x{cols} image grid ({cols} columns, {rows} rows = {count} "
@@ -70,6 +90,75 @@ class VisionSolver:
     # ------------------------------------------------------------------ #
     # Main entry point
     # ------------------------------------------------------------------ #
+    async def read_grid_numbers(
+        self,
+        image_bytes: bytes,
+        *,
+        count: int = 9,
+        rows: int = 3,
+        cols: int = 3,
+    ) -> list[str] | None:
+        """Read every tile's number, left-to-right then top-to-bottom.
+
+        Returns exactly ``count`` strings, or None when the reply could not be
+        used. Matching is then done in Python, which keeps the model's job to
+        pure OCR and puts every digit it read into the log.
+        """
+        if not self.enabled or not image_bytes:
+            return None
+
+        prompt = READ_PROMPT_TEMPLATE.format(rows=rows, cols=cols, count=count)
+        reply = await self._ask(prompt, image_bytes)
+        if reply is None:
+            return None
+
+        numbers = _POSITION_RE.findall(reply)
+        if len(numbers) != count:
+            logger.warning(
+                f"vision: expected {count} numbers but parsed {len(numbers)} "
+                f"from {reply!r}"
+            )
+            return None
+        return numbers
+
+    async def _ask(self, prompt: str, image_bytes: bytes) -> str | None:
+        """One vision round-trip. Returns the raw reply text."""
+        payload = upscale_png(image_bytes)
+        encoded = base64.b64encode(payload).decode("ascii")
+        try:
+            response = await self._get_client().chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{encoded}",
+                                    "detail": "high",
+                                },
+                            },
+                        ],
+                    }
+                ],
+                max_tokens=120,
+                temperature=0,
+            )
+        except Exception as exc:
+            logger.error(f"vision: API call failed: {type(exc).__name__}: {exc}")
+            return None
+
+        try:
+            reply = (response.choices[0].message.content or "").strip()
+        except (AttributeError, IndexError) as exc:
+            logger.error(f"vision: unexpected response shape: {exc}")
+            return None
+
+        logger.info(f"vision: model replied {reply!r}")
+        return reply
+
     async def find_matching_positions(
         self,
         image_bytes: bytes,
@@ -99,42 +188,9 @@ class VisionSolver:
             count=count,
             digits=len(str(target)),
         )
-        encoded = base64.b64encode(image_bytes).decode("ascii")
-
-        try:
-            response = await self._get_client().chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{encoded}",
-                                    # The digits are small and deliberately
-                                    # distorted; low detail loses them.
-                                    "detail": "high",
-                                },
-                            },
-                        ],
-                    }
-                ],
-                max_tokens=50,
-                temperature=0,  # deterministic: this is a reading task
-            )
-        except Exception as exc:
-            logger.error(f"vision: API call failed: {type(exc).__name__}: {exc}")
+        reply = await self._ask(prompt, image_bytes)
+        if reply is None:
             return None
-
-        try:
-            reply = (response.choices[0].message.content or "").strip()
-        except (AttributeError, IndexError) as exc:
-            logger.error(f"vision: unexpected response shape: {exc}")
-            return None
-
-        logger.info(f"vision: model replied {reply!r}")
         return self._parse_positions(reply, count)
 
     # ------------------------------------------------------------------ #
@@ -164,6 +220,41 @@ class VisionSolver:
             logger.warning("vision: no usable positions in the reply")
             return None
         return valid
+
+
+def upscale_png(image_bytes: bytes, factor: int = UPSCALE_FACTOR) -> bytes:
+    """Enlarge the crop with LANCZOS before sending it to the model.
+
+    The tiles are roughly 110px square with ~40px digits, deliberately styled to
+    resist reading. Resampling up gives the model materially more pixels to work
+    with. Returns the original bytes unchanged if Pillow is unavailable or the
+    resize fails — a slightly worse image beats no lookup at all.
+    """
+    if factor <= 1 or not image_bytes:
+        return image_bytes
+    try:
+        from PIL import Image
+    except ImportError:
+        logger.warning("vision: Pillow not installed — sending the crop unscaled")
+        return image_bytes
+
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            img = img.convert("RGB")
+            width, height = img.size
+            enlarged = img.resize(
+                (width * factor, height * factor), Image.Resampling.LANCZOS
+            )
+            buffer = io.BytesIO()
+            enlarged.save(buffer, format="PNG")
+            logger.info(
+                f"vision: upscaled grid {width}x{height} -> "
+                f"{width * factor}x{height * factor} (x{factor}, LANCZOS)"
+            )
+            return buffer.getvalue()
+    except Exception as exc:
+        logger.warning(f"vision: upscale failed ({exc}) — sending the original")
+        return image_bytes
 
 
 def save_sample(image_bytes: bytes, label: str) -> str | None:

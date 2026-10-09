@@ -16,3 +16,6 @@ python-dateutil==2.9.0.post0
 # (chat.completions with an image part) and this avoids install.bat failing on a
 # machine where one exact patch release is unavailable.
 openai>=1.40.0,<2.0.0
+# Upscales the CAPTCHA crop before it is sent to the vision model; the digits
+# are only ~40px tall and deliberately distorted.
+Pillow>=10.0.0,<12.0.0

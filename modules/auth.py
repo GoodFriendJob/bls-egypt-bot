@@ -441,6 +441,10 @@ class BLSAuth:
             "timezone_id": browser_cfg.get("timezone", "Africa/Cairo"),
             "viewport": {"width": 1366, "height": 768},
             "ignore_https_errors": True,
+            # Renders at higher DPI so captcha crops carry real detail rather
+            # than interpolated pixels. CSS coordinates are unaffected, so
+            # elementFromPoint and clip rects keep working unchanged.
+            "device_scale_factor": float(browser_cfg.get("device_scale_factor", 2)),
         }
         if browser_cfg.get("user_agent"):
             context_kwargs["user_agent"] = browser_cfg["user_agent"]
@@ -972,8 +976,11 @@ class BLSAuth:
                 )
 
             grid_png = await self._screenshot_grid(page, ordered, attempt)
+            # Save exactly what the model is sent (upscaled), not the raw crop —
+            # otherwise the audit image and the model's input differ.
             sample = vision.save_sample(
-                grid_png, f"{_sample_stamp()}_target{target}_attempt{attempt}"
+                vision.upscale_png(grid_png),
+                f"{_sample_stamp()}_target{target}_attempt{attempt}",
             )
             logger.info(f"  grid screenshot : {sample or 'FAILED'}")
 
@@ -981,9 +988,27 @@ class BLSAuth:
                 logger.error("  outcome         : ABORTED - could not capture the grid")
                 return False
 
-            positions = await self.vision.find_matching_positions(
-                grid_png, target, count=len(ordered)
-            )
+            # Preferred: have the model READ all nine tiles and match in Python.
+            # Pure OCR is an easier ask than "OCR + compare + report positions",
+            # and it puts every digit it read into the log so a misread is
+            # visible instead of hidden behind a position list.
+            positions: list[int] | None = None
+            digits = await self.vision.read_grid_numbers(grid_png, count=len(ordered))
+            if digits is not None:
+                logger.info(
+                    "  tiles read      : "
+                    + ", ".join(f"{i}:{d}" for i, d in enumerate(digits, 1))
+                )
+                positions = [i for i, d in enumerate(digits, 1) if d == target]
+                logger.info(f"  matching {target}      : positions {positions}")
+            else:
+                logger.warning(
+                    "  tiles read      : unusable — falling back to asking for "
+                    "positions directly"
+                )
+                positions = await self.vision.find_matching_positions(
+                    grid_png, target, count=len(ordered)
+                )
 
             if positions is None:
                 # Transient API errors are common; only give up once the whole
