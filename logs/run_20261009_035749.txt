@@ -1,0 +1,116 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T03:57:49
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+03:57:49 | INFO    | __main__ - ==============================================================
+03:57:49 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+03:57:49 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_035749.txt
+03:57:49 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+03:57:49 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+03:57:49 | INFO    | __main__ - ==============================================================
+03:57:49 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+03:57:49 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+03:57:49 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+03:57:49 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+03:57:50 | INFO    | modules.notifier - notifier: telegram listener started
+03:57:50 | INFO    | __main__ - single-cycle mode (--once)
+03:57:58 | INFO    | modules.auth - auth: browser launched
+03:58:01 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+03:58:01 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+03:58:08 | INFO    | modules.utils - find_real_input: real 'text' field is index 6 of 10 (parent div.mb-3 display:block)
+03:58:10 | INFO    | modules.auth - auth: email filled
+03:58:10 | INFO    | modules.auth - auth: email submitted
+03:58:11 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+03:58:13 | INFO    | modules.utils - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+03:58:14 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+03:58:14 | INFO    | modules.auth - auth: password filled
+03:58:14 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh7bnLX5F04795Sjkry0%2B40oPM4z13EcrOhDK1CfYCX5kiWkwwiq6CZXLyzrqCXum4m%2Fmg06WRIJJoQV8v9uamhFG%2BPYCnfp%2B62gv3FWVTuyZeGx4xPLa%2B5MGSKZRCsHi84%3D
+03:58:15 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035814_password-page-filled.png
+03:58:15 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-035815_password-page-filled.html
+03:58:15 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+03:58:15 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=28
+03:58:15 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+03:58:15 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+03:58:15 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035815_captcha-before.png
+03:58:15 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-035815_captcha-detected.html
+03:58:15 | INFO    | modules.auth - auth: 28 stacked prompt(s); 1 readable (contrast >= 2.0)
+03:58:15 | INFO    | modules.auth - auth: prompt 725 chosen (contrast=14.38, z-index=919, color=rgb(33, 37, 41))
+03:58:15 | INFO    | modules.auth - ------------------------------------------------------------
+03:58:15 | INFO    | modules.auth - CAPTCHA attempt 1 of 10
+03:58:15 | INFO    | modules.auth -   target number   : 725
+03:58:15 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+03:58:15 | INFO    | modules.auth -   visible labels  : 28 (of 28 box-labels in the DOM)
+03:58:15 | INFO    | modules.auth - auth: captcha attempt 1: target=725, 9 visible tiles
+03:58:15 | INFO    | modules.auth -   grid order      : 1:nlmdvt, 2:womfndrve, 3:ftqvvca, 4:opnapqu, 5:vunobuwj, 6:felzebj, 7:hvgzfku, 8:vvzqwxblm, 9:gyffskir
+03:58:15 | INFO    | modules.auth -   grid clip       : x=617.81 y=273 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+03:58:15 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-035815_target725_attempt1.png
+03:58:15 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-035815_target725_attempt1.png
+03:58:19 | INFO    | modules.vision - vision: model replied '1, 2, 4, 8'
+03:58:19 | INFO    | modules.auth -   vision positions: [1, 2, 4, 8]
+03:58:19 | INFO    | modules.auth -   matched tiles   : 4 -> ['nlmdvt', 'womfndrve', 'opnapqu', 'vvzqwxblm']
+03:58:22 | INFO    | modules.auth -   click results   :
+03:58:22 | INFO    | modules.auth -       id=nlmdvt         number=None   clicked=True  img-selected=True
+03:58:22 | INFO    | modules.auth -       id=womfndrve      number=None   clicked=True  img-selected=True
+03:58:22 | INFO    | modules.auth -       id=opnapqu        number=None   clicked=True  img-selected=True
+03:58:22 | INFO    | modules.auth -       id=vvzqwxblm      number=None   clicked=True  img-selected=True
+03:58:23 | INFO    | modules.auth -   SelectedImages  : ''
+03:58:23 | INFO    | modules.auth -   expected ids    : ['nlmdvt', 'opnapqu', 'vvzqwxblm', 'womfndrve']
+03:58:23 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+03:58:23 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035823_captcha-attempt1-before-submit.png
+03:58:23 | INFO    | modules.auth - auth: captcha submitted via button:has-text("Submit")
+03:58:23 | INFO    | modules.auth -   submit clicked  : True
+03:58:25 | SUCCESS | modules.auth -   outcome         : SOLVED on attempt 1
+03:58:25 | INFO    | modules.auth - ------------------------------------------------------------
+03:58:25 | INFO    | modules.auth - auth: captcha solved (attempt 1)
+03:58:26 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035825_captcha-solved.png
+03:58:47 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+03:58:47 | INFO    | modules.auth - auth: password submitted
+03:58:47 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+03:58:48 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035847_after-password-submit.png
+03:58:48 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-035848_after-password-submit.html
+03:58:48 | SUCCESS | modules.auth - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+03:58:48 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+03:58:48 | INFO    | modules.auth - auth: session saved to session\cookies.json
+03:58:48 | INFO    | modules.auth - auth: login successful
+03:58:48 | WARNING | modules.utils - availability check for cairo failed (attempt 1/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:58:53 | WARNING | modules.utils - availability check for cairo failed (attempt 2/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:03 | WARNING | modules.utils - availability check for cairo failed (attempt 3/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:03 | ERROR   | modules.monitor - monitor[cairo]: Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:03 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035903_monitor-error-cairo.png
+03:59:36 | WARNING | modules.utils - availability check for alexandria failed (attempt 1/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:41 | WARNING | modules.utils - availability check for alexandria failed (attempt 2/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:51 | WARNING | modules.utils - availability check for alexandria failed (attempt 3/3): Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:51 | ERROR   | modules.monitor - monitor[alexandria]: Page.goto: net::ERR_HTTP_RESPONSE_CODE_FAILURE at https://egypt.blsspainglobal.com/Global/bls/appointment
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting until "domcontentloaded"
+
+03:59:51 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-035951_monitor-error-alexandria.png
+04:00:24 | INFO    | modules.auth - auth: session saved to session\cookies.json
+04:00:24 | INFO    | modules.auth - auth: browser closed
+04:00:25 | INFO    | modules.notifier - notifier: telegram listener stopped
+======================================================================
+finished: 2026-10-09T04:00:25
