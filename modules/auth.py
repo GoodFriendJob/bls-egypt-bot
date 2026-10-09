@@ -478,21 +478,38 @@ class BLSAuth:
         # the page half-patched and is a prime suspect for the captcha iframe
         # being served a login redirect. Set browser.stealth: false to rule it
         # out without touching code.
-        if bool(browser_cfg.get("stealth", False)):
-            logger.warning(
-                "auth: stealth ENABLED — note its script throws "
-                "'Cannot redefine property: offsetHeight' inside FingerprintJS "
-                "on this portal"
+        # Stealth is known-broken on this portal: its script throws
+        # "Cannot redefine property: offsetHeight" from inside FingerprintJS's
+        # font probing, so the visitor id the server expects is never computed
+        # properly — and /Global/NewCaptcha/GenerateCaptcha then refuses the
+        # session and 302s to the login page.
+        #
+        # config.yaml is gitignored, so a stale `stealth: true` there cannot be
+        # corrected by a pull. Treat the config value as a request, not an
+        # order: ignore it unless browser.force_stealth is explicitly set.
+        wants_stealth = bool(browser_cfg.get("stealth", False))
+        force_stealth = bool(browser_cfg.get("force_stealth", False))
+        self._stealth_active = force_stealth or (wants_stealth and False)
+
+        if wants_stealth and not force_stealth:
+            logger.error(
+                "auth: browser.stealth is true in config.yaml but is being "
+                "IGNORED — it breaks FingerprintJS on this portal and causes "
+                "GenerateCaptcha to reject the session. Set browser.stealth: "
+                "false to silence this, or browser.force_stealth: true to "
+                "override."
             )
+        if self._stealth_active:
+            logger.warning("auth: stealth FORCED ON by browser.force_stealth")
             if await utils.apply_stealth(self._context):
                 logger.debug("auth: stealth applied to context")
         else:
-            logger.info("auth: stealth disabled (browser.stealth: false)")
+            logger.info("auth: stealth disabled (recommended for this portal)")
 
         await self._install_https_upgrade(self._context)
 
         self._page = await self._context.new_page()
-        if bool(browser_cfg.get("stealth", False)):
+        if getattr(self, "_stealth_active", False):
             await utils.apply_stealth(self._page)
         self._install_network_logging(self._page)
         self._log("browser launched", status="ok")

@@ -582,6 +582,7 @@ class Monitor:
                     "session is not accepted for it. This is an auth problem, "
                     "not an iframe problem."
                 )
+                await self._dump_session_cookies(page, url)
             elif has_grid:
                 logger.warning(
                     "monitor: the endpoint serves the grid fine on its own, so "
@@ -595,6 +596,39 @@ class Monitor:
                     await probe.close()
                 except Exception:
                     pass
+
+    async def _dump_session_cookies(self, page: Any, target_url: str) -> None:
+        """List the cookies the browser holds, to show what the endpoint saw.
+
+        The parent page is authenticated while GenerateCaptcha is not, so the
+        difference is in what gets sent: either an auth cookie is scoped so it
+        does not reach that path, or a fingerprint cookie the endpoint requires
+        was never set (which is what a crashed FingerprintJS would cause).
+        """
+        try:
+            cookies = await page.context.cookies([target_url])
+        except Exception as exc:
+            logger.warning(f"monitor: could not read cookies: {exc}")
+            return
+
+        logger.info(f"  cookies sent to {target_url[:70]} — {len(cookies)} total")
+        for cookie in cookies:
+            name = cookie.get("name", "")
+            value = str(cookie.get("value", ""))
+            # Never log a session or fingerprint value, only its shape.
+            logger.info(
+                f"     {name:<34} len={len(value):<5} "
+                f"path={cookie.get('path', '')} "
+                f"secure={cookie.get('secure')} "
+                f"httpOnly={cookie.get('httpOnly')} "
+                f"sameSite={cookie.get('sameSite')}"
+            )
+        names = {c.get("name", "").lower() for c in cookies}
+        if not any("auth" in n or "session" in n or ".aspnet" in n for n in names):
+            logger.error(
+                "  no auth/session cookie reaches this URL — that alone explains "
+                "the redirect to login"
+            )
 
     async def _open_verification_popup(self, page: Any) -> Any | None:
         """Click "Verify Selection" and return the page holding the challenge.
