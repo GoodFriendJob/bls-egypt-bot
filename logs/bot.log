@@ -2854,3 +2854,148 @@ modules.auth.PortalUnreachableError: portal returned HTTP 403 for https://egypt.
 2026-10-09 16:23:28.247 | INFO     | modules.auth:stop:584 - auth: browser closed
 2026-10-09 16:23:28.836 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
 2026-10-09 16:23:28.836 | INFO     | __main__:_run_with_state:532 - shutdown complete
+2026-10-09 16:30:10.971 | INFO     | __main__:_main_inner:438 - ==============================================================
+2026-10-09 16:30:10.971 | INFO     | __main__:_main_inner:439 - BLS Spain Egypt appointment bot starting
+2026-10-09 16:30:10.971 | INFO     | __main__:_main_inner:440 - run transcript: D:\bls-egypt-bot\logs\run_20261009_163010.txt
+2026-10-09 16:30:10.971 | INFO     | __main__:_main_inner:441 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-09 16:30:10.972 | INFO     | __main__:_main_inner:442 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-09 16:30:10.972 | INFO     | __main__:_main_inner:443 - ==============================================================
+2026-10-09 16:30:10.973 | WARNING  | __main__:_main_inner:447 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-09 16:30:10.973 | WARNING  | __main__:_main_inner:447 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-09 16:30:10.973 | WARNING  | __main__:_main_inner:447 - config: document 'photo' not found at docs/photo.jpg
+2026-10-09 16:30:11.074 | INFO     | __main__:start_dashboard:374 - dashboard on http://127.0.0.1:5000
+2026-10-09 16:30:12.403 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-09 16:30:12.648 | INFO     | __main__:_run_with_state:500 - single-cycle mode (--once)
+2026-10-09 16:30:13.226 | INFO     | modules.auth:start:468 - auth: restoring session from session\cookies.json
+2026-10-09 16:30:13.273 | ERROR    | modules.auth:start:495 - auth: browser.stealth is true in config.yaml but is being IGNORED — it breaks FingerprintJS on this portal and causes GenerateCaptcha to reject the session. Set browser.stealth: false to silence this, or browser.force_stealth: true to override.
+2026-10-09 16:30:13.273 | INFO     | modules.auth:start:507 - auth: stealth disabled (recommended for this portal)
+2026-10-09 16:30:13.283 | INFO     | modules.auth:_install_https_upgrade:546 - auth: http->https upgrade route installed
+2026-10-09 16:30:13.660 | INFO     | modules.auth:_log:2041 - auth: browser launched
+2026-10-09 16:30:14.485 | INFO     | modules.auth:_on_response:561 - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 16:30:14.561 | INFO     | modules.auth:_on_response:561 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-09 16:30:17.820 | INFO     | modules.auth:_is_logged_in:1846 - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+2026-10-09 16:30:17.821 | INFO     | modules.auth:ensure_logged_in:644 - auth: logging in (attempt 1/2)
+2026-10-09 16:30:25.409 | INFO     | modules.auth:_on_response:561 - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 16:32:08.910 | INFO     | modules.auth:_on_response:561 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-09 16:32:08.947 | WARNING  | modules.auth:_on_failed:572 - auth: [net] FAILED https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_ABORTED
+2026-10-09 16:32:09.110 | INFO     | __main__:_run_with_state:515 - cancelled — shutting down
+2026-10-09 16:32:09.449 | INFO     | modules.auth:stop:601 - auth: browser closed
+2026-10-09 16:32:10.209 | INFO     | __main__:_main_inner:468 - interrupted by user
+2026-10-09 16:32:15.757 | INFO     | __main__:_main_inner:438 - ==============================================================
+2026-10-09 16:32:15.757 | INFO     | __main__:_main_inner:439 - BLS Spain Egypt appointment bot starting
+2026-10-09 16:32:15.757 | INFO     | __main__:_main_inner:440 - run transcript: D:\bls-egypt-bot\logs\run_20261009_163215.txt
+2026-10-09 16:32:15.758 | INFO     | __main__:_main_inner:441 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-09 16:32:15.758 | INFO     | __main__:_main_inner:442 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-09 16:32:15.758 | INFO     | __main__:_main_inner:443 - ==============================================================
+2026-10-09 16:32:15.758 | WARNING  | __main__:_main_inner:447 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-09 16:32:15.759 | WARNING  | __main__:_main_inner:447 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-09 16:32:15.759 | WARNING  | __main__:_main_inner:447 - config: document 'photo' not found at docs/photo.jpg
+2026-10-09 16:32:15.882 | INFO     | __main__:start_dashboard:374 - dashboard on http://127.0.0.1:5000
+2026-10-09 16:32:16.801 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-09 16:32:17.024 | INFO     | __main__:_run_with_state:500 - single-cycle mode (--once)
+2026-10-09 16:32:17.629 | INFO     | modules.auth:start:468 - auth: restoring session from session\cookies.json
+2026-10-09 16:32:17.692 | ERROR    | modules.auth:start:495 - auth: browser.stealth is true in config.yaml but is being IGNORED — it breaks FingerprintJS on this portal and causes GenerateCaptcha to reject the session. Set browser.stealth: false to silence this, or browser.force_stealth: true to override.
+2026-10-09 16:32:17.693 | INFO     | modules.auth:start:507 - auth: stealth disabled (recommended for this portal)
+2026-10-09 16:32:17.705 | INFO     | modules.auth:_install_https_upgrade:546 - auth: http->https upgrade route installed
+2026-10-09 16:32:18.136 | INFO     | modules.auth:_log:2041 - auth: browser launched
+2026-10-09 16:32:18.897 | INFO     | modules.auth:_on_response:561 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 16:32:19.208 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-163218_http-403.png
+2026-10-09 16:32:19.209 | ERROR    | modules.auth:_goto:1979 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:19.209 | INFO     | modules.auth:_log:2041 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:19.772 | ERROR    | __main__:_run_with_state:517 - fatal error: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 537, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 424, in main
+    return _main_inner(args, run_log)
+  File "D:\bls-egypt-bot\bot.py", line 463, in _main_inner
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 460, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 501, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 254, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 629, in ensure_logged_in
+    if not force and await self._is_logged_in(page):
+  File "D:\bls-egypt-bot\modules\auth.py", line 1830, in _is_logged_in
+    await self._goto(page, self._path("dashboard"))
+  File "D:\bls-egypt-bot\modules\auth.py", line 1987, in _goto
+    raise PortalUnreachableError(message)
+modules.auth.PortalUnreachableError: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:20.343 | INFO     | modules.auth:stop:601 - auth: browser closed
+2026-10-09 16:32:20.785 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-09 16:32:20.786 | INFO     | __main__:_run_with_state:532 - shutdown complete
+2026-10-09 16:32:30.479 | INFO     | __main__:_main_inner:438 - ==============================================================
+2026-10-09 16:32:30.479 | INFO     | __main__:_main_inner:439 - BLS Spain Egypt appointment bot starting
+2026-10-09 16:32:30.480 | INFO     | __main__:_main_inner:440 - run transcript: D:\bls-egypt-bot\logs\run_20261009_163230.txt
+2026-10-09 16:32:30.480 | INFO     | __main__:_main_inner:441 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-09 16:32:30.480 | INFO     | __main__:_main_inner:442 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-09 16:32:30.480 | INFO     | __main__:_main_inner:443 - ==============================================================
+2026-10-09 16:32:30.481 | WARNING  | __main__:_main_inner:447 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-09 16:32:30.481 | WARNING  | __main__:_main_inner:447 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-09 16:32:30.481 | WARNING  | __main__:_main_inner:447 - config: document 'photo' not found at docs/photo.jpg
+2026-10-09 16:32:30.604 | INFO     | __main__:start_dashboard:374 - dashboard on http://127.0.0.1:5000
+2026-10-09 16:32:31.498 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-09 16:32:31.708 | INFO     | __main__:_run_with_state:500 - single-cycle mode (--once)
+2026-10-09 16:32:32.286 | INFO     | modules.auth:start:468 - auth: restoring session from session\cookies.json
+2026-10-09 16:32:32.355 | ERROR    | modules.auth:start:495 - auth: browser.stealth is true in config.yaml but is being IGNORED — it breaks FingerprintJS on this portal and causes GenerateCaptcha to reject the session. Set browser.stealth: false to silence this, or browser.force_stealth: true to override.
+2026-10-09 16:32:32.356 | INFO     | modules.auth:start:507 - auth: stealth disabled (recommended for this portal)
+2026-10-09 16:32:32.367 | INFO     | modules.auth:_install_https_upgrade:546 - auth: http->https upgrade route installed
+2026-10-09 16:32:32.757 | INFO     | modules.auth:_log:2041 - auth: browser launched
+2026-10-09 16:32:33.570 | INFO     | modules.auth:_on_response:561 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 16:32:33.877 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-163233_http-403.png
+2026-10-09 16:32:33.878 | ERROR    | modules.auth:_goto:1979 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:33.878 | INFO     | modules.auth:_log:2041 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:34.433 | ERROR    | __main__:_run_with_state:517 - fatal error: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\bot.py", line 537, in <module>
+    sys.exit(main())
+  File "D:\bls-egypt-bot\bot.py", line 424, in main
+    return _main_inner(args, run_log)
+  File "D:\bls-egypt-bot\bot.py", line 463, in _main_inner
+    return asyncio.run(_bootstrap())
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\bls-egypt-bot\bot.py", line 460, in _bootstrap
+    return await _run_with_state(config, args, state)
+> File "D:\bls-egypt-bot\bot.py", line 501, in _run_with_state
+    await monitor.run_once()
+  File "D:\bls-egypt-bot\modules\monitor.py", line 254, in run_once
+    page = await self.auth.ensure_logged_in()
+  File "D:\bls-egypt-bot\modules\auth.py", line 629, in ensure_logged_in
+    if not force and await self._is_logged_in(page):
+  File "D:\bls-egypt-bot\modules\auth.py", line 1830, in _is_logged_in
+    await self._goto(page, self._path("dashboard"))
+  File "D:\bls-egypt-bot\modules\auth.py", line 1987, in _goto
+    raise PortalUnreachableError(message)
+modules.auth.PortalUnreachableError: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-09 16:32:34.959 | INFO     | modules.auth:stop:601 - auth: browser closed
+2026-10-09 16:32:35.488 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-09 16:32:35.489 | INFO     | __main__:_run_with_state:532 - shutdown complete

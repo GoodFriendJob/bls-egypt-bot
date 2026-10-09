@@ -1,0 +1,127 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T16:32:15
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+16:32:15 | INFO    | __main__ - ==============================================================
+16:32:15 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+16:32:15 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_163215.txt
+16:32:15 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+16:32:15 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+16:32:15 | INFO    | __main__ - ==============================================================
+16:32:15 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+16:32:15 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+16:32:15 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+16:32:15 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+16:32:16 | INFO    | modules.notifier - notifier: telegram listener started
+16:32:17 | INFO    | __main__ - single-cycle mode (--once)
+16:32:17 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+16:32:17 | ERROR   | modules.auth - auth: browser.stealth is true in config.yaml but is being IGNORED — it breaks FingerprintJS on this portal and causes GenerateCaptcha to reject the session. Set browser.stealth: false to silence this, or browser.force_stealth: true to override.
+16:32:17 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+16:32:17 | INFO    | modules.auth - auth: http->https upgrade route installed
+16:32:18 | INFO    | modules.auth - auth: browser launched
+16:32:18 | INFO    | modules.auth - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:32:19 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-163218_http-403.png
+16:32:19 | ERROR   | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:32:19 | INFO    | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:32:19 | ERROR   | __main__ - fatal error: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+Traceback (most recent call last):
+
+  File "D:\bls-egypt-bot\bot.py", line 537, in <module>
+    sys.exit(main())
+    │   │    └ <function main at 0x000001E8C2885940>
+    │   └ <built-in function exit>
+    └ <module 'sys' (built-in)>
+
+  File "D:\bls-egypt-bot\bot.py", line 424, in main
+    return _main_inner(args, run_log)
+           │           │     └ WindowsPath('D:/bls-egypt-bot/logs/run_20261009_163215.txt')
+           │           └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_config_warnings=False)
+           └ <function _main_inner at 0x000001E8C28859E0>
+
+  File "D:\bls-egypt-bot\bot.py", line 463, in _main_inner
+    return asyncio.run(_bootstrap())
+           │       │   └ <function _main_inner.<locals>._bootstrap at 0x000001E8C2886520>
+           │       └ <function run at 0x000001E8BF869080>
+           └ <module 'asyncio' from 'C:\\Users\\Beka\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object _main_inner.<locals>._bootstrap at 0x000001E8C286B6A0>
+           │      └ <function Runner.run at 0x000001E8BF9016C0>
+           └ <asyncio.runners.Runner object at 0x000001E8C2897410>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<_main_inner.<locals>._bootstrap() running at D:\bls-egypt-bot\bot.py:460> cb=[_run_until_co...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000001E8BF8FF1A0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000001E8C2897410>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000001E8BF9EB4C0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000001E8BF900F40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000001E8BF846340>
+    └ <Handle <TaskStepMethWrapper object at 0x000001E8C2EE5E40>()>
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <TaskStepMethWrapper object at 0x000001E8C2EE5E40>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <TaskStepMethWrapper object at 0x000001E8C2EE5E40>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <TaskStepMethWrapper object at 0x000001E8C2EE5E40>()>
+
+  File "D:\bls-egypt-bot\bot.py", line 460, in _bootstrap
+    return await _run_with_state(config, args, state)
+                 │               │       │     └ <modules.state.BotState object at 0x000001E8C289F390>
+                 │               │       └ Namespace(config='D:\\bls-egypt-bot\\config.yaml', once=True, headful=True, no_dashboard=False, ignore_config_warnings=False)
+                 │               └ {'bls': {'url': 'https://egypt.blsspainglobal.com/', 'email': 'fadysawairas@gmail.com', 'password': 'Fady@Shady89', 'location...
+                 └ <function _run_with_state at 0x000001E8C2885A80>
+
+> File "D:\bls-egypt-bot\bot.py", line 501, in _run_with_state
+    await monitor.run_once()
+          │       └ <function Monitor.run_once at 0x000001E8C147ED40>
+          └ <modules.monitor.Monitor object at 0x000001E8C2CE3810>
+
+  File "D:\bls-egypt-bot\modules\monitor.py", line 254, in run_once
+    page = await self.auth.ensure_logged_in()
+                 │    │    └ <function BLSAuth.ensure_logged_in at 0x000001E8C1431E40>
+                 │    └ <modules.auth.BLSAuth object at 0x000001E8C2CE3650>
+                 └ <modules.monitor.Monitor object at 0x000001E8C2CE3810>
+
+  File "D:\bls-egypt-bot\modules\auth.py", line 629, in ensure_logged_in
+    if not force and await self._is_logged_in(page):
+           │               │    │             └ <Page url='https://egypt.blsspainglobal.com/Global/bls/visatypeverification'>
+           │               │    └ <function BLSAuth._is_logged_in at 0x000001E8C1432E80>
+           │               └ <modules.auth.BLSAuth object at 0x000001E8C2CE3650>
+           └ False
+
+  File "D:\bls-egypt-bot\modules\auth.py", line 1830, in _is_logged_in
+    await self._goto(page, self._path("dashboard"))
+          │    │     │     │    └ <function BLSAuth._path at 0x000001E8C14331A0>
+          │    │     │     └ <modules.auth.BLSAuth object at 0x000001E8C2CE3650>
+          │    │     └ <Page url='https://egypt.blsspainglobal.com/Global/bls/visatypeverification'>
+          │    └ <function BLSAuth._goto at 0x000001E8C1433240>
+          └ <modules.auth.BLSAuth object at 0x000001E8C2CE3650>
+
+  File "D:\bls-egypt-bot\modules\auth.py", line 1987, in _goto
+    raise PortalUnreachableError(message)
+          │                      └ 'portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb ...
+          └ <class 'modules.auth.PortalUnreachableError'>
+
+modules.auth.PortalUnreachableError: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:32:20 | INFO    | modules.auth - auth: browser closed
+16:32:20 | INFO    | modules.notifier - notifier: telegram listener stopped
+16:32:20 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-09T16:32:20

@@ -1,0 +1,35 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T16:30:10
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+16:30:10 | INFO    | __main__ - ==============================================================
+16:30:10 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+16:30:10 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_163010.txt
+16:30:10 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+16:30:10 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+16:30:10 | INFO    | __main__ - ==============================================================
+16:30:10 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+16:30:10 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+16:30:10 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+16:30:11 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+16:30:12 | INFO    | modules.notifier - notifier: telegram listener started
+16:30:12 | INFO    | __main__ - single-cycle mode (--once)
+16:30:13 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+16:30:13 | ERROR   | modules.auth - auth: browser.stealth is true in config.yaml but is being IGNORED — it breaks FingerprintJS on this portal and causes GenerateCaptcha to reject the session. Set browser.stealth: false to silence this, or browser.force_stealth: true to override.
+16:30:13 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+16:30:13 | INFO    | modules.auth - auth: http->https upgrade route installed
+16:30:13 | INFO    | modules.auth - auth: browser launched
+16:30:14 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:30:14 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+16:30:17 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+16:30:17 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+16:30:25 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:32:08 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+16:32:08 | WARNING | modules.auth - auth: [net] FAILED https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_ABORTED
+16:32:09 | INFO    | __main__ - cancelled — shutting down
+16:32:09 | INFO    | modules.auth - auth: browser closed
+======================================================================
+finished: 2026-10-09T16:32:10
