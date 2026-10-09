@@ -1148,7 +1148,14 @@ class BLSAuth:
             logger.info(f"  grid screenshot : {sample or 'FAILED'}")
 
             if not grid_png:
-                logger.error("  outcome         : ABORTED - could not capture the grid")
+                logger.warning(
+                    f"  outcome         : RETRY - could not capture the grid "
+                    f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(ctx)
+                    continue
+                self._log("captcha failed — grid could not be captured", status="error")
                 return False
 
             # Preferred: have the model READ all nine tiles and match in Python.
@@ -1285,10 +1292,21 @@ class BLSAuth:
             submitted = await self._click_captcha_submit(ctx)
             logger.info(f"  submit clicked  : {submitted}")
             if not submitted:
-                logger.error("  outcome         : ABORTED - Submit button not found")
-                self._log("captcha aborted — no Submit button", status="error")
+                # Do not abort: a failed submit usually means the modal moved on
+                # (re-rendered, detached, or the control is not wired yet).
+                # Pull a fresh grid via onReload() and try the whole attempt
+                # again, the same way a rejected answer is handled.
+                logger.warning(
+                    f"  outcome         : RETRY - submit did not fire "
+                    f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                )
                 await utils.screenshot(page, f"captcha-no-submit-attempt{attempt}")
                 await utils.dump_page_html(ctx, f"captcha-no-submit-attempt{attempt}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._clear_captcha_selection(ctx)
+                    await self._reload_captcha(ctx)
+                    continue
+                self._log("captcha failed — submit never fired", status="error")
                 return False
 
             await self._settle(page)
@@ -1491,17 +1509,24 @@ class BLSAuth:
         """Ask the modal for a fresh grid via its own onReload() handler."""
         return await self._call_captcha_action(ctx, CAPTCHA_RELOAD_FN)
 
-    async def _reload_captcha(self, page: Page) -> None:
-        """Ask for a fresh grid after an unusable reading."""
+    async def _reload_captcha(self, ctx: Any) -> None:
+        """Ask for a fresh grid after an unusable reading or a failed submit.
+
+        ``ctx`` may be a Page or the GenerateCaptcha frame, so nothing here may
+        assume Page-only methods.
+        """
         # CONFIRMED: the verification modal exposes onReload().
-        if await self._reload_captcha_action(page):
-            await asyncio.sleep(0.8)
+        if await self._reload_captcha_action(ctx):
+            await asyncio.sleep(1.0)
             return
         if await utils.click_by_text(
-            page, ("clear selection", "refresh", "reload"), config=self.config
+            ctx,
+            ("reload images", "reload", "refresh"),
+            roles=("button", "a", "div", "span", "label"),
+            config=self.config,
         ):
             logger.info("auth: requested a fresh captcha grid")
-            await self._settle(page)
+            await asyncio.sleep(1.0)
         await utils.human_delay(self.config)
 
     async def _ensure_password_filled(self, page: Page) -> bool:
