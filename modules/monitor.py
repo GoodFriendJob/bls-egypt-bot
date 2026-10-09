@@ -263,14 +263,29 @@ class Monitor:
         # would vanish silently and every retry would look identical.
         self._install_dialog_handler(page)
 
+        # DO NOT re-navigate when already here. The login flow lands on this page
+        # as the result of a POST; re-requesting it with a plain GET is rejected
+        # and the portal bounces to /Global/Account/LogIn, destroying the session
+        # that was just established.
         url = self.auth.path("dashboard")
-        logger.info(f"monitor: opening visa-type verification at {url}")
-        try:
-            await page.goto(url, wait_until="domcontentloaded")
-            await self._settle(page)
-        except Exception as exc:
-            logger.error(f"monitor: could not open the verification page: {exc}")
-            return False
+        current = (page.url or "").lower()
+        if "visatypeverification" in current:
+            logger.info(f"monitor: already on the verification page — {page.url}")
+        else:
+            logger.info(f"monitor: navigating to verification at {url}")
+            try:
+                await page.goto(url, wait_until="domcontentloaded")
+                await self._settle(page)
+            except Exception as exc:
+                logger.error(f"monitor: could not open the verification page: {exc}")
+                return False
+
+            if "/account/login" in (page.url or "").lower():
+                logger.error(
+                    "monitor: navigating to the verification page bounced to login "
+                    f"— session lost ({page.url})"
+                )
+                return False
 
         await self._accept_consents(page)
 
@@ -279,27 +294,47 @@ class Monitor:
             logger.info("monitor: verification already satisfied")
             return await self._submit_verified_form(page)
 
-        # STEP 1 — open the captcha popup.
-        if not await utils.click_by_text(page, VERIFY_SELECTION_TEXTS, config=self.config):
-            logger.warning("monitor: no 'Verify Selection' button found")
+        # STEP 1 — open the captcha popup. It may be a real window.open() popup
+        # (it has its own title bar), in which case the grid is not in this
+        # page's DOM at all and every later step must target the popup instead.
+        main_page = page
+        work = await self._open_verification_popup(page)
+        if work is None:
+            logger.warning("monitor: could not open the verification challenge")
             await utils.screenshot(page, "verify-no-button")
             await utils.dump_page_html(page, "verify-no-button")
             return False
-        logger.info("monitor: clicked 'Verify Selection' — waiting for the popup")
-        await self._settle(page)
+        if work is not main_page:
+            logger.info(f"monitor: verification runs in a popup — {work.url}")
+            self._install_dialog_handler(work)
+        # `work` holds the grid; `main_page` is where Verified/Submit appear once
+        # the popup closes. They are different documents when a popup is used.
         await utils.human_delay(self.config)
 
         for attempt in range(1, VERIFY_MAX_ATTEMPTS + 1):
             logger.info(f"monitor: verification attempt {attempt}/{VERIFY_MAX_ATTEMPTS}")
 
+            if work.is_closed():
+                # The popup closes on success; the outcome lives on the parent.
+                logger.info("monitor: verification popup closed")
+                state = await self._gate_state(main_page)
+                if state.get("submit") or state.get("verified"):
+                    logger.success("monitor: verification captcha passed")
+                    self.state.log_event(
+                        "bot", "visa-type verification cleared", status="ok"
+                    )
+                    return await self._submit_verified_form(main_page)
+                logger.warning("monitor: popup closed but the gate is still shut")
+                return False
+
             # The grid is injected on click, so capture it every attempt — these
             # artifacts are what the selectors get tightened against.
-            await utils.screenshot(page, f"verify-modal-attempt{attempt}")
-            await utils.dump_page_html(page, f"verify-modal-attempt{attempt}")
+            await utils.screenshot(work, f"verify-modal-attempt{attempt}")
+            await utils.dump_page_html(work, f"verify-modal-attempt{attempt}")
 
-            # STEP 2 — solve and submit the selection.
+            # STEP 2 — solve and submit the selection, in the popup.
             self._dialogs.clear()
-            submitted = await self._solve_text_captcha(page, attempt)
+            submitted = await self._solve_text_captcha(work, attempt)
 
             # STEP 3 — a rejected answer arrives as a JS alert, so give the
             # dialog handler a moment to fire before judging the outcome.
@@ -313,18 +348,22 @@ class Monitor:
             )
 
             if submitted and not rejected:
-                await self._settle(page)
-                state = await self._gate_state(page)
+                if not work.is_closed():
+                    await self._settle(work)
+                # Verified / Submit appear on the PARENT page, never the popup.
+                state = await self._gate_state(main_page)
                 if state.get("submit") or state.get("verified"):
                     logger.success("monitor: verification captcha passed")
-                    self.state.log_event("bot", "visa-type verification cleared", status="ok")
-                    return await self._submit_verified_form(page)
+                    self.state.log_event(
+                        "bot", "visa-type verification cleared", status="ok"
+                    )
+                    return await self._submit_verified_form(main_page)
                 logger.warning("monitor: submitted but the gate is still closed")
             elif rejected:
                 logger.warning(f"  outcome         : REJECTED — {alerts}")
 
-            if attempt < VERIFY_MAX_ATTEMPTS:
-                await self._reload_captcha_images(page)
+            if attempt < VERIFY_MAX_ATTEMPTS and not work.is_closed():
+                await self._reload_captcha_images(work)
                 await utils.human_delay(self.config)
 
         logger.error("monitor: verification not cleared after all attempts")
@@ -338,9 +377,9 @@ class Monitor:
         await self.notifier.wait_for_resume()
         self.state.clear_manual_pause()
 
-        state = await self._gate_state(page)
+        state = await self._gate_state(main_page)
         if state.get("submit") or state.get("verified"):
-            return await self._submit_verified_form(page)
+            return await self._submit_verified_form(main_page)
         return False
 
     async def _solve_text_captcha(self, page: Any, attempt: int) -> bool:
@@ -400,6 +439,53 @@ class Monitor:
             if await utils.click_by_text(page, (text,), config=self.config):
                 logger.info(f"monitor: accepted consent — {text!r}")
                 await self._settle(page)
+
+    async def _open_verification_popup(self, page: Any) -> Any | None:
+        """Click "Verify Selection" and return the page holding the challenge.
+
+        Returns the popup page when one opens, the original page when the
+        challenge renders inline, or None when the button could not be clicked.
+        """
+        clicked = False
+        popup = None
+        try:
+            async with page.context.expect_page(timeout=8000) as info:
+                clicked = await utils.click_by_text(
+                    page, VERIFY_SELECTION_TEXTS, config=self.config
+                )
+                if not clicked:
+                    raise PlaywrightTimeout("button not clicked")
+            popup = await info.value
+        except PlaywrightTimeout:
+            pass
+        except Exception as exc:
+            logger.debug(f"monitor: popup wait ended: {exc}")
+
+        if not clicked:
+            # Last resort: the button carries a stable id on this portal.
+            try:
+                await page.evaluate(
+                    "() => { const b = document.getElementById('btnVerify');"
+                    " if (b) b.click(); }"
+                )
+                clicked = True
+                logger.info("monitor: clicked Verify Selection via #btnVerify")
+            except Exception as exc:
+                logger.warning(f"monitor: #btnVerify click failed: {exc}")
+                return None
+        else:
+            logger.info("monitor: clicked 'Verify Selection'")
+
+        if popup is not None:
+            try:
+                await popup.wait_for_load_state("domcontentloaded")
+            except Exception:
+                pass
+            await utils.human_delay(self.config)
+            return popup
+
+        await self._settle(page)
+        return page
 
     def _install_dialog_handler(self, page: Any) -> None:
         """Capture and accept native JS dialogs.

@@ -21,6 +21,11 @@
     "20261008-225601_target291_attempt1.png": {
       "target": "291",
       "tiles": ["291", "291", "291", "105", "291", "519", "385", "291", "291"]
+    },
+    "_screenshot_verify-selection_target399": {
+      "_note": "From a manual screenshot of the Verify Selection popup, not a saved sample. Correct answer is positions 1,3,6,7,8.",
+      "target": "399",
+      "tiles": ["399", "933", "399", "591", "825", "399", "399", "399", "468"]
     }
   }
 }
