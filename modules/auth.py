@@ -993,7 +993,17 @@ class BLSAuth:
             # and it puts every digit it read into the log so a misread is
             # visible instead of hidden behind a position list.
             positions: list[int] | None = None
-            digits = await self.vision.read_grid_numbers(grid_png, count=len(ordered))
+            method = "per-tile"
+            # Per-tile first: human labels showed the whole-grid read fails by
+            # losing track of which tile is which, not by misreading digits.
+            digits = await self.vision.read_tiles_individually(
+                grid_png, count=len(ordered)
+            )
+            if digits is None:
+                method = "whole-grid"
+                digits = await self.vision.read_grid_numbers(
+                    grid_png, count=len(ordered)
+                )
             if digits is not None:
                 logger.info(
                     "  tiles read      : "
@@ -1006,9 +1016,14 @@ class BLSAuth:
                     "  tiles read      : unusable — falling back to asking for "
                     "positions directly"
                 )
+                method = "positions"
                 positions = await self.vision.find_matching_positions(
                     grid_png, target, count=len(ordered)
                 )
+
+            # Record what was read so tools/grade_captcha.py can score it against
+            # the human labels in ground_truth.json.
+            vision.record_reading(sample or "", target, digits, positions, method)
 
             if positions is None:
                 # Transient API errors are common; only give up once the whole

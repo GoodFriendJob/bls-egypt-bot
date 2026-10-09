@@ -49,3 +49,7 @@ desktop.ini
 playwright-report/
 test-results/
 *.har
+
+# NOTE: logs/captcha_samples/readings.jsonl is deliberately NOT ignored. It is
+# written on the machine that runs the bot and must travel back with
+# push_logs.bat to be graded against ground_truth.json.

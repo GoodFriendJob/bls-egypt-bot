@@ -1,0 +1,26 @@
+{
+  "_README": [
+    "Human-verified tile readings, used to measure vision accuracy.",
+    "Key   = the sample filename in logs/captcha_samples/.",
+    "tiles = the 9 numbers as a human reads them, left-to-right then",
+    "        top-to-bottom (position 1 = top-left, 9 = bottom-right).",
+    "Add a new entry whenever you label a sample by eye, then run:",
+    "    python tools/grade_captcha.py",
+    "which joins these against readings.jsonl (what the model actually",
+    "returned) and reports accuracy plus the digit confusions behind it."
+  ],
+  "samples": {
+    "20261008-224242_target479_attempt1.png": {
+      "target": "479",
+      "tiles": ["479", "479", "776", "479", "288", "479", "958", "959", "837"]
+    },
+    "20261008-225437_target390_attempt1.png": {
+      "target": "390",
+      "tiles": ["642", "324", "290", "390", "433", "390", "390", "384", "303"]
+    },
+    "20261008-225601_target291_attempt1.png": {
+      "target": "291",
+      "tiles": ["291", "291", "291", "105", "291", "519", "385", "291", "291"]
+    }
+  }
+}
