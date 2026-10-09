@@ -105,11 +105,26 @@ CAPTCHA_IMG_SELECTOR = "img.captcha-img"
 CAPTCHA_SELECTED_CLASS = "img-selected"
 CAPTCHA_SELECTED_INPUT_SELECTOR = 'input[name="SelectedImages"]'
 CAPTCHA_NUMBER_REGEX = re.compile(r"number\s+(\d+)", re.I)
+# CONFIRMED markup of the verification modal's footer. Each control is a DIV
+# whose onclick calls a named function; the visible text sits in a child <p>,
+# so matching the text finds an unclickable element:
+#
+#   <div class="col-4 text-center img-action-div" onclick="onUndo();">
+#       <i id="undo"></i><p class="img-action-text">Clear Selection</p></div>
+#   <div ... onclick="onReload();">  ... Reload Images
+#   <div ... onclick="onSubmit();">  ... Submit Selection
+#       <input id="SelectedImages" ...><input id="Id" ...>
+#
+# Calling the functions directly is far more reliable than hunting for an
+# element to click, so that is tried first with selectors as a fallback.
+CAPTCHA_SUBMIT_FN = "onSubmit"
+CAPTCHA_CLEAR_FN = "onUndo"
+CAPTCHA_RELOAD_FN = "onReload"
+CAPTCHA_ACTION_DIV = "div.img-action-div"
+
 CAPTCHA_SUBMIT_SELECTORS = (
-    # The verification modal labels it "Submit Selection" and renders it as a
-    # div/anchor with an icon, not a <button> — match that first.
-    ':text("Submit Selection")',
-    '[onclick*="Submit"]',
+    'div.img-action-div[onclick*="onSubmit"]',
+    '[onclick*="onSubmit"]',
     'button:has-text("Submit")',
     'input[value="Submit"]',
 )
@@ -308,6 +323,12 @@ _CAPTCHA_SCAN_JS = r"""
     // too, and counting them gave 12 tiles for a 3x3 grid — which broke the
     // per-tile read (9 crops vs 12 expected) and made the fallback positions
     // index into the wrong list.
+    // CONFIRMED: the footer controls are
+    //   <div class="col-4 text-center img-action-div" onclick="onUndo()|onReload()|onSubmit()">
+    // so they match div.col-4 too. Exclude them explicitly, and require a real
+    // captcha image — counting them gave 12 tiles for a 3x3 grid.
+    if (tile.classList.contains('img-action-div')) return;
+    if (tile.getAttribute('onclick')) return;
     const img = tile.querySelector(imgSel) || tile.querySelector('img');
     if (!img) return;
     const info = labelFor(tile);
@@ -1466,8 +1487,16 @@ class BLSAuth:
         except Exception as exc:
             logger.debug(f"auth: could not scroll the captcha into view: {exc}")
 
+    async def _reload_captcha_action(self, ctx: Any) -> bool:
+        """Ask the modal for a fresh grid via its own onReload() handler."""
+        return await self._call_captcha_action(ctx, CAPTCHA_RELOAD_FN)
+
     async def _reload_captcha(self, page: Page) -> None:
         """Ask for a fresh grid after an unusable reading."""
+        # CONFIRMED: the verification modal exposes onReload().
+        if await self._reload_captcha_action(page):
+            await asyncio.sleep(0.8)
+            return
         if await utils.click_by_text(
             page, ("clear selection", "refresh", "reload"), config=self.config
         ):
@@ -1834,7 +1863,39 @@ class BLSAuth:
             logger.debug(f"auth: could not read SelectedImages: {exc}")
             return None
 
+    async def _call_captcha_action(self, ctx: Any, fn: str) -> bool:
+        """Invoke one of the modal's own handlers (onSubmit/onUndo/onReload).
+
+        The control is a div whose onclick calls the function; the readable text
+        lives in a child <p>. Calling the function is both more reliable than
+        locating the right element and exactly what a real click does.
+        """
+        try:
+            result = await ctx.evaluate(
+                """
+                (name) => {
+                  if (typeof window[name] === 'function') { window[name](); return 'called'; }
+                  const el = document.querySelector('[onclick*="' + name + '"]');
+                  if (el) { el.click(); return 'clicked'; }
+                  return 'missing';
+                }
+                """,
+                fn,
+            )
+        except Exception as exc:
+            logger.debug(f"auth: {fn}() failed: {exc}")
+            return False
+        if result in ("called", "clicked"):
+            logger.info(f"auth: captcha action {fn}() -> {result}")
+            return True
+        logger.debug(f"auth: {fn}() not present on this page")
+        return False
+
     async def _click_captcha_submit(self, ctx: Any) -> bool:
+        # The portal's own handler first — it is what the real click invokes.
+        if await self._call_captcha_action(ctx, CAPTCHA_SUBMIT_FN):
+            return True
+
         for selector in CAPTCHA_SUBMIT_SELECTORS:
             try:
                 button = ctx.locator(selector).first
@@ -1903,6 +1964,10 @@ class BLSAuth:
             return
 
         logger.info(f"auth: clearing {selected} tile(s) left selected from the last try")
+        # CONFIRMED: the Clear Selection control calls onUndo().
+        if await self._call_captcha_action(ctx, CAPTCHA_CLEAR_FN):
+            await asyncio.sleep(0.6)
+            return
         if await utils.click_by_text(
             ctx,
             CAPTCHA_CLEAR_TEXTS,
