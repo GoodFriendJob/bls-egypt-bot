@@ -368,6 +368,7 @@ class Monitor:
         self._nav_hooked: set[int] = set()
         self._page_stage: str | None = None
         self._needs_restart = False
+        self._needs_reverify = False
 
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
@@ -450,6 +451,15 @@ class Monitor:
             self.state.log_event("bot", "appointment form not completed", status="error")
             await self._survey_page(page, "visatype-incomplete")
             return
+
+        # A refresh can drop us back at the verification gate; the session is
+        # still valid there, so redo just that step rather than the whole login.
+        if self._needs_reverify:
+            self._needs_reverify = False
+            logger.warning("monitor: verification gate reappeared — solving it again")
+            if not await self.ensure_visa_type_verified(page):
+                logger.error("monitor: re-verification failed")
+                return
 
         if not self.appointment_path_confirmed:
             # Navigating to the placeholder URL just produces
@@ -826,6 +836,27 @@ class Monitor:
             logger.warning("monitor: dropped to login before submit — aborting")
             return False
 
+        # Re-check every field right before submitting. The cascades can clear a
+        # field that was set earlier — a live run showed Location, Visa Type and
+        # Visa Sub Type populated while Appointment Category had fallen back to
+        # --Select--, which the portal rejects with "Select Appointment Category".
+        unset = await self._unfilled_fields(page)
+        if unset:
+            logger.warning(f"  re-filling cleared fields: {unset}")
+            for label in unset:
+                key = {
+                    "Appointment Category": "appointment_category",
+                    "Location": "location",
+                    "Visa Type": "visa_type",
+                    "Visa Sub Type": "visa_sub_type",
+                }.get(label)
+                value = wanted.get(key, "") if key else ""
+                await self._set_kendo(page, label, value)
+            still = await self._unfilled_fields(page)
+            if still:
+                logger.error(f"  fields still empty after re-fill: {still}")
+                return await self._form_failed(page, "fields-empty")
+
         self._last_visatype_status = None
         if not await utils.click_by_text(page, ("submit",), config=self.config):
             logger.warning("monitor: no Submit on the appointment form")
@@ -859,14 +890,54 @@ class Monitor:
         # "No Appointments Available / Currently, no slots are available for the
         # selected category." That is the no-slots signal for this whole flow,
         # not an error, so report it and dismiss the dialog cleanly.
+        # SUCCESS: the portal moves on to the appointment manager.
+        if "manageappointment" in (page.url or "").lower():
+            logger.success(f"monitor: appointment page reached — {page.url}")
+            self.state.log_event("bot", "reached the appointment page", status="ok")
+            self._last_form_result = "appointment_page"
+            await self._survey_page(page, "manage-appointment")
+            return True
+
+        # The form rejects an incomplete submission inline, e.g.
+        # "Select Appointment Category" — the fields need setting again.
+        problem = await self._form_validation_error(page)
+        if problem:
+            logger.warning(f"monitor: form validation error — {problem!r}")
+            await utils.screenshot(page, "visatype-validation-error")
+            self._last_form_result = "validation_error"
+            return False
+
+        # CONFIRMED: the portal answers through a shared modal with stable ids —
+        #   <span id="commonModalHeader">No Appointments Available</span>
+        #   <span id="commonModalBody">Currently, no slots are available ...</span>
+        # Reading those beats scraping page text, and the same modal carries
+        # other messages, so the header is what decides the meaning.
+        modal = await self._read_common_modal(page)
+        if modal:
+            header = (modal.get("header") or "").strip()
+            body = (modal.get("body") or "").strip()
+            logger.info(f"monitor: portal modal — {header!r}")
+            logger.info(f"           {body[:160]}")
+            await self._dismiss_common_modal(page)
+
+            detection = self.config.get("detection", {}) or {}
+            combined = f"{header} {body}".lower()
+            if utils.contains_any(combined, detection.get("unavailable_phrases", [])):
+                logger.info("monitor: no slots available for this selection")
+                self._last_form_result = "no_slots"
+                return True
+
+            logger.warning(f"monitor: unrecognised portal message — {header!r}")
+            self._last_form_result = "modal_unknown"
+            await utils.screenshot(page, "visatype-modal-unknown")
+            return True
+
         detection = self.config.get("detection", {}) or {}
         text = await utils.page_text(page)
         hit = utils.contains_any(text, detection.get("unavailable_phrases", []))
         if hit:
             logger.info(f"monitor: no slots — portal said {hit!r}")
-            await utils.click_by_text(
-                page, ("ok", "close"), roles=("button", "a"), config=self.config
-            )
+            await self._dismiss_common_modal(page)
             self._last_form_result = "no_slots"
             return True
 
@@ -914,6 +985,115 @@ class Monitor:
             f"(options seen: {result.get('options')})"
         )
         return False
+
+    async def _unfilled_fields(self, page: Any) -> list[str]:
+        """Labels of visible required dropdowns still showing the placeholder."""
+        try:
+            return await page.evaluate(
+                """
+                () => {
+                  const vis = (el) => {
+                    if (!el) return false;
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 5 || r.height < 5) return false;
+                    let n = el;
+                    while (n && n.nodeType === 1) {
+                      const s = getComputedStyle(n);
+                      if (s.display === 'none' || s.visibility === 'hidden') return false;
+                      n = n.parentElement;
+                    }
+                    return true;
+                  };
+                  const empty = [];
+                  for (const inp of document.querySelectorAll('input[data-role="dropdownlist"]')) {
+                    const widget = inp.closest('span.k-widget');
+                    if (!vis(widget)) continue;
+                    const box = inp.closest('div.mb-3');
+                    if (box && !vis(box)) continue;
+                    const shown = widget.querySelector('.k-input');
+                    const text = ((shown && shown.innerText) || '').trim();
+                    if (!text || /^-+\\s*select/i.test(text)) {
+                      const lab = inp.id
+                        ? document.querySelector('label[for="' + inp.id + '"]') : null;
+                      let name = (lab && lab.innerText) || inp.name || inp.id || '?';
+                      empty.push(name.replace(/\\*/g, '').trim());
+                    }
+                  }
+                  return empty;
+                }
+                """
+            )
+        except Exception as exc:
+            logger.debug(f"monitor: field check failed: {exc}")
+            return []
+
+    async def _read_common_modal(self, page: Any) -> dict[str, str] | None:
+        """Read the portal's shared result modal, if it is showing."""
+        try:
+            return await page.evaluate(
+                """
+                () => {
+                  const head = document.getElementById('commonModalHeader');
+                  const body = document.getElementById('commonModalBody');
+                  if (!head && !body) return null;
+                  const probe = head || body;
+                  const r = probe.getBoundingClientRect();
+                  if (r.width < 5 || r.height < 5) return null;
+                  let n = probe;
+                  while (n && n.nodeType === 1) {
+                    if (getComputedStyle(n).display === 'none') return null;
+                    n = n.parentElement;
+                  }
+                  return {
+                    header: (head && head.innerText) || '',
+                    body: (body && body.innerText) || '',
+                  };
+                }
+                """
+            )
+        except Exception as exc:
+            logger.debug(f"monitor: modal read failed: {exc}")
+            return None
+
+    async def _dismiss_common_modal(self, page: Any) -> None:
+        """Close the result modal via its own dismiss control."""
+        try:
+            await page.evaluate(
+                """
+                () => {
+                  const btn = document.querySelector(
+                    '.modal-footer button[data-bs-dismiss="modal"], '
+                    + '.modal-header button[data-bs-dismiss="modal"]');
+                  if (btn) { btn.click(); return true; }
+                  return false;
+                }
+                """
+            )
+            await asyncio.sleep(0.8)
+        except Exception as exc:
+            logger.debug(f"monitor: modal dismiss failed: {exc}")
+
+    async def _form_validation_error(self, page: Any) -> str | None:
+        """The portal's own inline validation message, if one is showing."""
+        try:
+            return await page.evaluate(
+                """
+                () => {
+                  const sel = '.validation-summary, .field-validation-error,'
+                            + ' .text-danger, .validation-summary-errors';
+                  for (const el of document.querySelectorAll(sel)) {
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 5 || r.height < 5) continue;
+                    if (getComputedStyle(el).display === 'none') continue;
+                    const t = (el.innerText || '').trim();
+                    if (t && t.length > 3) return t.slice(0, 200);
+                  }
+                  return null;
+                }
+                """
+            )
+        except Exception:
+            return None
 
     async def _restart_journey(self, page: Any) -> None:
         """Reload, and if the portal has dropped us at login, start over.
@@ -980,6 +1160,16 @@ class Monitor:
                     "session lost, restarting the journey"
                 )
                 self._needs_restart = True
+
+            # A refresh can also drop us back to the verification gate. That is
+            # cheaper than a full restart: the session is still good, only the
+            # visa-type verification has to be redone.
+            if stage == "verification" and previous in ("appointment-form", "appointment"):
+                logger.warning(
+                    f"monitor: returned to the verification gate from {previous!r} "
+                    "— it must be solved again"
+                )
+                self._needs_reverify = True
 
         try:
             page.on("framenavigated", _on_nav)
