@@ -113,6 +113,7 @@ class Booking:
 
             await self._advance(page)
             await self._handle_liveness(page, location)
+            await self._handle_payment(page, location)
 
             if await otp.is_otp_prompt(page, self.config):
                 await otp.handle_otp(
@@ -338,6 +339,36 @@ class Booking:
             await self.notifier.manual_required(
                 f"{location.title()}: the portal is asking for liveness/facial verification "
                 f"(matched {hit!r}). Complete it in the browser window, then send /resume.",
+                screenshot=shot,
+            )
+            await self.notifier.wait_for_resume()
+        if self.state is not None:
+            self.state.clear_manual_pause()
+        await self._settle(page)
+
+    async def _handle_payment(self, page: Any, location: str) -> None:
+        """Stop and hand over before anything involving money.
+
+        The bot must never confirm a payment or enter card details by itself:
+        that is the manager's decision. This pause is deliberate and waits
+        indefinitely for /resume — unlike the login/403 failures, which recover
+        automatically.
+        """
+        phrases = (self.config.get("detection", {}) or {}).get("payment_phrases", [])
+        hit = utils.contains_any(await utils.page_text(page), phrases)
+        if not hit:
+            return
+
+        shot = await utils.screenshot(page, f"payment-{location}")
+        logger.warning(f"booking: payment step detected ({hit!r}) — handing over")
+        self._log(location, f"payment confirmation required ({hit})", status="warn")
+        if self.state is not None:
+            self.state.set_manual_pause("payment confirmation")
+        if self.notifier is not None:
+            await self.notifier.manual_required(
+                f"{location.title()}: the booking has reached a PAYMENT step "
+                f"(matched {hit!r}). The bot will not pay or enter card details. "
+                "Complete it in the browser, then send /resume.",
                 screenshot=shot,
             )
             await self.notifier.wait_for_resume()

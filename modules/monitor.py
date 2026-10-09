@@ -207,6 +207,9 @@ class Monitor:
 
         # Unattended recovery state.
         self.block_cooldown_minutes = float(retry.get("block_cooldown_minutes", 60))
+        # Consecutive login failures before this stops being treated as
+        # transient and becomes a critical, manager-facing pause.
+        self.critical_login_failures = int(retry.get("critical_login_failures", 8))
         self._login_failures = 0
         self._block_alerted = False
 
@@ -1013,6 +1016,31 @@ class Monitor:
         # A stale session is a common cause; drop it after the first failure.
         if self._login_failures >= 1:
             await self._reset_session()
+
+        # Beyond this many consecutive failures it is no longer a blip — wrong
+        # credentials, a changed portal, something the bot cannot fix by waiting.
+        # Escalate to a real pause so the manager is told, instead of retrying
+        # quietly forever.
+        if self._login_failures >= self.critical_login_failures:
+            logger.critical(
+                f"monitor: {self._login_failures} consecutive login failures — "
+                "escalating to a manual pause"
+            )
+            self.state.set_manual_pause(
+                f"CRITICAL: login failing repeatedly ({self._login_failures}x)"
+            )
+            self.state.log_event("bot", "CRITICAL: login failing repeatedly", status="error")
+            await self.notifier.manual_required(
+                f"CRITICAL: login has failed {self._login_failures} times in a row.\n\n"
+                f"Last error: {exc}\n\n"
+                "The bot cannot fix this by waiting. Likely causes: wrong "
+                "password, account locked, or the portal changed. Check, then "
+                "send /resume to continue."
+            )
+            await self.notifier.wait_for_resume()
+            self.state.clear_manual_pause()
+            self._login_failures = 0
+            return
 
         if self._login_failures in (1, 3, 6):
             await self.notifier.error(

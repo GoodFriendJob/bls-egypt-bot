@@ -160,6 +160,9 @@ retry:
   # again from scratch. The bot waits this out by itself and keeps running —
   # it never stops and never needs a manual restart.
   block_cooldown_minutes: 60
+  # Consecutive login failures before the bot stops retrying quietly and
+  # raises a critical, manager-facing pause.
+  critical_login_failures: 8
 
 # Text fragments used to decide whether slots exist. Case-insensitive.
 # These are heuristics over the rendered page — adjust if BLS changes wording.
@@ -181,6 +184,18 @@ detection:
     - "select date"
     - "choose your slot"
   # Phrases that mean a human must finish the step.
+  # Steps the bot must NEVER complete by itself — it pauses and hands over.
+  payment_phrases:
+    - "payment"
+    - "pay now"
+    - "card number"
+    - "credit card"
+    - "debit card"
+    - "cvv"
+    - "checkout"
+    - "transaction"
+    - "amount payable"
+    - "الدفع"
   liveness_phrases:
     - "liveness"
     - "facial"
