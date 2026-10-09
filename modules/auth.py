@@ -886,6 +886,9 @@ class BLSAuth:
         await utils.dump_page_html(page, "captcha-detected")
 
         for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
+            # elementFromPoint only resolves inside the viewport, so make sure
+            # the grid is on screen before deciding which tiles are visible.
+            await self._scroll_captcha_into_view(page)
             scan = await self._captcha_scan(page)
             if scan is None:
                 await utils.screenshot(page, f"captcha-scan-failed-attempt{attempt}")
@@ -896,21 +899,31 @@ class BLSAuth:
             target = self._captcha_target(scan)
 
             if not tiles:
-                # A challenge is on screen but no tile matched the selectors.
-                # Bail out loudly rather than silently reporting "solved".
-                logger.error(
-                    "auth: CAPTCHA is on screen but no tile matched "
-                    f"{CAPTCHA_TILE_SELECTOR!r} with an inline display:block "
+                # Usually transient: mid-reload, or the grid is scrolled out of
+                # the viewport so elementFromPoint cannot see it. Scroll it into
+                # view and rescan before treating this as a real failure.
+                logger.warning(
+                    f"auth: no visible tile on attempt {attempt} "
                     f"(DOM has {scan.get('totalTiles')} col-4 divs, "
-                    f"{scan.get('totalLabels')} box-labels)"
+                    f"{scan.get('totalLabels')} box-labels) — rescanning"
                 )
+                await self._scroll_captcha_into_view(page)
+                await asyncio.sleep(1.0)
+                scan = await self._captcha_scan(page) or {}
+                tiles = scan.get("tiles") or []
+                target = self._captcha_target(scan) if scan else None
+
+            if not tiles:
                 logger.error(
-                    "auth: the tile selectors need updating — see the DOM dump "
-                    "in logs/dom/ for the real markup"
+                    "auth: CAPTCHA is on screen but no tile is visible after a "
+                    "rescan — the tile selectors may need updating"
                 )
-                self._log("CAPTCHA tiles not found — selectors need updating", status="error")
                 await utils.screenshot(page, f"captcha-no-tiles-attempt{attempt}")
                 await utils.dump_page_html(page, f"captcha-no-tiles-attempt{attempt}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(page)
+                    continue
+                self._log("CAPTCHA tiles not found", status="error")
                 return False
 
             # --- attempt header: everything needed to debug from the log alone --
@@ -1058,6 +1071,12 @@ class BLSAuth:
                     continue
                 return False
 
+            # CRITICAL: a rejected captcha reloads the page with a fresh grid and
+            # an EMPTY password box. Without refilling, every retry submits a
+            # blank password and the portal answers "Please enter your account
+            # password" — which looks like a captcha rejection but is not.
+            await self._ensure_password_filled(page)
+
             submitted = await self._click_captcha_submit(page)
             logger.info(f"  submit clicked  : {submitted}")
             if not submitted:
@@ -1075,6 +1094,12 @@ class BLSAuth:
                 self._log(f"captcha solved (attempt {attempt})", status="ok")
                 await utils.screenshot(page, "captcha-solved")
                 return True
+
+            # The portal's own message says WHY it was rejected — a wrong grid
+            # and a blank password look identical without it.
+            banner = await self._page_error_banner(page)
+            if banner:
+                logger.warning(f"  portal message  : {banner!r}")
 
             logger.warning(
                 f"  outcome         : REJECTED - captcha still present after "
@@ -1201,6 +1226,28 @@ class BLSAuth:
         logger.error(f"auth: no way to capture the captcha grid (attempt {attempt})")
         return None
 
+    async def _scroll_captcha_into_view(self, page: Page) -> None:
+        """Bring the grid on screen so elementFromPoint can resolve the tiles.
+
+        Tile visibility is decided with elementFromPoint, which only answers for
+        points inside the viewport. A grid pushed below the fold (an error banner
+        above it is enough) therefore reads as zero visible tiles.
+        """
+        try:
+            await page.evaluate(
+                """
+                (sel) => {
+                  const el = document.querySelector(sel)
+                         || document.querySelector('img.captcha-img');
+                  if (el) el.scrollIntoView({ block: 'center', inline: 'center' });
+                }
+                """,
+                CAPTCHA_CONTAINER_SELECTOR,
+            )
+            await asyncio.sleep(0.3)
+        except Exception as exc:
+            logger.debug(f"auth: could not scroll the captcha into view: {exc}")
+
     async def _reload_captcha(self, page: Page) -> None:
         """Ask for a fresh grid after an unusable reading."""
         if await utils.click_by_text(
@@ -1209,6 +1256,68 @@ class BLSAuth:
             logger.info("auth: requested a fresh captcha grid")
             await self._settle(page)
         await utils.human_delay(self.config)
+
+    async def _ensure_password_filled(self, page: Page) -> bool:
+        """Refill the password box if the page cleared it.
+
+        The captcha and the password share one form. Submitting a wrong captcha
+        re-renders the page: new grid, blank password. Returns True when the
+        field ends up populated (or when there is no password field here).
+        """
+        password = (self.config.get("bls", {}) or {}).get("password", "")
+        if not password:
+            return False
+
+        element = await utils.find_real_input(page, "password")
+        if element is None:
+            logger.debug("auth: no password field on this page — nothing to refill")
+            return True
+
+        try:
+            current = await element.evaluate("(el) => el.value || ''")
+        except Exception:
+            current = ""
+
+        if current:
+            logger.debug("auth: password field still populated")
+            return True
+
+        logger.info("auth: password box was cleared by the reload — refilling")
+        try:
+            await utils.type_like_human(element, password)
+        except Exception as exc:
+            logger.warning(f"auth: could not refill the password: {exc}")
+            return False
+
+        try:
+            refilled = await element.evaluate("(el) => (el.value || '').length")
+        except Exception:
+            refilled = 0
+        logger.info(f"auth: password refilled ({refilled} chars)")
+        return bool(refilled)
+
+    async def _page_error_banner(self, page: Page) -> str | None:
+        """Any validation message the portal is showing, for the log."""
+        try:
+            return await page.evaluate(
+                """
+                () => {
+                  const sel = '.alert, .validation-summary-errors, [class*="error"],'
+                            + ' [class*="danger"], [role="alert"]';
+                  for (const el of document.querySelectorAll(sel)) {
+                    const r = el.getBoundingClientRect();
+                    const s = getComputedStyle(el);
+                    if (r.width < 5 || r.height < 5) continue;
+                    if (s.display === 'none' || s.visibility === 'hidden') continue;
+                    const t = (el.innerText || '').trim();
+                    if (t) return t.slice(0, 200);
+                  }
+                  return null;
+                }
+                """
+            )
+        except Exception:
+            return None
 
     async def _captcha_present(self, page: Page) -> bool:
         """True while a captcha challenge is on screen."""
