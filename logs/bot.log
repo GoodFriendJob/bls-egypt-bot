@@ -1818,3 +1818,240 @@ navigating to "https://egypt.blsspainglobal.com/Global/bls/appointment", waiting
 2026-10-09 04:26:35.006 | INFO     | modules.notifier:wait_for_resume:199 - notifier: waiting for /resume…
 2026-10-09 04:31:00.589 | INFO     | __main__:_run_with_state:509 - cancelled — shutting down
 2026-10-09 04:31:00.777 | INFO     | __main__:_main_inner:462 - interrupted by user
+2026-10-09 04:35:23.576 | INFO     | __main__:_main_inner:432 - ==============================================================
+2026-10-09 04:35:23.577 | INFO     | __main__:_main_inner:433 - BLS Spain Egypt appointment bot starting
+2026-10-09 04:35:23.577 | INFO     | __main__:_main_inner:434 - run transcript: D:\bls-egypt-bot\logs\run_20261009_043523.txt
+2026-10-09 04:35:23.577 | INFO     | __main__:_main_inner:435 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-09 04:35:23.577 | INFO     | __main__:_main_inner:436 - visa_type=Short Stay / Tourist poll_interval=90s
+2026-10-09 04:35:23.578 | INFO     | __main__:_main_inner:437 - ==============================================================
+2026-10-09 04:35:23.578 | WARNING  | __main__:_main_inner:441 - config: otp.method is 'email' but imap_user/imap_pass are empty
+2026-10-09 04:35:23.578 | WARNING  | __main__:_main_inner:441 - config: document 'passport_scan' not found at docs/passport.pdf
+2026-10-09 04:35:23.579 | WARNING  | __main__:_main_inner:441 - config: document 'photo' not found at docs/photo.jpg
+2026-10-09 04:35:23.675 | INFO     | __main__:start_dashboard:368 - dashboard on http://127.0.0.1:5000
+2026-10-09 04:35:24.565 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-09 04:35:24.785 | INFO     | __main__:_run_with_state:494 - single-cycle mode (--once)
+2026-10-09 04:35:25.328 | INFO     | modules.auth:start:450 - auth: restoring session from session\cookies.json
+2026-10-09 04:35:25.799 | INFO     | modules.auth:_log:1860 - auth: browser launched
+2026-10-09 04:35:29.432 | INFO     | modules.auth:_is_logged_in:1667 - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+2026-10-09 04:35:29.434 | INFO     | modules.auth:ensure_logged_in:529 - auth: logging in (attempt 1/2)
+2026-10-09 04:35:34.624 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 5 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:35:37.645 | INFO     | modules.auth:_fill_email:751 - auth: email filled
+2026-10-09 04:35:37.645 | INFO     | modules.auth:_log:1860 - auth: email submitted
+2026-10-09 04:35:39.233 | INFO     | modules.auth:_click_verify:805 - auth: clicked Verify via #btnVerify
+2026-10-09 04:35:40.627 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 7 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:35:42.611 | INFO     | modules.auth:_fill_password:778 - auth: password filled (real input[type='password'])
+2026-10-09 04:35:42.611 | INFO     | modules.auth:_log:1860 - auth: password filled
+2026-10-09 04:35:42.611 | INFO     | modules.auth:_perform_login:610 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh6O5GyxDoe3b4NEKe5sRWhhp3vQe9qqigvYOm9heYUlkP5jIT5Mo7QaWFW2GHxy3obXntH88o8n9KM%2BDjYsgqu4AhBqPRHcS2bsO%2BL1Ng2SZfeV1xfEPViYL0whzQ0%2Bvt8%3D
+2026-10-09 04:35:42.846 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043542_password-page-filled.png
+2026-10-09 04:35:42.874 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043542_password-page-filled.html
+2026-10-09 04:35:42.874 | INFO     | modules.auth:_perform_login:618 - auth: checking for a CAPTCHA on the password page
+2026-10-09 04:35:42.901 | INFO     | modules.auth:solve_captcha:875 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=34
+2026-10-09 04:35:42.902 | INFO     | modules.auth:solve_captcha:881 - auth: CAPTCHA detected, attempting to solve
+2026-10-09 04:35:42.902 | INFO     | modules.auth:_log:1860 - auth: CAPTCHA detected — solving
+2026-10-09 04:35:43.171 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043542_captcha-before.png
+2026-10-09 04:35:43.191 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043543_captcha-detected.html
+2026-10-09 04:35:43.556 | INFO     | modules.auth:_captcha_target:1434 - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-09 04:35:43.556 | INFO     | modules.auth:_captcha_target:1455 - auth: prompt 121 chosen (contrast=14.59, z-index=925, color=rgb(33, 37, 41))
+2026-10-09 04:35:43.557 | INFO     | modules.auth:solve_captcha:930 - ------------------------------------------------------------
+2026-10-09 04:35:43.557 | INFO     | modules.auth:solve_captcha:931 - CAPTCHA attempt 1 of 10
+2026-10-09 04:35:43.557 | INFO     | modules.auth:solve_captcha:932 -   target number   : 121
+2026-10-09 04:35:43.557 | INFO     | modules.auth:solve_captcha:933 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-09 04:35:43.558 | INFO     | modules.auth:solve_captcha:937 -   visible labels  : 34 (of 34 box-labels in the DOM)
+2026-10-09 04:35:43.558 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 1: target=121, 9 visible tiles
+2026-10-09 04:35:43.558 | INFO     | modules.auth:solve_captcha:961 -   grid order      : 1:aidhyxdwp, 2:ltulf, 3:mepjmer, 4:rizpmm, 5:ttyusyf, 6:ycjcknryo, 7:eaurzflk, 8:tyuoaqrhn, 9:ocutf
+2026-10-09 04:35:43.567 | INFO     | modules.auth:_screenshot_grid:1205 -   grid clip       : x=617.48 y=149 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-09 04:35:43.864 | INFO     | modules.vision:save_sample:178 - captcha sample saved: logs\captcha_samples\20261009-043543_target121_attempt1.png
+2026-10-09 04:35:43.865 | INFO     | modules.auth:solve_captcha:978 -   grid screenshot : logs\captcha_samples\20261009-043543_target121_attempt1.png
+2026-10-09 04:35:45.826 | INFO     | modules.vision:find_matching_positions:137 - vision: model replied '1, 4, 9'
+2026-10-09 04:35:45.826 | INFO     | modules.auth:solve_captcha:1001 -   vision positions: [1, 4, 9]
+2026-10-09 04:35:45.827 | INFO     | modules.auth:solve_captcha:1015 -   matched tiles   : 3 -> ['aidhyxdwp', 'rizpmm', 'ocutf']
+2026-10-09 04:35:48.303 | INFO     | modules.auth:solve_captcha:1019 -   click results   :
+2026-10-09 04:35:48.304 | INFO     | modules.auth:solve_captcha:1021 -       id=aidhyxdwp      number=None   clicked=True  img-selected=True
+2026-10-09 04:35:48.305 | INFO     | modules.auth:solve_captcha:1021 -       id=rizpmm         number=None   clicked=True  img-selected=True
+2026-10-09 04:35:48.306 | INFO     | modules.auth:solve_captcha:1021 -       id=ocutf          number=None   clicked=True  img-selected=True
+2026-10-09 04:35:49.322 | INFO     | modules.auth:solve_captcha:1031 -   SelectedImages  : ''
+2026-10-09 04:35:49.322 | INFO     | modules.auth:solve_captcha:1039 -   expected ids    : ['aidhyxdwp', 'ocutf', 'rizpmm']
+2026-10-09 04:35:49.322 | INFO     | modules.auth:solve_captcha:1047 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-09 04:35:49.555 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043549_captcha-attempt1-before-submit.png
+2026-10-09 04:35:49.630 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 7 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:35:49.896 | INFO     | modules.auth:_click_captcha_submit:1625 - auth: captcha submitted via button:has-text("Submit")
+2026-10-09 04:35:49.897 | INFO     | modules.auth:solve_captcha:1081 -   submit clicked  : True
+2026-10-09 04:35:51.393 | WARNING  | modules.auth:solve_captcha:1102 -   portal message  : 'Invalid captcha selection'
+2026-10-09 04:35:51.393 | WARNING  | modules.auth:solve_captcha:1104 -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+2026-10-09 04:35:51.393 | INFO     | modules.auth:solve_captcha:1108 - ------------------------------------------------------------
+2026-10-09 04:35:51.393 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 1 rejected
+2026-10-09 04:35:51.679 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043551_captcha-attempt1-rejected.png
+2026-10-09 04:35:53.448 | INFO     | modules.auth:_captcha_target:1434 - auth: 26 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-09 04:35:53.449 | INFO     | modules.auth:_captcha_target:1455 - auth: prompt 643 chosen (contrast=15.43, z-index=915, color=rgb(33, 37, 41))
+2026-10-09 04:35:53.449 | INFO     | modules.auth:solve_captcha:930 - ------------------------------------------------------------
+2026-10-09 04:35:53.449 | INFO     | modules.auth:solve_captcha:931 - CAPTCHA attempt 2 of 10
+2026-10-09 04:35:53.449 | INFO     | modules.auth:solve_captcha:932 -   target number   : 643
+2026-10-09 04:35:53.449 | INFO     | modules.auth:solve_captcha:933 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-09 04:35:53.450 | INFO     | modules.auth:solve_captcha:937 -   visible labels  : 26 (of 26 box-labels in the DOM)
+2026-10-09 04:35:53.450 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 2: target=643, 9 visible tiles
+2026-10-09 04:35:53.450 | INFO     | modules.auth:solve_captcha:961 -   grid order      : 1:sdpss, 2:ylaisfljl, 3:fbcyx, 4:iutnvlbd, 5:ntnadk, 6:ccfqr, 7:pvfzo, 8:ntsmhr, 9:mjrbp
+2026-10-09 04:35:53.460 | INFO     | modules.auth:_screenshot_grid:1205 -   grid clip       : x=617.66 y=319 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-09 04:35:53.784 | INFO     | modules.vision:save_sample:178 - captcha sample saved: logs\captcha_samples\20261009-043553_target643_attempt2.png
+2026-10-09 04:35:53.784 | INFO     | modules.auth:solve_captcha:978 -   grid screenshot : logs\captcha_samples\20261009-043553_target643_attempt2.png
+2026-10-09 04:35:54.827 | INFO     | modules.vision:find_matching_positions:137 - vision: model replied '2,6'
+2026-10-09 04:35:54.829 | INFO     | modules.auth:solve_captcha:1001 -   vision positions: [2, 6]
+2026-10-09 04:35:54.829 | INFO     | modules.auth:solve_captcha:1015 -   matched tiles   : 2 -> ['ylaisfljl', 'ccfqr']
+2026-10-09 04:35:56.500 | INFO     | modules.auth:solve_captcha:1019 -   click results   :
+2026-10-09 04:35:56.501 | INFO     | modules.auth:solve_captcha:1021 -       id=ylaisfljl      number=None   clicked=True  img-selected=True
+2026-10-09 04:35:56.502 | INFO     | modules.auth:solve_captcha:1021 -       id=ccfqr          number=None   clicked=True  img-selected=True
+2026-10-09 04:35:57.532 | INFO     | modules.auth:solve_captcha:1031 -   SelectedImages  : ''
+2026-10-09 04:35:57.533 | INFO     | modules.auth:solve_captcha:1039 -   expected ids    : ['ccfqr', 'ylaisfljl']
+2026-10-09 04:35:57.534 | INFO     | modules.auth:solve_captcha:1047 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-09 04:35:57.808 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043557_captcha-attempt2-before-submit.png
+2026-10-09 04:35:57.895 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 6 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:35:57.901 | INFO     | modules.auth:_ensure_password_filled:1285 - auth: password box was cleared by the reload — refilling
+2026-10-09 04:35:59.728 | INFO     | modules.auth:_ensure_password_filled:1296 - auth: password refilled (12 chars)
+2026-10-09 04:35:59.980 | INFO     | modules.auth:_click_captcha_submit:1625 - auth: captcha submitted via button:has-text("Submit")
+2026-10-09 04:35:59.980 | INFO     | modules.auth:solve_captcha:1081 -   submit clicked  : True
+2026-10-09 04:36:01.061 | WARNING  | modules.auth:solve_captcha:1102 -   portal message  : 'Invalid captcha selection'
+2026-10-09 04:36:01.061 | WARNING  | modules.auth:solve_captcha:1104 -   outcome         : REJECTED - captcha still present after attempt 2, grid reloaded
+2026-10-09 04:36:01.062 | INFO     | modules.auth:solve_captcha:1108 - ------------------------------------------------------------
+2026-10-09 04:36:01.062 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 2 rejected
+2026-10-09 04:36:01.325 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043601_captcha-attempt2-rejected.png
+2026-10-09 04:36:02.923 | INFO     | modules.auth:_captcha_target:1434 - auth: 44 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-09 04:36:02.924 | INFO     | modules.auth:_captcha_target:1455 - auth: prompt 775 chosen (contrast=15.02, z-index=909, color=rgb(33, 37, 41))
+2026-10-09 04:36:02.924 | INFO     | modules.auth:solve_captcha:930 - ------------------------------------------------------------
+2026-10-09 04:36:02.924 | INFO     | modules.auth:solve_captcha:931 - CAPTCHA attempt 3 of 10
+2026-10-09 04:36:02.925 | INFO     | modules.auth:solve_captcha:932 -   target number   : 775
+2026-10-09 04:36:02.925 | INFO     | modules.auth:solve_captcha:933 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-09 04:36:02.925 | INFO     | modules.auth:solve_captcha:937 -   visible labels  : 44 (of 44 box-labels in the DOM)
+2026-10-09 04:36:02.925 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 3: target=775, 9 visible tiles
+2026-10-09 04:36:02.926 | INFO     | modules.auth:solve_captcha:961 -   grid order      : 1:hrgkoa, 2:opodndrll, 3:domkqpf, 4:nwfeuhdg, 5:jhqmzpruw, 6:vzthbvbsm, 7:rmicfowuu, 8:pmlrnzsex, 9:swvda
+2026-10-09 04:36:02.935 | INFO     | modules.auth:_screenshot_grid:1205 -   grid clip       : x=617.66 y=215 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-09 04:36:03.225 | INFO     | modules.vision:save_sample:178 - captcha sample saved: logs\captcha_samples\20261009-043603_target775_attempt3.png
+2026-10-09 04:36:03.225 | INFO     | modules.auth:solve_captcha:978 -   grid screenshot : logs\captcha_samples\20261009-043603_target775_attempt3.png
+2026-10-09 04:36:04.596 | INFO     | modules.vision:find_matching_positions:137 - vision: model replied '3,5,7,9'
+2026-10-09 04:36:04.596 | INFO     | modules.auth:solve_captcha:1001 -   vision positions: [3, 5, 7, 9]
+2026-10-09 04:36:04.597 | INFO     | modules.auth:solve_captcha:1015 -   matched tiles   : 4 -> ['domkqpf', 'jhqmzpruw', 'rmicfowuu', 'swvda']
+2026-10-09 04:36:07.890 | INFO     | modules.auth:solve_captcha:1019 -   click results   :
+2026-10-09 04:36:07.891 | INFO     | modules.auth:solve_captcha:1021 -       id=domkqpf        number=None   clicked=True  img-selected=True
+2026-10-09 04:36:07.892 | INFO     | modules.auth:solve_captcha:1021 -       id=jhqmzpruw      number=None   clicked=True  img-selected=True
+2026-10-09 04:36:07.893 | INFO     | modules.auth:solve_captcha:1021 -       id=rmicfowuu      number=None   clicked=True  img-selected=True
+2026-10-09 04:36:07.894 | INFO     | modules.auth:solve_captcha:1021 -       id=swvda          number=None   clicked=True  img-selected=True
+2026-10-09 04:36:08.912 | INFO     | modules.auth:solve_captcha:1031 -   SelectedImages  : ''
+2026-10-09 04:36:08.912 | INFO     | modules.auth:solve_captcha:1039 -   expected ids    : ['domkqpf', 'jhqmzpruw', 'rmicfowuu', 'swvda']
+2026-10-09 04:36:08.912 | INFO     | modules.auth:solve_captcha:1047 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-09 04:36:09.181 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043608_captcha-attempt3-before-submit.png
+2026-10-09 04:36:09.264 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 3 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:36:09.312 | INFO     | modules.auth:_ensure_password_filled:1285 - auth: password box was cleared by the reload — refilling
+2026-10-09 04:36:11.066 | INFO     | modules.auth:_ensure_password_filled:1296 - auth: password refilled (12 chars)
+2026-10-09 04:36:11.328 | INFO     | modules.auth:_click_captcha_submit:1625 - auth: captcha submitted via button:has-text("Submit")
+2026-10-09 04:36:11.329 | INFO     | modules.auth:solve_captcha:1081 -   submit clicked  : True
+2026-10-09 04:36:12.615 | WARNING  | modules.auth:solve_captcha:1102 -   portal message  : 'Invalid captcha selection'
+2026-10-09 04:36:12.615 | WARNING  | modules.auth:solve_captcha:1104 -   outcome         : REJECTED - captcha still present after attempt 3, grid reloaded
+2026-10-09 04:36:12.615 | INFO     | modules.auth:solve_captcha:1108 - ------------------------------------------------------------
+2026-10-09 04:36:12.615 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 3 rejected
+2026-10-09 04:36:12.852 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043612_captcha-attempt3-rejected.png
+2026-10-09 04:36:14.425 | INFO     | modules.auth:_captcha_target:1434 - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-09 04:36:14.425 | INFO     | modules.auth:_captcha_target:1455 - auth: prompt 807 chosen (contrast=14.92, z-index=997, color=rgb(33, 37, 41))
+2026-10-09 04:36:14.425 | INFO     | modules.auth:solve_captcha:930 - ------------------------------------------------------------
+2026-10-09 04:36:14.426 | INFO     | modules.auth:solve_captcha:931 - CAPTCHA attempt 4 of 10
+2026-10-09 04:36:14.426 | INFO     | modules.auth:solve_captcha:932 -   target number   : 807
+2026-10-09 04:36:14.426 | INFO     | modules.auth:solve_captcha:933 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-09 04:36:14.426 | INFO     | modules.auth:solve_captcha:937 -   visible labels  : 39 (of 39 box-labels in the DOM)
+2026-10-09 04:36:14.426 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 4: target=807, 9 visible tiles
+2026-10-09 04:36:14.427 | INFO     | modules.auth:solve_captcha:961 -   grid order      : 1:kekjzxjx, 2:idvht, 3:keeoqtowh, 4:ydbnvql, 5:zbbvpuvw, 6:xhynoac, 7:ogmuxemy, 8:blhwcyi, 9:zcxprpd
+2026-10-09 04:36:14.435 | INFO     | modules.auth:_screenshot_grid:1205 -   grid clip       : x=617.81 y=215 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-09 04:36:14.744 | INFO     | modules.vision:save_sample:178 - captcha sample saved: logs\captcha_samples\20261009-043614_target807_attempt4.png
+2026-10-09 04:36:14.744 | INFO     | modules.auth:solve_captcha:978 -   grid screenshot : logs\captcha_samples\20261009-043614_target807_attempt4.png
+2026-10-09 04:36:15.769 | INFO     | modules.vision:find_matching_positions:137 - vision: model replied '6,9'
+2026-10-09 04:36:15.770 | INFO     | modules.auth:solve_captcha:1001 -   vision positions: [6, 9]
+2026-10-09 04:36:15.770 | INFO     | modules.auth:solve_captcha:1015 -   matched tiles   : 2 -> ['xhynoac', 'zcxprpd']
+2026-10-09 04:36:17.420 | INFO     | modules.auth:solve_captcha:1019 -   click results   :
+2026-10-09 04:36:17.421 | INFO     | modules.auth:solve_captcha:1021 -       id=xhynoac        number=None   clicked=True  img-selected=True
+2026-10-09 04:36:17.422 | INFO     | modules.auth:solve_captcha:1021 -       id=zcxprpd        number=None   clicked=True  img-selected=True
+2026-10-09 04:36:18.446 | INFO     | modules.auth:solve_captcha:1031 -   SelectedImages  : ''
+2026-10-09 04:36:18.446 | INFO     | modules.auth:solve_captcha:1039 -   expected ids    : ['xhynoac', 'zcxprpd']
+2026-10-09 04:36:18.447 | INFO     | modules.auth:solve_captcha:1047 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-09 04:36:18.694 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043618_captcha-attempt4-before-submit.png
+2026-10-09 04:36:18.775 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 2 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:36:18.782 | INFO     | modules.auth:_ensure_password_filled:1285 - auth: password box was cleared by the reload — refilling
+2026-10-09 04:36:20.469 | INFO     | modules.auth:_ensure_password_filled:1296 - auth: password refilled (12 chars)
+2026-10-09 04:36:20.724 | INFO     | modules.auth:_click_captcha_submit:1625 - auth: captcha submitted via button:has-text("Submit")
+2026-10-09 04:36:20.725 | INFO     | modules.auth:solve_captcha:1081 -   submit clicked  : True
+2026-10-09 04:36:22.006 | SUCCESS  | modules.auth:solve_captcha:1092 -   outcome         : SOLVED on attempt 4
+2026-10-09 04:36:22.006 | INFO     | modules.auth:solve_captcha:1093 - ------------------------------------------------------------
+2026-10-09 04:36:22.006 | INFO     | modules.auth:_log:1860 - auth: captcha solved (attempt 4)
+2026-10-09 04:36:22.259 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043622_captcha-solved.png
+2026-10-09 04:36:43.511 | WARNING  | modules.auth:_submit_login:848 - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+2026-10-09 04:36:44.082 | INFO     | modules.auth:_log:1860 - auth: password submitted
+2026-10-09 04:36:44.083 | INFO     | modules.auth:_perform_login:636 - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptcha?data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh6O5GyxDoe3b4NEKe5sRWhhp3vQe9qqigvYOm9heYUlkP5jIT5Mo7QaWFW2GHxy3obXntH88o8n9KM%2BDjYsgqu4AhBqPRHcS2bsO%2BL1Ng2SZfeV1xfEPViYL0whzQ0%2Bvt8%3D&msg=fA2H81F4YVycdoSit7IjcGXxcE8z%2Bt9iQZ3l7G%2FtAq9R1G8UThEa8v8tizTIhGDr
+2026-10-09 04:36:44.322 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043644_after-password-submit.png
+2026-10-09 04:36:44.336 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043644_after-password-submit.html
+2026-10-09 04:37:15.367 | WARNING  | modules.auth:_perform_login:663 - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptcha?data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh6O5GyxDoe3b4NEKe5sRWhhp3vQe9qqigvYOm9heYUlkP5jIT5Mo7QaWFW2GHxy3obXntH88o8n9KM%2BDjYsgqu4AhBqPRHcS2bsO%2BL1Ng2SZfeV1xfEPViYL0whzQ0%2Bvt8%3D&msg=fA2H81F4YVycdoSit7IjcGXxcE8z%2Bt9iQZ3l7G%2FtAq9R1G8UThEa8v8tizTIhGDr)
+2026-10-09 04:37:15.603 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043715_login-stalled-round1.png
+2026-10-09 04:37:15.611 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043715_login-stalled-round1.html
+2026-10-09 04:37:15.612 | INFO     | modules.auth:_is_logged_in:1667 - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/newcaptcha/logincaptcha?data=8jv4wkemuamyka815dkxdc91dprhwdgy00ire%2f29vh6o5gyxdoe3b4neke5srwhhp3vqe9qqigvyom9heyulkp5jit5mo7qawfw2ghxy3obxnth88o8n9km%2bdjysgqu4ahbqprhcs2bso%2bl1ng2szfev1xfepviyl0whzq0%2bvt8%3d&msg=fa2h81f4yvycdosit7ijcgxxce8z%2bt9iqz3l7g%2ftaq9r1g8uthea8v8tiztihgdr)
+2026-10-09 04:37:15.893 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043715_login-failed-attempt1.png
+2026-10-09 04:37:20.908 | INFO     | modules.auth:ensure_logged_in:529 - auth: logging in (attempt 2/2)
+2026-10-09 04:37:27.593 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'text' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:37:30.258 | INFO     | modules.auth:_fill_email:751 - auth: email filled
+2026-10-09 04:37:30.259 | INFO     | modules.auth:_log:1860 - auth: email submitted
+2026-10-09 04:37:31.158 | INFO     | modules.auth:_click_verify:805 - auth: clicked Verify via #btnVerify
+2026-10-09 04:37:32.659 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:37:34.749 | INFO     | modules.auth:_fill_password:778 - auth: password filled (real input[type='password'])
+2026-10-09 04:37:34.750 | INFO     | modules.auth:_log:1860 - auth: password filled
+2026-10-09 04:37:34.751 | INFO     | modules.auth:_perform_login:610 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh67NET%2BqtHmXb9FVU1ahuJCXOAmMAk%2BkZGX%2BdPDrG8iGlqm3nk4otXWOMtrnPh8R94P3VzKWVFgmKZHbkDbnyfaArVwysdwI%2FW4eM1v%2Blh3wyOMjaR90OjraPpzBA02kuY%3D
+2026-10-09 04:37:35.030 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043734_password-page-filled.png
+2026-10-09 04:37:35.056 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043735_password-page-filled.html
+2026-10-09 04:37:35.058 | INFO     | modules.auth:_perform_login:618 - auth: checking for a CAPTCHA on the password page
+2026-10-09 04:37:35.086 | INFO     | modules.auth:solve_captcha:875 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=41
+2026-10-09 04:37:35.087 | INFO     | modules.auth:solve_captcha:881 - auth: CAPTCHA detected, attempting to solve
+2026-10-09 04:37:35.087 | INFO     | modules.auth:_log:1860 - auth: CAPTCHA detected — solving
+2026-10-09 04:37:35.355 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043735_captcha-before.png
+2026-10-09 04:37:35.376 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043735_captcha-detected.html
+2026-10-09 04:37:35.710 | INFO     | modules.auth:_captcha_target:1434 - auth: 41 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-09 04:37:35.710 | INFO     | modules.auth:_captcha_target:1455 - auth: prompt 445 chosen (contrast=14.92, z-index=920, color=rgb(33, 37, 41))
+2026-10-09 04:37:35.711 | INFO     | modules.auth:solve_captcha:930 - ------------------------------------------------------------
+2026-10-09 04:37:35.711 | INFO     | modules.auth:solve_captcha:931 - CAPTCHA attempt 1 of 10
+2026-10-09 04:37:35.711 | INFO     | modules.auth:solve_captcha:932 -   target number   : 445
+2026-10-09 04:37:35.711 | INFO     | modules.auth:solve_captcha:933 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-09 04:37:35.712 | INFO     | modules.auth:solve_captcha:937 -   visible labels  : 41 (of 41 box-labels in the DOM)
+2026-10-09 04:37:35.712 | INFO     | modules.auth:_log:1860 - auth: captcha attempt 1: target=445, 9 visible tiles
+2026-10-09 04:37:35.712 | INFO     | modules.auth:solve_captcha:961 -   grid order      : 1:jdreppy, 2:qdwmsh, 3:kmhnef, 4:hgqux, 5:cshmnngpa, 6:lodazkl, 7:nghgui, 8:yemygnfgz, 9:smptdv
+2026-10-09 04:37:35.720 | INFO     | modules.auth:_screenshot_grid:1205 -   grid clip       : x=617.48 y=273 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-09 04:37:36.009 | INFO     | modules.vision:save_sample:178 - captcha sample saved: logs\captcha_samples\20261009-043736_target445_attempt1.png
+2026-10-09 04:37:36.009 | INFO     | modules.auth:solve_captcha:978 -   grid screenshot : logs\captcha_samples\20261009-043736_target445_attempt1.png
+2026-10-09 04:37:37.642 | INFO     | modules.vision:find_matching_positions:137 - vision: model replied '1, 3, 5, 8'
+2026-10-09 04:37:37.643 | INFO     | modules.auth:solve_captcha:1001 -   vision positions: [1, 3, 5, 8]
+2026-10-09 04:37:37.643 | INFO     | modules.auth:solve_captcha:1015 -   matched tiles   : 4 -> ['jdreppy', 'kmhnef', 'cshmnngpa', 'yemygnfgz']
+2026-10-09 04:37:40.941 | INFO     | modules.auth:solve_captcha:1019 -   click results   :
+2026-10-09 04:37:40.942 | INFO     | modules.auth:solve_captcha:1021 -       id=jdreppy        number=None   clicked=True  img-selected=True
+2026-10-09 04:37:40.943 | INFO     | modules.auth:solve_captcha:1021 -       id=kmhnef         number=None   clicked=True  img-selected=True
+2026-10-09 04:37:40.944 | INFO     | modules.auth:solve_captcha:1021 -       id=cshmnngpa      number=None   clicked=True  img-selected=True
+2026-10-09 04:37:40.945 | INFO     | modules.auth:solve_captcha:1021 -       id=yemygnfgz      number=None   clicked=True  img-selected=True
+2026-10-09 04:37:41.959 | INFO     | modules.auth:solve_captcha:1031 -   SelectedImages  : ''
+2026-10-09 04:37:41.959 | INFO     | modules.auth:solve_captcha:1039 -   expected ids    : ['cshmnngpa', 'jdreppy', 'kmhnef', 'yemygnfgz']
+2026-10-09 04:37:41.959 | INFO     | modules.auth:solve_captcha:1047 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-09 04:37:42.196 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043741_captcha-attempt1-before-submit.png
+2026-10-09 04:37:42.276 | INFO     | modules.utils:find_real_input:177 - find_real_input: real 'password' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-09 04:37:42.636 | INFO     | modules.auth:_click_captcha_submit:1625 - auth: captcha submitted via button:has-text("Submit")
+2026-10-09 04:37:42.637 | INFO     | modules.auth:solve_captcha:1081 -   submit clicked  : True
+2026-10-09 04:37:43.747 | SUCCESS  | modules.auth:solve_captcha:1092 -   outcome         : SOLVED on attempt 1
+2026-10-09 04:37:43.747 | INFO     | modules.auth:solve_captcha:1093 - ------------------------------------------------------------
+2026-10-09 04:37:43.748 | INFO     | modules.auth:_log:1860 - auth: captcha solved (attempt 1)
+2026-10-09 04:37:44.030 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043743_captcha-solved.png
+2026-10-09 04:37:45.646 | INFO     | modules.auth:_perform_login:628 - auth: already authenticated after the captcha — skipping resubmit
+2026-10-09 04:37:45.647 | INFO     | modules.auth:_log:1860 - auth: password submitted
+2026-10-09 04:37:45.648 | INFO     | modules.auth:_perform_login:636 - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 04:37:45.913 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043745_after-password-submit.png
+2026-10-09 04:37:45.920 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043745_after-password-submit.html
+2026-10-09 04:37:45.920 | SUCCESS  | modules.auth:_perform_login:647 - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 04:37:45.937 | SUCCESS  | modules.auth:_is_logged_in:1678 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 04:37:45.945 | INFO     | modules.auth:_save_session:1716 - auth: session saved to session\cookies.json
+2026-10-09 04:37:45.945 | INFO     | modules.auth:_log:1860 - auth: login successful
+2026-10-09 04:37:45.957 | INFO     | modules.monitor:ensure_visa_type_verified:267 - monitor: opening visa-type verification at https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-09 04:37:50.505 | INFO     | modules.monitor:_gate_state:468 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification'}
+2026-10-09 04:38:02.889 | WARNING  | modules.monitor:ensure_visa_type_verified:284 - monitor: no 'Verify Selection' button found
+2026-10-09 04:38:03.148 | INFO     | modules.utils:screenshot:523 - screenshot saved: logs\screenshots\20261009-043802_verify-no-button.png
+2026-10-09 04:38:03.158 | INFO     | modules.utils:dump_page_html:431 - DOM dumped: logs\dom\20261009-043803_verify-no-button.html
+2026-10-09 04:38:03.159 | ERROR    | modules.monitor:run_once:221 - monitor: visa-type verification not cleared — skipping cycle
+2026-10-09 04:38:03.168 | INFO     | modules.auth:_save_session:1716 - auth: session saved to session\cookies.json
+2026-10-09 04:38:03.456 | INFO     | modules.auth:stop:486 - auth: browser closed
+2026-10-09 04:38:07.036 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-09 04:38:07.036 | INFO     | __main__:_run_with_state:526 - shutdown complete
