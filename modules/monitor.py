@@ -283,10 +283,15 @@ class Monitor:
             self.state.log_event("bot", "visa-type verification failed", status="error")
             return
 
-        # TODO(next step): the appointment flow itself is not built yet. Survey
-        # whatever page the verification lands on so the real booking route can
-        # be written from observed markup instead of guessed URLs.
-        await self._survey_page(page, "post-verification")
+        # Verification lands on /Global/bls/visatype?data=... — the appointment
+        # form. Its URL carries a one-time token, so it can only be reached by
+        # clicking through; navigating to a fixed URL will never work.
+        primary = self.locations[0] if self.locations else "cairo"
+        if not await self.complete_visatype_form(page, primary):
+            logger.error("monitor: could not complete the appointment form")
+            self.state.log_event("bot", "appointment form not completed", status="error")
+            await self._survey_page(page, "visatype-incomplete")
+            return
 
         if not self.appointment_path_confirmed:
             # Navigating to the placeholder URL just produces
@@ -586,6 +591,154 @@ class Monitor:
             )
         return frame
 
+    async def complete_visatype_form(self, page: Any, location: str) -> bool:
+        """Fill /Global/bls/visatype and submit it.
+
+        CONFIRMED fields, in this order:
+            Location, Visa Type, Visa Sub Type, Appointment Category  (selects)
+            Appointment For  (Individual / Family radio)
+            Submit
+
+        The selects cascade — choosing Location repopulates Visa Type, and so on
+        — so each one is set in order with a settle in between rather than all
+        at once.
+        """
+        if "/bls/visatype" not in (page.url or "").lower():
+            logger.warning(f"monitor: not on the appointment form ({page.url})")
+            return False
+
+        bls = self.config.get("bls", {}) or {}
+        labels = bls.get("location_labels", {}) or {}
+        wanted = {
+            "location": labels.get(location, location.title()),
+            "visa type": bls.get("visa_type", ""),
+            "visa sub type": bls.get("visa_sub_type", ""),
+            "appointment category": bls.get("appointment_category", ""),
+        }
+
+        logger.info("monitor: filling the appointment form")
+        for label, value in wanted.items():
+            chosen = await self._select_by_label(page, label, value)
+            if chosen is None:
+                logger.warning(f"  {label:<22}: NOT SET (wanted {value!r})")
+                await utils.screenshot(page, f"visatype-{label.replace(' ', '-')}-failed")
+                await utils.dump_page_html(page, "visatype-form-failed")
+                return False
+            logger.info(f"  {label:<22}: {chosen!r}")
+            # Let the dependent dropdown repopulate before touching the next.
+            await self._settle(page)
+
+        # Appointment For — Individual unless configured otherwise.
+        appointment_for = str(bls.get("appointment_for", "individual")).lower()
+        if await utils.click_by_text(
+            page, (appointment_for,), roles=("label", "span", "div"), config=self.config
+        ):
+            logger.info(f"  appointment for       : {appointment_for!r}")
+        else:
+            try:
+                await page.evaluate(
+                    """
+                    (want) => {
+                      for (const r of document.querySelectorAll('input[type=radio]')) {
+                        const lab = (r.closest('label') || {}).innerText
+                                 || (document.querySelector(`label[for="${r.id}"]`) || {}).innerText
+                                 || r.value || '';
+                        if ((lab || '').trim().toLowerCase().startsWith(want)) {
+                          r.click();
+                          return;
+                        }
+                      }
+                    }
+                    """,
+                    appointment_for,
+                )
+                logger.info(f"  appointment for       : {appointment_for!r} (via JS)")
+            except Exception as exc:
+                logger.warning(f"monitor: could not set Appointment For: {exc}")
+
+        await utils.screenshot(page, "visatype-form-filled")
+        before = page.url
+
+        if not await utils.click_by_text(page, ("submit",), config=self.config):
+            logger.warning("monitor: no Submit on the appointment form")
+            await utils.dump_page_html(page, "visatype-no-submit")
+            return False
+
+        await self._settle(page)
+        logger.info(f"monitor: appointment form submitted — {before} -> {page.url}")
+        await self._survey_page(page, "after-visatype-submit")
+        return True
+
+    async def _select_by_label(
+        self, page: Any, label_text: str, wanted: str
+    ) -> str | None:
+        """Set the <select> whose label matches ``label_text``.
+
+        Returns the chosen option's text, or None when the select or a matching
+        option could not be found. With no configured value, the first real
+        option is taken — these are required fields with a "--Select--"
+        placeholder, so any valid choice beats leaving it unset.
+        """
+        try:
+            handle = await page.evaluate_handle(
+                """
+                (want) => {
+                  const norm = (s) => (s || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+                  const target = norm(want);
+                  for (const sel of document.querySelectorAll('select')) {
+                    const bits = [];
+                    if (sel.id) {
+                      const l = document.querySelector(`label[for="${sel.id}"]`);
+                      if (l) bits.push(l.innerText);
+                    }
+                    const wrap = sel.closest('.form-group, .mb-3, div');
+                    if (wrap) bits.push(wrap.innerText);
+                    bits.push(sel.name || '', sel.id || '');
+                    if (bits.some((b) => norm(b).includes(target))) return sel;
+                  }
+                  return null;
+                }
+                """,
+                label_text,
+            )
+            element = handle.as_element()
+        except Exception as exc:
+            logger.debug(f"monitor: lookup for {label_text!r} failed: {exc}")
+            element = None
+
+        if element is None:
+            logger.warning(f"monitor: no <select> found for {label_text!r}")
+            return None
+
+        if wanted:
+            chosen = await utils.select_option_like(element, wanted)
+            if chosen:
+                return chosen
+            logger.warning(
+                f"monitor: {label_text!r} has no option matching {wanted!r} — "
+                "falling back to the first real option"
+            )
+
+        # No configured value, or it did not match: take the first real option.
+        try:
+            return await element.evaluate(
+                """
+                (sel) => {
+                  for (const o of sel.options) {
+                    const t = (o.text || '').trim();
+                    if (!o.value || /^-+\\s*select/i.test(t)) continue;
+                    sel.value = o.value;
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    return t;
+                  }
+                  return null;
+                }
+                """
+            )
+        except Exception as exc:
+            logger.warning(f"monitor: could not set {label_text!r}: {exc}")
+            return None
+
     @staticmethod
     async def _frame_offset(frame: Any) -> tuple[float, float]:
         """Where the iframe sits in the page, for converting clip coordinates.
@@ -802,22 +955,44 @@ class Monitor:
         return state
 
     async def _submit_verified_form(self, page: Any) -> bool:
-        """Click the Submit that appears once verification has passed."""
-        clicked = await utils.click_by_text(page, ("submit",), config=self.config)
+        """Click the Submit revealed once the captcha has been verified.
+
+        CONFIRMED markup:
+            <button class="btn btn-primary" id="btnSubmit" type="submit">Submit</button>
+        It is hidden until verification passes, then shown alongside a
+        "Verified" badge. Submitting redirects to /Global/bls/visatype?data=...
+        """
+        clicked = False
+        try:
+            button = page.locator("#btnSubmit")
+            await button.wait_for(state="visible", timeout=10000)
+            await button.click(timeout=10000)
+            clicked = True
+            logger.info("monitor: clicked #btnSubmit")
+        except Exception as exc:
+            logger.debug(f"monitor: #btnSubmit not clickable ({exc}) — trying text")
+            clicked = await utils.click_by_text(page, ("submit",), config=self.config)
+
         if not clicked:
-            try:
-                await page.evaluate(
-                    "() => { const b = document.getElementById('btnSubmit');"
-                    " if (b) { b.style.display=''; b.click(); } }"
-                )
-                clicked = True
-                logger.info("monitor: submitted via #btnSubmit")
-            except Exception as exc:
-                logger.warning(f"monitor: could not submit the form: {exc}")
-        else:
-            logger.info("monitor: submitted the verification form")
+            logger.warning("monitor: could not click the verification Submit")
+            await utils.screenshot(page, "verified-submit-missing")
+            return False
+
+        # The form posts and redirects to the appointment selection page.
+        try:
+            await page.wait_for_url(
+                lambda url: "/bls/visatype" in (url or "").lower()
+                and "visatypeverification" not in (url or "").lower(),
+                timeout=30000,
+            )
+            logger.success(f"monitor: reached the appointment form — {page.url}")
+        except PlaywrightTimeout:
+            logger.warning(
+                f"monitor: no redirect to /bls/visatype within 30s — still at {page.url}"
+            )
         await self._settle(page)
-        logger.info(f"monitor: URL after verification submit — {page.url}")
+        await utils.screenshot(page, "visatype-form")
+        await utils.dump_page_html(page, "visatype-form")
         return True
 
     async def _reload_captcha_images(self, page: Any) -> None:
