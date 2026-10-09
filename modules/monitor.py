@@ -32,13 +32,16 @@ from modules.state import (
 # modal is dumped on every encounter so they can be tightened.
 # --------------------------------------------------------------------------- #
 VERIFY_SELECTION_TEXTS = ("verify selection", "verify")
-SUBMIT_SELECTION_TEXTS = ("submit selection", "submit")
+SUBMIT_SELECTION_TEXTS = ("submit selection",)
+RELOAD_IMAGES_TEXTS = ("reload images", "reload", "refresh")
 CONSENT_ACCEPT_TEXTS = (
     "i agree to provide my consent",
     "i have read and understood",
     "i agree",
     "accept",
 )
+# A rejected selection surfaces as a native JS alert, not as page text.
+INVALID_ALERT_HINTS = ("invalid", "wrong", "try again", "not correct", "failed")
 VERIFY_MAX_ATTEMPTS = 5
 
 # One pass over the modal: the prompt number plus every clickable tile's number,
@@ -165,6 +168,10 @@ class Monitor:
         self._consecutive_errors = 0
         self._last_pause_reason: str | None = None
 
+        # Native JS dialogs raised by the verification captcha.
+        self._dialogs: list[str] = []
+        self._dialog_hooked: set[int] = set()
+
         # The appointment URL is still a guess; the live portal answers it with
         # ERR_HTTP_RESPONSE_CODE_FAILURE. Flip this to True (or set
         # bls.paths.appointment_confirmed) once the real route is known.
@@ -251,6 +258,11 @@ class Monitor:
         click "Verify Selection" -> solve the text-based captcha in the modal ->
         "Submit Selection" -> submit the form.
         """
+        # MUST be installed before anything can trigger an alert: with no handler
+        # Playwright auto-dismisses dialogs, so an "Invalid selection" alert
+        # would vanish silently and every retry would look identical.
+        self._install_dialog_handler(page)
+
         url = self.auth.path("dashboard")
         logger.info(f"monitor: opening visa-type verification at {url}")
         try:
@@ -262,35 +274,58 @@ class Monitor:
 
         await self._accept_consents(page)
 
-        if await self._verification_cleared(page):
+        state = await self._gate_state(page)
+        if state.get("submit") or state.get("verified"):
             logger.info("monitor: verification already satisfied")
-            return True
+            return await self._submit_verified_form(page)
+
+        # STEP 1 — open the captcha popup.
+        if not await utils.click_by_text(page, VERIFY_SELECTION_TEXTS, config=self.config):
+            logger.warning("monitor: no 'Verify Selection' button found")
+            await utils.screenshot(page, "verify-no-button")
+            await utils.dump_page_html(page, "verify-no-button")
+            return False
+        logger.info("monitor: clicked 'Verify Selection' — waiting for the popup")
+        await self._settle(page)
+        await utils.human_delay(self.config)
 
         for attempt in range(1, VERIFY_MAX_ATTEMPTS + 1):
             logger.info(f"monitor: verification attempt {attempt}/{VERIFY_MAX_ATTEMPTS}")
 
-            if not await utils.click_by_text(page, VERIFY_SELECTION_TEXTS, config=self.config):
-                logger.warning("monitor: no 'Verify Selection' button found")
-                await utils.screenshot(page, f"verify-no-button-attempt{attempt}")
-                await utils.dump_page_html(page, f"verify-no-button-attempt{attempt}")
-                return False
-
-            await self._settle(page)
-            await utils.human_delay(self.config)
-
-            # The grid is injected on click, so capture it the first time we see
-            # it — these artifacts are what the selectors get tightened against.
+            # The grid is injected on click, so capture it every attempt — these
+            # artifacts are what the selectors get tightened against.
             await utils.screenshot(page, f"verify-modal-attempt{attempt}")
             await utils.dump_page_html(page, f"verify-modal-attempt{attempt}")
 
-            if await self._solve_text_captcha(page, attempt):
+            # STEP 2 — solve and submit the selection.
+            self._dialogs.clear()
+            submitted = await self._solve_text_captcha(page, attempt)
+
+            # STEP 3 — a rejected answer arrives as a JS alert, so give the
+            # dialog handler a moment to fire before judging the outcome.
+            await asyncio.sleep(1.0)
+            alerts = list(self._dialogs)
+            if alerts:
+                logger.info(f"  dialog(s)       : {alerts}")
+
+            rejected = any(
+                any(h in msg.lower() for h in INVALID_ALERT_HINTS) for msg in alerts
+            )
+
+            if submitted and not rejected:
                 await self._settle(page)
-                if await self._verification_cleared(page):
-                    logger.success("monitor: visa-type verification cleared")
+                state = await self._gate_state(page)
+                if state.get("submit") or state.get("verified"):
+                    logger.success("monitor: verification captcha passed")
                     self.state.log_event("bot", "visa-type verification cleared", status="ok")
-                    return True
-                logger.warning("monitor: selection submitted but the gate is still closed")
-            await utils.human_delay(self.config)
+                    return await self._submit_verified_form(page)
+                logger.warning("monitor: submitted but the gate is still closed")
+            elif rejected:
+                logger.warning(f"  outcome         : REJECTED — {alerts}")
+
+            if attempt < VERIFY_MAX_ATTEMPTS:
+                await self._reload_captcha_images(page)
+                await utils.human_delay(self.config)
 
         logger.error("monitor: verification not cleared after all attempts")
         await utils.screenshot(page, "verify-failed")
@@ -362,8 +397,39 @@ class Monitor:
                 logger.info(f"monitor: accepted consent — {text!r}")
                 await self._settle(page)
 
-    async def _verification_cleared(self, page: Any) -> bool:
-        """True once the gate is satisfied (a real Submit becomes available)."""
+    def _install_dialog_handler(self, page: Any) -> None:
+        """Capture and accept native JS dialogs.
+
+        Playwright auto-dismisses dialogs when nothing is listening, so an
+        "Invalid selection" alert would disappear without trace and a failed
+        attempt would be indistinguishable from a successful one. Registering a
+        handler both accepts the dialog and records its message.
+        """
+        if id(page) in self._dialog_hooked:
+            return
+
+        def _on_dialog(dialog: Any) -> None:
+            try:
+                message = dialog.message or ""
+            except Exception:
+                message = ""
+            self._dialogs.append(message)
+            logger.info(f"monitor: JS dialog accepted — {message!r}")
+            asyncio.ensure_future(self._accept_dialog(dialog))
+
+        page.on("dialog", _on_dialog)
+        self._dialog_hooked.add(id(page))
+        logger.debug("monitor: dialog handler installed")
+
+    @staticmethod
+    async def _accept_dialog(dialog: Any) -> None:
+        try:
+            await dialog.accept()
+        except Exception as exc:
+            logger.debug(f"monitor: could not accept dialog: {exc}")
+
+    async def _gate_state(self, page: Any) -> dict[str, Any]:
+        """Visibility of the Verified / Submit buttons that follow a pass."""
         try:
             state = await page.evaluate(
                 """
@@ -375,9 +441,18 @@ class Monitor:
                     return r.width > 0 && r.height > 0 && s.display !== 'none' &&
                            s.visibility !== 'hidden';
                   };
+                  const byText = (re) => Array.from(
+                      document.querySelectorAll('button, input[type=submit]'))
+                    .filter(vis)
+                    .filter((b) => re.test((b.innerText || b.value || '').trim()));
                   return {
-                    verified: vis(document.getElementById('btnVerified')),
-                    submit: vis(document.getElementById('btnSubmit')),
+                    verified: vis(document.getElementById('btnVerified'))
+                              || byText(/^verified$/i).length > 0,
+                    submit: vis(document.getElementById('btnSubmit'))
+                            || byText(/^submit$/i).length > 0,
+                    modalOpen: Array.from(
+                        document.querySelectorAll('.modal, [role="dialog"]'))
+                      .some(vis),
                     url: location.href,
                   };
                 }
@@ -385,18 +460,39 @@ class Monitor:
             )
         except Exception as exc:
             logger.debug(f"monitor: gate probe failed: {exc}")
-            return False
-
+            return {}
         logger.info(f"  gate state      : {state}")
-        if state.get("submit") or state.get("verified"):
-            # The form's real Submit only appears once verification passed.
-            if state.get("submit") and await utils.click_by_text(
-                page, ("submit",), config=self.config
-            ):
-                logger.info("monitor: submitted the verification form")
-                await self._settle(page)
-            return True
-        return False
+        return state
+
+    async def _submit_verified_form(self, page: Any) -> bool:
+        """Click the Submit that appears once verification has passed."""
+        clicked = await utils.click_by_text(page, ("submit",), config=self.config)
+        if not clicked:
+            try:
+                await page.evaluate(
+                    "() => { const b = document.getElementById('btnSubmit');"
+                    " if (b) { b.style.display=''; b.click(); } }"
+                )
+                clicked = True
+                logger.info("monitor: submitted via #btnSubmit")
+            except Exception as exc:
+                logger.warning(f"monitor: could not submit the form: {exc}")
+        else:
+            logger.info("monitor: submitted the verification form")
+        await self._settle(page)
+        logger.info(f"monitor: URL after verification submit — {page.url}")
+        return True
+
+    async def _reload_captcha_images(self, page: Any) -> None:
+        """Ask for a fresh grid after a rejected selection."""
+        if await utils.click_by_text(page, RELOAD_IMAGES_TEXTS, config=self.config):
+            logger.info("monitor: requested a fresh verification grid")
+            await self._settle(page)
+            return
+        # No reload control — reopening the popup has the same effect.
+        if await utils.click_by_text(page, VERIFY_SELECTION_TEXTS, config=self.config):
+            logger.info("monitor: reopened the verification popup for a fresh grid")
+            await self._settle(page)
 
     async def _survey_page(self, page: Any, label: str) -> None:
         """Log what is on the current page so the next step can be built."""
