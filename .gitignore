@@ -53,3 +53,6 @@ test-results/
 # NOTE: logs/captcha_samples/readings.jsonl is deliberately NOT ignored. It is
 # written on the machine that runs the bot and must travel back with
 # push_logs.bat to be graded against ground_truth.json.
+
+# Block cooldown marker, written when the portal 403s. Machine-local.
+logs/cooldown.json

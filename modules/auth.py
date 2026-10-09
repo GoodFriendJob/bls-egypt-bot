@@ -109,7 +109,10 @@ CAPTCHA_SUBMIT_SELECTORS = ('button:has-text("Submit")', 'input[value="Submit"]'
 # Solving is cheap and the grid reloads on every rejection, so retry hard before
 # bothering a human. Escalating after 3 made MANUAL_REQUIRED alerts far too
 # frequent.
-CAPTCHA_MAX_ATTEMPTS = 10
+# Each attempt is a real POST to the portal. 10 was too aggressive and helped
+# escalate rate limiting into an IP block; 4 still absorbs the occasional
+# misread without hammering.
+CAPTCHA_MAX_ATTEMPTS = 4
 CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
 CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
 CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
@@ -1978,6 +1981,9 @@ class BLSAuth:
 
             logger.error(f"auth: {message}")
             self._log(message, status="error")
+            if response.status == 403:
+                # Persist it so the next run refuses to start during cooldown.
+                utils.record_block(message)
             await self._alert_error(message, retry_info="no retry — the IP must change first")
             if shot and self.notifier is not None:
                 try:

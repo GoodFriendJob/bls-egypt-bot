@@ -422,6 +422,46 @@ def contains_any(haystack: str, phrases: Iterable[str]) -> str | None:
     return None
 
 
+COOLDOWN_FILE = Path("logs/cooldown.json")
+
+
+def record_block(reason: str) -> None:
+    """Remember that the portal just blocked us, so the next run can hold off.
+
+    Repeated automated attempts escalated an intermittent 403 into an IP-level
+    block that hit on the very first request. Persisting the timestamp lets the
+    bot refuse to run during the cooldown instead of digging the hole deeper.
+    """
+    try:
+        COOLDOWN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        import json
+
+        COOLDOWN_FILE.write_text(
+            json.dumps({"blocked_at": datetime.now().isoformat(), "reason": reason[:200]}),
+            encoding="utf-8",
+        )
+        logger.warning(f"block recorded in {COOLDOWN_FILE}")
+    except Exception as exc:
+        logger.debug(f"could not record the block: {exc}")
+
+
+def block_cooldown_remaining(minutes: float) -> float:
+    """Minutes still to wait before another attempt is sensible. 0 = go ahead."""
+    if minutes <= 0:
+        return 0.0
+    try:
+        import json
+
+        if not COOLDOWN_FILE.exists():
+            return 0.0
+        data = json.loads(COOLDOWN_FILE.read_text(encoding="utf-8"))
+        blocked_at = datetime.fromisoformat(data["blocked_at"])
+    except Exception:
+        return 0.0
+    elapsed = (datetime.now() - blocked_at).total_seconds() / 60.0
+    return max(0.0, minutes - elapsed)
+
+
 async def dump_page_html(page: Any, label: str) -> str | None:
     """Save the full rendered DOM to logs/dom/ and return the path."""
     try:

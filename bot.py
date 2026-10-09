@@ -32,6 +32,7 @@ from modules.auth import BLSAuth
 from modules.monitor import Monitor
 from modules.notifier import Notifier
 from modules.state import BotState
+from modules.utils import block_cooldown_remaining as utils_block_cooldown
 from modules.utils import interruptible_sleep
 
 CONFIG_PATH = ROOT / "config.yaml"
@@ -405,6 +406,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--headful", action="store_true", help="force a visible browser window")
     parser.add_argument("--no-dashboard", action="store_true", help="do not start the Flask UI")
     parser.add_argument(
+        "--ignore-cooldown",
+        action="store_true",
+        help="start even if the portal blocked us recently (use sparingly)",
+    )
+    parser.add_argument(
         "--ignore-config-warnings",
         action="store_true",
         help="start even if the config validation reports problems",
@@ -441,6 +447,22 @@ def _main_inner(args: argparse.Namespace, run_log: Path) -> int:
     logger.info(f"portal={config['bls']['url']} locations={config['bls']['locations']}")
     logger.info(f"visa_type={config['bls']['visa_type']} poll_interval={config['poll_interval']}s")
     logger.info("=" * 62)
+
+    # Refuse to run while the portal is still blocking us. Attempting anyway is
+    # what turned an intermittent 403 into an IP-level block that now hits on
+    # the first request.
+    cooldown = float((config.get("retry") or {}).get("block_cooldown_minutes", 60))
+    remaining = utils_block_cooldown(cooldown)
+    if remaining > 0 and not args.ignore_cooldown:
+        logger.error(
+            f"portal blocked us {cooldown - remaining:.0f} min ago — waiting "
+            f"{remaining:.0f} more min before trying again."
+        )
+        logger.error(
+            "Each attempt while blocked lengthens the block. Wait it out, or "
+            "pass --ignore-cooldown if you are certain the block has lifted."
+        )
+        return 3
 
     problems = validate_config(config)
     for problem in problems:
