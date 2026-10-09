@@ -406,6 +406,9 @@ class BLSAuth:
         self._page: Page | None = None
         self._lock = asyncio.Lock()
         self._logged_in = False
+        # HTTP status of the most recent captcha submit, set by the network
+        # listener. None means no response was seen for this attempt.
+        self._last_captcha_submit_status: int | None = None
 
         self.session_file = Path(SESSION_FILE)
 
@@ -539,6 +542,11 @@ class BLSAuth:
             url = (response.url or "").lower()
             if any(hint in url for hint in interesting):
                 logger.info(f"auth: [net] {response.status} {response.url[:150]}")
+                # Remember the captcha POST result. "The captcha is gone" is NOT
+                # proof of success: a 403 error page also has no captcha on it,
+                # and was being reported as SOLVED.
+                if "captchasubmit" in url:
+                    self._last_captcha_submit_status = response.status
 
         def _on_failed(request: Any) -> None:
             url = (request.url or "").lower()
@@ -978,6 +986,9 @@ class BLSAuth:
         for attempt in range(1, CAPTCHA_MAX_ATTEMPTS + 1):
             # elementFromPoint only resolves inside the viewport, so make sure
             # the grid is on screen before deciding which tiles are visible.
+            # Clear the previous attempt's status so a stale 403 cannot be read
+            # as this attempt's result.
+            self._last_captcha_submit_status = None
             await self._scroll_captcha_into_view(page)
             scan = await self._captcha_scan(page)
             if scan is None:
@@ -1213,6 +1224,31 @@ class BLSAuth:
                 return False
 
             await self._settle(page)
+
+            # A rejected POST produces an error page, which contains no captcha
+            # and therefore used to be mistaken for success. Check the status.
+            status = self._last_captcha_submit_status
+            if status is not None and status >= 400:
+                logger.error(
+                    f"  outcome         : SERVER REJECTED - captcha submit "
+                    f"returned HTTP {status}"
+                )
+                if status == 403:
+                    logger.error(
+                        "  HTTP 403 on the captcha POST is the same awselb "
+                        "signature as the geo-block. The IP may now be rate "
+                        "limited after repeated automated attempts — back off "
+                        "before retrying."
+                    )
+                    self._log("captcha POST blocked (403) — backing off", status="error")
+                    await utils.screenshot(page, f"captcha-403-attempt{attempt}")
+                    await utils.dump_page_html(page, f"captcha-403-attempt{attempt}")
+                    return False
+                await utils.screenshot(page, f"captcha-rejected-{status}-attempt{attempt}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(page)
+                    continue
+                return False
 
             if not await self._captcha_present(page):
                 logger.success(f"  outcome         : SOLVED on attempt {attempt}")
@@ -1916,9 +1952,11 @@ class BLSAuth:
                 message += f" (server: {server})"
             if response.status == 403:
                 message += (
-                    " — BLS blocks requests from outside Egypt and from "
-                    "datacenter/hosting IP ranges. Run from an Egyptian IP "
-                    "(Egyptian VPS, or set proxy.enabled in config.yaml)."
+                    " — awselb returns 403 either for non-Egyptian / datacenter "
+                    "IPs, OR after repeated automated attempts from an IP that "
+                    "was previously fine. If earlier requests in this same run "
+                    "succeeded, it is rate limiting, not geo-blocking: stop, "
+                    "wait, and reduce the attempt rate."
                 )
 
             logger.error(f"auth: {message}")
