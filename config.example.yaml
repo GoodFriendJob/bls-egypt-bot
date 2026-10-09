@@ -29,7 +29,11 @@ bls:
   # placeholder, so any valid choice beats leaving one unset).
   visa_sub_type: "Schengen Visa"
   appointment_category: "Normal"
-  appointment_for: "Individual"      # individual | family
+  appointment_for: "Individual"      # Individual | Family
+  # Only used when appointment_for is Family: the portal then shows a
+  # confirmation modal (auto-accepted) and a required "Number Of Members"
+  # dropdown. Blank takes the first real option.
+  family_members: ""      # individual | family
 
   # Optional: exact option labels the portal shows for each location.
   # The bot matches these case-insensitively against dropdown options.

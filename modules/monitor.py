@@ -220,9 +220,13 @@ _KENDO_SET_JS = r"""
     const lab = inp.id ? document.querySelector('label[for="' + inp.id + '"]') : null;
     if (!lab) continue;
     if (!norm(lab.innerText).startsWith(target)) continue;
-    // The <input> itself is display:none by design; judge the Kendo wrapper.
+    // The <input> itself is display:none by design, so judge the Kendo wrapper.
+    // The decoys are hidden on their enclosing div.mb-3 (that is where the
+    // random-class CSS applies display:none), so check that container too.
     const widget = inp.closest('span.k-widget') || inp.parentElement;
     if (!vis(widget)) continue;
+    const box = inp.closest('div.mb-3');
+    if (box && !vis(box)) continue;
     visible.push(inp);
   }
   if (!visible.length) {
@@ -758,6 +762,16 @@ class Monitor:
             )
         else:
             logger.warning(f"  Appointment For       : NOT SET ({appointment_for!r})")
+        await asyncio.sleep(1.0)
+
+        # Choosing Family raises a confirmation modal and reveals an extra
+        # "Number Of Members" dropdown. Both must be handled or the form cannot
+        # be submitted.
+        await self._handle_form_modals(page)
+        if appointment_for.strip().lower().startswith("family"):
+            members = str(bls.get("family_members", "") or "")
+            if not await self._set_kendo(page, "Number Of Members", members):
+                return await self._form_failed(page, "number-of-members")
         await self._settle(page)
 
         # 3-5. The cascading dropdowns, in order.
@@ -842,6 +856,59 @@ class Monitor:
             f"(options seen: {result.get('options')})"
         )
         return False
+
+    async def _handle_form_modals(self, page: Any) -> None:
+        """Dismiss the modals the appointment form raises while being filled.
+
+        CONFIRMED:
+          * Family Appointment — <button onclick="return OnFamilyAccept();">
+            Accept. Appears whenever Appointment For is set to Family, and the
+            form cannot be submitted until it is cleared.
+          * #PremiumTypeModel — shown by onCategoryChangeN() when the chosen
+            category's Code is CATEGORY_PREMIUM.
+
+        Calls the page's own handlers; clicking by text would hit the <button>
+        correctly here, but the handler is what the site actually relies on.
+        """
+        try:
+            result = await page.evaluate(
+                """
+                () => {
+                  const out = [];
+                  const vis = (el) => {
+                    if (!el) return false;
+                    const r = el.getBoundingClientRect();
+                    return r.width > 5 && r.height > 5 &&
+                           getComputedStyle(el).display !== 'none';
+                  };
+                  // Family confirmation.
+                  const fam = Array.from(document.querySelectorAll('button'))
+                    .find((b) => /OnFamilyAccept/.test(b.getAttribute('onclick') || '')
+                                 && vis(b));
+                  if (fam) { fam.click(); out.push('family-accept'); }
+                  else if (typeof OnFamilyAccept === 'function') {
+                    const dlg = document.querySelector('.modal.show, .modal[style*="display: block"]');
+                    if (dlg && /family/i.test(dlg.innerText || '')) {
+                      OnFamilyAccept(); out.push('family-accept-fn');
+                    }
+                  }
+                  // Premium category notice.
+                  const prem = document.getElementById('PremiumTypeModel');
+                  if (prem && vis(prem)) {
+                    const ok = prem.querySelector('button.btn-success, button.btn-primary');
+                    if (ok) { ok.click(); out.push('premium-dismissed'); }
+                    else { out.push('premium-open-no-button'); }
+                  }
+                  return out;
+                }
+                """
+            )
+        except Exception as exc:
+            logger.debug(f"monitor: modal handling failed: {exc}")
+            return
+        if result:
+            logger.info(f"  form modals           : {result}")
+            await asyncio.sleep(1.0)
 
     async def _form_failed(self, page: Any, tag: str) -> bool:
         await utils.screenshot(page, f"visatype-{tag}-failed")
