@@ -346,6 +346,10 @@ class Monitor:
 
         self.locations = [str(loc).lower() for loc in (config.get("bls", {}) or {}).get("locations", [])]
         self.poll_interval = float(config.get("poll_interval", 90))
+        # After the portal explicitly says there are no slots, polling every 90s
+        # is pointless and is exactly the behaviour that got the IP throttled.
+        # Slots are released in batches, so wait much longer before retrying.
+        self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 12))
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
         self.page_error_wait = float(retry.get("page_error_wait", 30))
@@ -426,7 +430,24 @@ class Monitor:
 
             if self.state.stop_requested:
                 break
-            await utils.interruptible_sleep(self.poll_interval, self.state)
+
+            # Pace the next cycle by what the portal actually told us.
+            if self._last_form_result == "no_slots":
+                wait = self.no_slots_wait_minutes * 60
+                logger.info(
+                    f"monitor: no slots — next full check in "
+                    f"{self.no_slots_wait_minutes:.0f} min"
+                )
+                for location in self.locations:
+                    self.state.set_location_status(
+                        location, STATUS_NO_SLOTS,
+                        f"no slots — rechecking in {self.no_slots_wait_minutes:.0f} min",
+                        checked=True,
+                    )
+            else:
+                wait = self.poll_interval
+            self._last_form_result = None
+            await utils.interruptible_sleep(wait, self.state)
 
         logger.info("monitor: loop ended")
 

@@ -116,6 +116,10 @@ otp:
 # Seconds between availability checks (per full cycle of all locations).
 poll_interval: 90
 
+# Minutes to wait after the portal explicitly reports no slots. Slots are
+# released in batches, so polling every 90s only risks rate limiting.
+no_slots_wait_minutes: 12
+
 # false opens a visible browser window — use while debugging selectors.
 headless: true
 
