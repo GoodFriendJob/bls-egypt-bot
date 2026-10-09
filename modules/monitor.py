@@ -337,7 +337,11 @@ class Monitor:
         self.state.set_manual_pause("visa-type verification")
         await self.notifier.wait_for_resume()
         self.state.clear_manual_pause()
-        return await self._verification_cleared(page)
+
+        state = await self._gate_state(page)
+        if state.get("submit") or state.get("verified"):
+            return await self._submit_verified_form(page)
+        return False
 
     async def _solve_text_captcha(self, page: Any, attempt: int) -> bool:
         """Solve the modal captcha by reading tile numbers straight from the DOM."""
