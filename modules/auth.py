@@ -876,13 +876,16 @@ class BLSAuth:
         ``div.mb-3`` wrapper computes to ``display: block``. Position, id and name
         all randomise per load, so none of them may be used.
         """
-        element = await utils.find_real_input(page, EMAIL_INPUT_TYPE)
+        # The honeypot fields are injected after load, so a scan run immediately
+        # finds nothing. A previous run failed the whole login this way: it
+        # scanned 1s after the page load and reported "could not locate the real
+        # email field among the honeypots" on a perfectly normal page.
+        await self._wait_for_login_form(page)
 
+        element = await utils.find_real_input(page, EMAIL_INPUT_TYPE)
         if element is None:
-            # No wrapper reported display:block. Either the markup changed or the
-            # form had not finished rendering — retry once after a short settle.
             logger.warning("auth: no real email field on the first pass — retrying")
-            await utils.human_delay(self.config)
+            await asyncio.sleep(2.0)
             element = await utils.find_real_input(page, EMAIL_INPUT_TYPE)
 
         if element is None:
@@ -913,6 +916,15 @@ class BLSAuth:
         used. Once the real markup is captured, narrow this to the single
         confirmed input type and drop the loop.
         """
+        # Same injection delay as the email step — the password page builds its
+        # fields after load, so scanning immediately can find nothing.
+        try:
+            await page.wait_for_selector(
+                'input[type="password"]', state="attached", timeout=15000
+            )
+        except Exception:
+            logger.debug("auth: no password input appeared within 15s — scanning anyway")
+
         for input_type in PASSWORD_INPUT_TYPES:
             element = await utils.find_real_input(page, input_type)
             if element is None:
@@ -943,6 +955,44 @@ class BLSAuth:
         await utils.type_like_human(element, password)
         logger.info("auth: password filled via visibility fallback")
         return True
+
+    async def _wait_for_login_form(self, page: Page, timeout: float = 20.0) -> bool:
+        """Wait for the login form's inputs to be injected and laid out.
+
+        Waits for a text input inside a div.mb-3 wrapper that reports
+        display:block — i.e. the real field actually exists — rather than just
+        for the document to load.
+        """
+        waited = 0.0
+        step = 0.5
+        while waited < timeout:
+            try:
+                state = await page.evaluate(
+                    """
+                    () => {
+                      const inputs = document.querySelectorAll('input[type="text"]');
+                      let ready = 0;
+                      for (const el of inputs) {
+                        const w = el.closest('div.mb-3');
+                        if (w && getComputedStyle(w).display === 'block') ready++;
+                      }
+                      return { total: inputs.length, ready };
+                    }
+                    """
+                )
+            except Exception:
+                state = None
+            if state and state.get("ready", 0) >= 1:
+                if waited:
+                    logger.info(
+                        f"auth: login form ready after {waited:.1f}s "
+                        f"({state['total']} inputs, {state['ready']} real)"
+                    )
+                return True
+            await asyncio.sleep(step)
+            waited += step
+        logger.warning(f"auth: login form not ready within {timeout:.0f}s")
+        return False
 
     async def _click_verify(self, page: Page) -> bool:
         """Click the step-1 Verify button.
@@ -1066,19 +1116,21 @@ class BLSAuth:
             target = self._captcha_target(scan)
 
             if not tiles:
-                # Usually transient: mid-reload, or the grid is scrolled out of
-                # the viewport so elementFromPoint cannot see it. Scroll it into
-                # view and rescan before treating this as a real failure.
+                # Usually transient: the page is still re-rendering after a
+                # rejection or a reload navigation, or the grid is below the
+                # fold so elementFromPoint cannot see it. Wait for it properly
+                # rather than rescanning once and giving up.
                 logger.warning(
                     f"auth: no visible tile on attempt {attempt} "
                     f"(DOM has {scan.get('totalTiles')} col-4 divs, "
-                    f"{scan.get('totalLabels')} box-labels) — rescanning"
+                    f"{scan.get('totalLabels')} box-labels) — waiting for render"
                 )
                 await self._scroll_captcha_into_view(ctx)
-                await asyncio.sleep(1.0)
-                scan = await self._captcha_scan(ctx) or {}
-                tiles = scan.get("tiles") or []
-                target = self._captcha_target(scan) if scan else None
+                tiles = await self._wait_for_captcha_tiles(ctx)
+                if tiles:
+                    scan = await self._captcha_scan(ctx) or {}
+                    tiles = scan.get("tiles") or []
+                    target = self._captcha_target(scan) if scan else None
 
             if not tiles:
                 logger.error(
@@ -1356,7 +1408,10 @@ class BLSAuth:
             logger.info("-" * 60)
             self._log(f"captcha attempt {attempt} rejected", status="warn")
             await utils.screenshot(page, f"captcha-attempt{attempt}-rejected")
+            # The rejection re-renders the challenge; wait for the replacement
+            # grid instead of scanning the half-built page on the next pass.
             await utils.human_delay(self.config)
+            await self._wait_for_captcha_tiles(ctx)
 
         logger.error(f"auth: captcha not solved after {CAPTCHA_MAX_ATTEMPTS} attempts")
         self._log(f"captcha unsolved after {CAPTCHA_MAX_ATTEMPTS} attempts", status="error")
@@ -1515,18 +1570,23 @@ class BLSAuth:
         ``ctx`` may be a Page or the GenerateCaptcha frame, so nothing here may
         assume Page-only methods.
         """
-        # CONFIRMED: the verification modal exposes onReload().
-        if await self._reload_captcha_action(ctx):
-            await asyncio.sleep(1.0)
-            return
-        if await utils.click_by_text(
-            ctx,
-            ("reload images", "reload", "refresh"),
-            roles=("button", "a", "div", "span", "label"),
-            config=self.config,
-        ):
+        # CONFIRMED: both pages expose onReload(), but they behave differently.
+        # In the verification modal it swaps the grid in place; on the LOGIN
+        # captcha page it is a full 302 navigation. Either way, wait for the new
+        # grid to exist before returning — rescanning mid-navigation is what
+        # produced "DOM has 0 col-4 divs".
+        requested = await self._reload_captcha_action(ctx)
+        if not requested:
+            requested = await utils.click_by_text(
+                ctx,
+                ("reload images", "reload", "refresh"),
+                roles=("button", "a", "div", "span", "label"),
+                config=self.config,
+            )
+        if requested:
             logger.info("auth: requested a fresh captcha grid")
             await asyncio.sleep(1.0)
+            await self._wait_for_captcha_tiles(ctx)
         await utils.human_delay(self.config)
 
     async def _ensure_password_filled(self, page: Page) -> bool:
@@ -1590,6 +1650,30 @@ class BLSAuth:
             )
         except Exception:
             return None
+
+    async def _wait_for_captcha_tiles(
+        self, ctx: Any, timeout: float = 20.0
+    ) -> list[dict[str, Any]]:
+        """Wait until the grid has actually rendered, then return its tiles.
+
+        Both a rejected answer and onReload() re-render the challenge — on the
+        login page onReload() is a full 302 navigation. Scanning straight away
+        reads a half-built or empty document, which produced "0 col-4 divs" and
+        burned attempts on nothing.
+        """
+        waited = 0.0
+        step = 0.5
+        while waited < timeout:
+            scan = await self._captcha_scan(ctx)
+            tiles = (scan or {}).get("tiles") or []
+            if tiles:
+                if waited:
+                    logger.info(f"auth: grid rendered after {waited:.1f}s")
+                return tiles
+            await asyncio.sleep(step)
+            waited += step
+        logger.warning(f"auth: no captcha tiles rendered within {timeout:.0f}s")
+        return []
 
     async def _captcha_present(self, page: Page) -> bool:
         """True while a captcha challenge is on screen."""
