@@ -619,9 +619,16 @@ class BLSAuth:
         if not await self.solve_captcha(page):
             await self._check_for_captcha(page)  # manual /resume fallback
 
+        # Solving the captcha can complete the login by itself (the captcha form
+        # posts the credentials). Check before submitting again — otherwise
+        # _submit_login waits the full 20s for a LoginSubmit response that will
+        # never come, which cost ~20s on every successful login.
         await utils.human_delay(self.config)
-        await self._submit_login(page)
-        await self._settle(page)
+        if self._authenticated_url(page.url or ""):
+            logger.info("auth: already authenticated after the captcha — skipping resubmit")
+        else:
+            await self._submit_login(page)
+            await self._settle(page)
         self._log("password submitted", status="ok")
 
         # Snapshot the page state immediately, before any waiting, so the real
