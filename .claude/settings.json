@@ -32,7 +32,8 @@
       "Bash(awk '{print $3}')",
       "Bash(./.venv/Scripts/python.exe -m compileall -q bot.py modules dashboard tools)",
       "Bash(./.venv/Scripts/python.exe tools/grade_captcha.py)",
-      "Bash(./.venv/Scripts/python.exe -m compileall -q tools)"
+      "Bash(./.venv/Scripts/python.exe -m compileall -q tools)",
+      "Bash(./.venv/Scripts/python.exe -c \"import ast,sys; ast.parse\\(open\\('modules/monitor.py',encoding='utf-8'\\).read\\(\\)\\); print\\('monitor.py parses'\\)\")"
     ]
   }
 }
