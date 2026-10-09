@@ -1,0 +1,57 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T16:58:09
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+16:58:09 | INFO    | __main__ - ==============================================================
+16:58:09 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+16:58:09 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_165809.txt
+16:58:09 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+16:58:09 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+16:58:09 | INFO    | __main__ - ==============================================================
+16:58:09 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+16:58:09 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+16:58:09 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+16:58:09 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+16:58:10 | INFO    | modules.notifier - notifier: telegram listener started
+16:58:10 | INFO    | __main__ - single-cycle mode (--once)
+16:58:11 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+16:58:11 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+16:58:11 | INFO    | modules.auth - auth: http->https upgrade route installed
+16:58:11 | INFO    | modules.auth - auth: browser launched
+16:58:12 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:58:15 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:58:15 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+16:58:18 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+16:58:19 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+16:58:26 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+16:59:02 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+16:59:12 | WARNING | modules.monitor - monitor: captcha frame never finished rendering (https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha)
+16:59:14 | INFO    | modules.monitor - monitor: verification attempt 1/5
+16:59:14 | INFO    | modules.monitor - monitor: verification frame closed
+16:59:14 | INFO    | modules.monitor -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+16:59:14 | SUCCESS | modules.monitor - monitor: verification captcha passed
+16:59:15 | INFO    | modules.monitor - monitor: submitted the verification form
+16:59:15 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+16:59:18 | INFO    | modules.monitor - monitor: URL after verification submit — https://egypt.blsspainglobal.com/Global/bls/visatype?data=DDAM5xfi1L4yp6qguNdSJyr6C4MoCjeKRgupcqIHaj9y%2bPgvA19wnBz65aRCjR%2byfgIfR7YJFhvv3Tu5BPaOld%2bBczs4jS%2fwIguSa6uhcIG5mJ%2f1S74YIs0%2fQ%2fT2km7fojJZKNGdNqbII6%2f%2bLW1za08fAuMgUshv%2feK1ihDLUxE%3d
+16:59:18 | INFO    | modules.monitor - ============================================================
+16:59:18 | INFO    | modules.monitor - PAGE SURVEY (post-verification)
+16:59:18 | INFO    | modules.monitor -   url      : https://egypt.blsspainglobal.com/Global/bls/visatype?data=DDAM5xfi1L4yp6qguNdSJyr6C4MoCjeKRgupcqIHaj9y%2bPgvA19wnBz65aRCjR%2byfgIfR7YJFhvv3Tu5BPaOld%2bBczs4jS%2fwIguSa6uhcIG5mJ%2f1S74YIs0%2fQ%2fT2km7fojJZKNGdNqbII6%2f%2bLW1za08fAuMgUshv%2feK1ihDLUxE%3d
+16:59:18 | INFO    | modules.monitor -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+16:59:18 | INFO    | modules.monitor -   headings : ['BLS International']
+16:59:18 | INFO    | modules.monitor -   selects  : []
+16:59:18 | INFO    | modules.monitor -   buttons  : ['Submit']
+16:59:18 | INFO    | modules.monitor -   inputs   : ['AppointmentFor4', 'AppointmentFor4']
+16:59:18 | INFO    | modules.monitor -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', 'index.html', '/']
+16:59:18 | INFO    | modules.monitor - ============================================================
+16:59:18 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-165918_post-verification.png
+16:59:18 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-165918_post-verification.html
+16:59:18 | WARNING | modules.monitor - monitor: appointment route not confirmed yet — stopping after the survey. Set bls.paths.appointment (and clear appointment_path_confirmed) once the real URL is known.
+16:59:18 | INFO    | modules.auth - auth: session saved to session\cookies.json
+16:59:19 | INFO    | modules.auth - auth: browser closed
+16:59:20 | INFO    | modules.notifier - notifier: telegram listener stopped
+16:59:20 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-09T16:59:20

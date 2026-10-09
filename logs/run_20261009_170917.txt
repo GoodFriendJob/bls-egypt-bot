@@ -1,0 +1,351 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T17:09:17
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+17:09:17 | INFO    | __main__ - ==============================================================
+17:09:17 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+17:09:17 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_170917.txt
+17:09:17 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+17:09:17 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+17:09:17 | INFO    | __main__ - ==============================================================
+17:09:17 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+17:09:17 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+17:09:17 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+17:09:17 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+17:09:18 | INFO    | modules.notifier - notifier: telegram listener started
+17:09:18 | INFO    | __main__ - single-cycle mode (--once)
+17:09:19 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+17:09:19 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+17:09:19 | INFO    | modules.auth - auth: http->https upgrade route installed
+17:09:19 | INFO    | modules.auth - auth: browser launched
+17:09:20 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:09:23 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:09:23 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+17:09:26 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+17:09:26 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+17:09:34 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+17:09:49 | INFO    | modules.monitor - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+17:09:50 | INFO    | modules.monitor - monitor: verification attempt 1/5
+17:09:51 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-170950_verify-modal-attempt1.png
+17:09:51 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-170951_verify-frame-attempt1.html
+17:09:51 | INFO    | modules.monitor - monitor: captcha frame at x=484 y=126 (398x557)
+17:09:51 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=12 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=40
+17:09:51 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+17:09:51 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+17:09:51 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-170951_captcha-before.png
+17:09:51 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-170951_captcha-detected.html
+17:09:52 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:09:52 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:09:52 | INFO    | modules.auth - ------------------------------------------------------------
+17:09:52 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+17:09:52 | INFO    | modules.auth -   target number   : 412
+17:09:52 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:09:52 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:09:52 | INFO    | modules.auth - auth: captcha attempt 1: target=412, 12 visible tiles
+17:09:52 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:09:52 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:09:52 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:09:52 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:09:52 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-170952_target412_attempt1.png
+17:09:52 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-170952_target412_attempt1.png
+17:09:52 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:09:52 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:09:53 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:10:07 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:10:07 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:10:07 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:10:07 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:10:19 | INFO    | modules.vision - vision: model replied '3, 5, 8, 9'
+17:10:19 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:10:19 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:10:23 | INFO    | modules.auth -   click results   :
+17:10:23 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=True
+17:10:23 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=True
+17:10:23 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=True
+17:10:23 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=True
+17:10:24 | INFO    | modules.auth -   SelectedImages  : ''
+17:10:24 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:10:24 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:10:24 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171024_captcha-attempt1-before-submit.png
+17:10:34 | INFO    | modules.auth -   submit clicked  : False
+17:10:34 | ERROR   | modules.auth -   outcome         : ABORTED - Submit button not found
+17:10:34 | INFO    | modules.auth - auth: captcha aborted — no Submit button
+17:10:34 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171034_captcha-no-submit-attempt1.png
+17:10:34 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171034_captcha-no-submit-attempt1.html
+17:10:36 | INFO    | modules.monitor - monitor: verification attempt 2/5
+17:10:37 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171036_verify-modal-attempt2.png
+17:10:37 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171037_verify-frame-attempt2.html
+17:10:37 | INFO    | modules.monitor - monitor: captcha frame at x=484 y=126 (398x557)
+17:10:37 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=12 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=40
+17:10:37 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+17:10:37 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+17:10:37 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171037_captcha-before.png
+17:10:37 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171037_captcha-detected.html
+17:10:37 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:10:37 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:10:37 | INFO    | modules.auth - ------------------------------------------------------------
+17:10:37 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+17:10:37 | INFO    | modules.auth -   target number   : 412
+17:10:37 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:10:37 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:10:37 | INFO    | modules.auth - auth: captcha attempt 1: target=412, 12 visible tiles
+17:10:37 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:10:37 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:10:37 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:10:38 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:10:38 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171038_target412_attempt1.png
+17:10:38 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171038_target412_attempt1.png
+17:10:38 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:10:38 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:10:38 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:10:49 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:10:49 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:10:49 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:10:49 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:10:59 | INFO    | modules.vision - vision: model replied '3, 5, 8, 9'
+17:10:59 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:10:59 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:11:01 | WARNING | modules.auth - auth: tile wsbtmfj never gained .img-selected
+17:11:05 | WARNING | modules.auth - auth: tile fxrpkhb never gained .img-selected
+17:11:08 | WARNING | modules.auth - auth: tile objse never gained .img-selected
+17:11:11 | WARNING | modules.auth - auth: tile stgkyxhk never gained .img-selected
+17:11:12 | INFO    | modules.auth -   click results   :
+17:11:12 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=False
+17:11:12 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=False
+17:11:12 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=False
+17:11:12 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=False
+17:11:13 | INFO    | modules.auth -   SelectedImages  : ''
+17:11:13 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:11:13 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:11:13 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171113_captcha-attempt1-before-submit.png
+17:11:13 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 1/4)
+17:11:13 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171113_captcha-click-failed-attempt1.png
+17:11:15 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:11:15 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:11:15 | INFO    | modules.auth - ------------------------------------------------------------
+17:11:15 | INFO    | modules.auth - CAPTCHA attempt 2 of 4
+17:11:15 | INFO    | modules.auth -   target number   : 412
+17:11:15 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:11:15 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:11:15 | INFO    | modules.auth - auth: captcha attempt 2: target=412, 12 visible tiles
+17:11:15 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:11:15 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:11:15 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:11:16 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:11:16 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171116_target412_attempt2.png
+17:11:16 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171116_target412_attempt2.png
+17:11:16 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:11:16 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:11:16 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:11:27 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:11:27 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:11:27 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:11:28 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:11:39 | INFO    | modules.vision - vision: model replied '3, 5, 8, 9'
+17:11:39 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:11:39 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:11:43 | INFO    | modules.auth -   click results   :
+17:11:43 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=True
+17:11:43 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=True
+17:11:43 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=True
+17:11:43 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=True
+17:11:44 | INFO    | modules.auth -   SelectedImages  : ''
+17:11:44 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:11:44 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:11:44 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171144_captcha-attempt2-before-submit.png
+17:11:54 | INFO    | modules.auth -   submit clicked  : False
+17:11:54 | ERROR   | modules.auth -   outcome         : ABORTED - Submit button not found
+17:11:54 | INFO    | modules.auth - auth: captcha aborted — no Submit button
+17:11:54 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171154_captcha-no-submit-attempt2.png
+17:11:54 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171154_captcha-no-submit-attempt2.html
+17:11:57 | INFO    | modules.monitor - monitor: verification attempt 3/5
+17:11:57 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171157_verify-modal-attempt3.png
+17:11:57 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171157_verify-frame-attempt3.html
+17:11:57 | INFO    | modules.monitor - monitor: captcha frame at x=484 y=126 (398x557)
+17:11:57 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=12 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=40
+17:11:57 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+17:11:57 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+17:11:58 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171157_captcha-before.png
+17:11:58 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171158_captcha-detected.html
+17:11:58 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:11:58 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:11:58 | INFO    | modules.auth - ------------------------------------------------------------
+17:11:58 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+17:11:58 | INFO    | modules.auth -   target number   : 412
+17:11:58 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:11:58 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:11:58 | INFO    | modules.auth - auth: captcha attempt 1: target=412, 12 visible tiles
+17:11:58 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:11:58 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:11:58 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:11:59 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:11:59 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171159_target412_attempt1.png
+17:11:59 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171159_target412_attempt1.png
+17:11:59 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:11:59 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:11:59 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:12:09 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:12:09 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:12:09 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:12:10 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:12:20 | INFO    | modules.vision - vision: model replied '3, 5, 8, 9'
+17:12:20 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:12:20 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:12:22 | WARNING | modules.auth - auth: tile wsbtmfj never gained .img-selected
+17:12:25 | WARNING | modules.auth - auth: tile fxrpkhb never gained .img-selected
+17:12:29 | WARNING | modules.auth - auth: tile objse never gained .img-selected
+17:12:32 | WARNING | modules.auth - auth: tile stgkyxhk never gained .img-selected
+17:12:33 | INFO    | modules.auth -   click results   :
+17:12:33 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=False
+17:12:33 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=False
+17:12:33 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=False
+17:12:33 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=False
+17:12:34 | INFO    | modules.auth -   SelectedImages  : ''
+17:12:34 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:12:34 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:12:34 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171234_captcha-attempt1-before-submit.png
+17:12:34 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 1/4)
+17:12:34 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171234_captcha-click-failed-attempt1.png
+17:12:36 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:12:36 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:12:36 | INFO    | modules.auth - ------------------------------------------------------------
+17:12:36 | INFO    | modules.auth - CAPTCHA attempt 2 of 4
+17:12:36 | INFO    | modules.auth -   target number   : 412
+17:12:36 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:12:36 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:12:36 | INFO    | modules.auth - auth: captcha attempt 2: target=412, 12 visible tiles
+17:12:36 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:12:36 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:12:36 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:12:37 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:12:37 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171237_target412_attempt2.png
+17:12:37 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171237_target412_attempt2.png
+17:12:37 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:12:37 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:12:37 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:12:50 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:12:50 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:12:50 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:12:50 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:13:03 | INFO    | modules.vision - vision: model replied '3,5,8,9'
+17:13:03 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:13:03 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:13:07 | WARNING | modules.auth - auth: tile objse never gained .img-selected
+17:13:10 | WARNING | modules.auth - auth: tile stgkyxhk never gained .img-selected
+17:13:11 | INFO    | modules.auth -   click results   :
+17:13:11 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=True
+17:13:11 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=True
+17:13:11 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=False
+17:13:11 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=False
+17:13:12 | INFO    | modules.auth -   SelectedImages  : ''
+17:13:12 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:13:12 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:13:12 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171312_captcha-attempt2-before-submit.png
+17:13:12 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 2/4)
+17:13:13 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171312_captcha-click-failed-attempt2.png
+17:13:15 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:13:15 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:13:15 | INFO    | modules.auth - ------------------------------------------------------------
+17:13:15 | INFO    | modules.auth - CAPTCHA attempt 3 of 4
+17:13:15 | INFO    | modules.auth -   target number   : 412
+17:13:15 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:13:15 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:13:15 | INFO    | modules.auth - auth: captcha attempt 3: target=412, 12 visible tiles
+17:13:15 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:13:15 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:13:15 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:13:15 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:13:15 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171315_target412_attempt3.png
+17:13:15 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171315_target412_attempt3.png
+17:13:15 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:13:15 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:13:16 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:13:27 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:13:27 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:13:27 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:13:27 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:13:39 | INFO    | modules.vision - vision: model replied '3, 5, 8, 9'
+17:13:39 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:13:39 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:13:42 | WARNING | modules.auth - auth: tile wsbtmfj never gained .img-selected
+17:13:45 | WARNING | modules.auth - auth: tile fxrpkhb never gained .img-selected
+17:13:47 | INFO    | modules.auth -   click results   :
+17:13:47 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=True  img-selected=False
+17:13:47 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=True  img-selected=False
+17:13:47 | INFO    | modules.auth -       id=objse          number=None   clicked=True  img-selected=True
+17:13:47 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=True  img-selected=True
+17:13:48 | INFO    | modules.auth -   SelectedImages  : ''
+17:13:48 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:13:48 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:13:49 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171348_captcha-attempt3-before-submit.png
+17:13:49 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 3/4)
+17:13:49 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171349_captcha-click-failed-attempt3.png
+17:13:50 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+17:13:50 | INFO    | modules.auth - auth: prompt 412 chosen (contrast=14.83, z-index=927, color=rgb(33, 37, 41))
+17:13:50 | INFO    | modules.auth - ------------------------------------------------------------
+17:13:50 | INFO    | modules.auth - CAPTCHA attempt 4 of 4
+17:13:50 | INFO    | modules.auth -   target number   : 412
+17:13:50 | INFO    | modules.auth -   visible tiles   : 12 (of 57 col-4 divs in the DOM)
+17:13:50 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+17:13:50 | INFO    | modules.auth - auth: captcha attempt 4: target=412, 12 visible tiles
+17:13:50 | INFO    | modules.auth -   grid order      : 1:ebgyalugk, 2:ixagsxoo, 3:wsbtmfj, 4:hlxpnxf, 5:fxrpkhb, 6:akfgvhf, 7:mosxicmpw, 8:objse, 9:stgkyxhk, 10:?, 11:?, 12:?
+17:13:50 | WARNING | modules.auth -   grid size       : 12 tiles — expected 9. The visible-tile filter may be matching stacked grids.
+17:13:50 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+17:13:51 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:13:51 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-171351_target412_attempt4.png
+17:13:51 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-171351_target412_attempt4.png
+17:13:51 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+17:13:51 | WARNING | modules.vision - vision: expected 12 tile crops, produced 9
+17:13:51 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:14:02 | INFO    | modules.vision - vision: model replied '544,258,412,412,704,412,267,412,412'
+17:14:02 | WARNING | modules.vision - vision: expected 12 numbers but parsed 9 from '544,258,412,412,704,412,267,412,412'
+17:14:02 | WARNING | modules.auth -   tiles read      : unusable — falling back to asking for positions directly
+17:14:02 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+17:14:06 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+17:14:14 | INFO    | modules.vision - vision: model replied '3,5,8,9'
+17:14:14 | INFO    | modules.auth -   vision positions: [3, 5, 8, 9]
+17:14:14 | INFO    | modules.auth -   matched tiles   : 4 -> ['wsbtmfj', 'fxrpkhb', 'objse', 'stgkyxhk']
+17:14:14 | WARNING | modules.auth - auth: Select('wsbtmfj') threw: Frame.evaluate: Frame was detached
+17:14:14 | WARNING | modules.auth - auth: Select('fxrpkhb') threw: Frame.evaluate: Frame was detached
+17:14:14 | WARNING | modules.auth - auth: Select('objse') threw: Frame.evaluate: Frame was detached
+17:14:14 | WARNING | modules.auth - auth: Select('stgkyxhk') threw: Frame.evaluate: Frame was detached
+17:14:14 | INFO    | modules.auth -   click results   :
+17:14:14 | INFO    | modules.auth -       id=wsbtmfj        number=None   clicked=False  img-selected=select-error
+17:14:14 | INFO    | modules.auth -       id=fxrpkhb        number=None   clicked=False  img-selected=select-error
+17:14:14 | INFO    | modules.auth -       id=objse          number=None   clicked=False  img-selected=select-error
+17:14:14 | INFO    | modules.auth -       id=stgkyxhk       number=None   clicked=False  img-selected=select-error
+17:14:15 | INFO    | modules.auth -   SelectedImages  : None
+17:14:15 | INFO    | modules.auth -   expected ids    : ['fxrpkhb', 'objse', 'stgkyxhk', 'wsbtmfj']
+17:14:15 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+17:14:15 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171415_captcha-attempt4-before-submit.png
+17:14:15 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 4/4)
+17:14:15 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171415_captcha-click-failed-attempt4.png
+17:14:16 | INFO    | modules.monitor - monitor: verification attempt 4/5
+17:14:16 | INFO    | modules.monitor - monitor: verification frame closed
+17:14:16 | INFO    | modules.monitor -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+17:14:16 | SUCCESS | modules.monitor - monitor: verification captcha passed
+17:14:17 | INFO    | modules.monitor - monitor: submitted the verification form
+17:14:17 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+17:14:20 | INFO    | modules.monitor - monitor: URL after verification submit — https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrCksCAqEkoIdbvZSv56NP07IyDDCuUPle2RpQIo%2brI%2fwzRzfA9it1IJq9QacT0yje4%3d
+17:14:20 | INFO    | modules.monitor - ============================================================
+17:14:20 | INFO    | modules.monitor - PAGE SURVEY (post-verification)
+17:14:20 | INFO    | modules.monitor -   url      : https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrCksCAqEkoIdbvZSv56NP07IyDDCuUPle2RpQIo%2brI%2fwzRzfA9it1IJq9QacT0yje4%3d
+17:14:20 | INFO    | modules.monitor -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+17:14:20 | INFO    | modules.monitor -   headings : ['BLS International']
+17:14:20 | INFO    | modules.monitor -   selects  : []
+17:14:20 | INFO    | modules.monitor -   buttons  : ['Submit']
+17:14:20 | INFO    | modules.monitor -   inputs   : ['AppointmentFor3', 'AppointmentFor3']
+17:14:20 | INFO    | modules.monitor -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', 'index.html', '/']
+17:14:20 | INFO    | modules.monitor - ============================================================
+17:14:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-171420_post-verification.png
+17:14:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-171420_post-verification.html
+17:14:20 | WARNING | modules.monitor - monitor: appointment route not confirmed yet — stopping after the survey. Set bls.paths.appointment (and clear appointment_path_confirmed) once the real URL is known.
+17:14:20 | INFO    | modules.auth - auth: session saved to session\cookies.json
+17:14:21 | INFO    | modules.auth - auth: browser closed
+17:14:21 | INFO    | modules.notifier - notifier: telegram listener stopped
+17:14:21 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-09T17:14:21
