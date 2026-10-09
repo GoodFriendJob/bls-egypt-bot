@@ -31,6 +31,13 @@ from modules.state import (
 # page dump taken on arrival. Selectors below are therefore best-effort and the
 # modal is dumped on every encounter so they can be tightened.
 # --------------------------------------------------------------------------- #
+# CONFIRMED: the challenge is a Kendo UI window wrapping an IFRAME:
+#   <iframe class="k-content-frame" src="/Global/NewCaptcha/GenerateCaptcha">
+# So the grid is neither in the parent document nor in a window.open() popup —
+# it is a separate frame, and every query and click must target that frame.
+CAPTCHA_FRAME_HINT = "generatecaptcha"
+CAPTCHA_FRAME_TIMEOUT = 30.0
+
 VERIFY_SELECTION_TEXTS = ("verify selection", "verify")
 SUBMIT_SELECTION_TEXTS = ("submit selection",)
 RELOAD_IMAGES_TEXTS = ("reload images", "reload", "refresh")
@@ -115,6 +122,7 @@ _VERIFY_SCAN_JS = r"""
     if (!visible(el)) continue;
     const r = el.getBoundingClientRect();
     tiles.push({
+      el: el,
       num: t,
       id: el.id || '',
       tag: el.tagName.toLowerCase(),
@@ -126,9 +134,37 @@ _VERIFY_SCAN_JS = r"""
   }
   tiles.sort((a, b) => (Math.abs(a.rect.y - b.rect.y) > 15 ? a.rect.y - b.rect.y : a.rect.x - b.rect.x));
 
-  return { prompts, tiles };
+  // Tag each tile so Python can grab the exact element by selector and click it
+  // directly. Clicking by page coordinates is wrong inside an iframe: frame
+  // coordinates and page coordinates are different spaces.
+  document.querySelectorAll('[data-bot-tile]').forEach(
+    (el) => el.removeAttribute('data-bot-tile'));
+  tiles.forEach((t, i) => { t.el.setAttribute('data-bot-tile', String(i + 1)); });
+
+  return { prompts, tiles: tiles.map((t) => ({
+    num: t.num, id: t.id, tag: t.tag, cls: t.cls,
+    hasOnclick: t.hasOnclick, selected: t.selected, rect: t.rect,
+  })) };
 }
 """
+
+def _frame_gone(frame: Any) -> bool:
+    """True once the captcha frame has been detached (the success signal).
+
+    A Frame has is_detached(); only a Page has is_closed(). Mixing them up
+    raises AttributeError mid-flow, so the check lives here.
+    """
+    if frame is None:
+        return True
+    try:
+        if hasattr(frame, "is_detached"):
+            return bool(frame.is_detached())
+        if hasattr(frame, "is_closed"):
+            return bool(frame.is_closed())
+    except Exception:
+        return True
+    return False
+
 
 # Slot cells on the calendar, used as a structural signal alongside page text.
 SLOT_PROBES = (
@@ -298,25 +334,33 @@ class Monitor:
         # (it has its own title bar), in which case the grid is not in this
         # page's DOM at all and every later step must target the popup instead.
         main_page = page
-        work = await self._open_verification_popup(page)
-        if work is None:
+        opened = await self._open_verification_popup(page)
+        if opened is None:
             logger.warning("monitor: could not open the verification challenge")
             await utils.screenshot(page, "verify-no-button")
             await utils.dump_page_html(page, "verify-no-button")
             return False
-        if work is not main_page:
-            logger.info(f"monitor: verification runs in a popup — {work.url}")
-            self._install_dialog_handler(work)
-        # `work` holds the grid; `main_page` is where Verified/Submit appear once
-        # the popup closes. They are different documents when a popup is used.
+
+        # CONFIRMED: the grid is served inside the GenerateCaptcha iframe, so
+        # the solving context is that frame — not the parent page, and not a
+        # popup (iframes are not pages, which is why expect_page found nothing).
+        work = await self._wait_for_captcha_frame(opened)
+        if work is None:
+            logger.error(
+                "monitor: the verification iframe never appeared — the challenge "
+                "cannot be read"
+            )
+            await utils.screenshot(opened, "verify-no-frame")
+            await utils.dump_page_html(opened, "verify-no-frame")
+            return False
         await utils.human_delay(self.config)
 
         for attempt in range(1, VERIFY_MAX_ATTEMPTS + 1):
             logger.info(f"monitor: verification attempt {attempt}/{VERIFY_MAX_ATTEMPTS}")
 
-            if work.is_closed():
-                # The popup closes on success; the outcome lives on the parent.
-                logger.info("monitor: verification popup closed")
+            if _frame_gone(work):
+                # The frame is torn down on success; the outcome is on the parent.
+                logger.info("monitor: verification frame closed")
                 state = await self._gate_state(main_page)
                 if state.get("submit") or state.get("verified"):
                     logger.success("monitor: verification captcha passed")
@@ -329,8 +373,10 @@ class Monitor:
 
             # The grid is injected on click, so capture it every attempt — these
             # artifacts are what the selectors get tightened against.
-            await utils.screenshot(work, f"verify-modal-attempt{attempt}")
-            await utils.dump_page_html(work, f"verify-modal-attempt{attempt}")
+            # Screenshot from the page (a Frame cannot screenshot), but dump the
+            # FRAME's html — that is where the grid markup actually lives.
+            await utils.screenshot(main_page, f"verify-modal-attempt{attempt}")
+            await utils.dump_page_html(work, f"verify-frame-attempt{attempt}")
 
             # STEP 2 — solve and submit the selection, in the popup.
             self._dialogs.clear()
@@ -348,8 +394,8 @@ class Monitor:
             )
 
             if submitted and not rejected:
-                if not work.is_closed():
-                    await self._settle(work)
+                if not _frame_gone(work):
+                    await asyncio.sleep(1.0)
                 # Verified / Submit appear on the PARENT page, never the popup.
                 state = await self._gate_state(main_page)
                 if state.get("submit") or state.get("verified"):
@@ -362,13 +408,13 @@ class Monitor:
             elif rejected:
                 logger.warning(f"  outcome         : REJECTED — {alerts}")
 
-            if attempt < VERIFY_MAX_ATTEMPTS and not work.is_closed():
+            if attempt < VERIFY_MAX_ATTEMPTS and not _frame_gone(work):
                 await self._reload_captcha_images(work)
                 await utils.human_delay(self.config)
 
         logger.error("monitor: verification not cleared after all attempts")
-        await utils.screenshot(page, "verify-failed")
-        await utils.dump_page_html(page, "verify-failed")
+        await utils.screenshot(main_page, "verify-failed")
+        await utils.dump_page_html(main_page, "verify-failed")
         await self.notifier.manual_required(
             "Could not clear the visa-type verification page automatically. "
             "Complete it in the browser, then send /resume."
@@ -382,10 +428,15 @@ class Monitor:
             return await self._submit_verified_form(main_page)
         return False
 
-    async def _solve_text_captcha(self, page: Any, attempt: int) -> bool:
-        """Solve the modal captcha by reading tile numbers straight from the DOM."""
+    async def _solve_text_captcha(self, ctx: Any, attempt: int) -> bool:
+        """Solve the captcha by reading tile numbers from the DOM.
+
+        ``ctx`` is a Page or a Frame — the verification grid lives inside the
+        /Global/NewCaptcha/GenerateCaptcha iframe, so this normally runs against
+        that frame.
+        """
         try:
-            scan = await page.evaluate(_VERIFY_SCAN_JS)
+            scan = await ctx.evaluate(_VERIFY_SCAN_JS)
         except Exception as exc:
             logger.warning(f"monitor: verification scan failed: {exc}")
             return False
@@ -406,31 +457,33 @@ class Monitor:
             + ", ".join(f"{i}:{t['num']}" for i, t in enumerate(tiles, 1))
         )
 
-        matches = [t for t in tiles if t["num"] == target]
-        logger.info(f"  verify matches  : {len(matches)} tile(s) showing {target}")
-        if not matches:
+        wanted = [i for i, t in enumerate(tiles, 1) if t["num"] == target]
+        logger.info(f"  verify matches  : {len(wanted)} tile(s) showing {target} -> {wanted}")
+        if not wanted:
             logger.warning(f"monitor: no tile shows {target}")
             return False
 
-        # Click by geometry — ids here are not guaranteed stable or present.
-        for index, tile in enumerate(matches, 1):
-            cx = tile["rect"]["x"] + tile["rect"]["w"] / 2
-            cy = tile["rect"]["y"] + tile["rect"]["h"] / 2
+        # Click the tagged elements directly. Coordinate clicks would be wrong
+        # here: inside an iframe, frame coordinates are a different space from
+        # page coordinates, so page.mouse would land somewhere else entirely.
+        for position in wanted:
             try:
-                await page.mouse.click(cx, cy)
-                logger.debug(f"  clicked verify tile {index}/{len(matches)} ({tile['num']})")
+                element = await ctx.query_selector(f'[data-bot-tile="{position}"]')
+                if element is None:
+                    logger.warning(f"monitor: tile {position} vanished before the click")
+                    return False
+                await element.click()
+                logger.debug(f"  clicked verify tile at position {position}")
             except Exception as exc:
-                logger.warning(f"monitor: could not click verify tile {tile['num']}: {exc}")
+                logger.warning(f"monitor: could not click verify tile {position}: {exc}")
                 return False
             await asyncio.sleep(0.5)
 
-        await utils.screenshot(page, f"verify-selected-attempt{attempt}")
-
-        if not await utils.click_by_text(page, SUBMIT_SELECTION_TEXTS, config=self.config):
-            logger.warning("monitor: no 'Submit Selection' button found")
+        if not await utils.click_by_text(ctx, SUBMIT_SELECTION_TEXTS, config=self.config):
+            logger.warning("monitor: no 'Submit Selection' button found in the frame")
             return False
         logger.info("  verify submit   : clicked")
-        await self._settle(page)
+        await asyncio.sleep(1.5)
         return True
 
     async def _accept_consents(self, page: Any) -> None:
@@ -439,6 +492,61 @@ class Monitor:
             if await utils.click_by_text(page, (text,), config=self.config):
                 logger.info(f"monitor: accepted consent — {text!r}")
                 await self._settle(page)
+
+    async def _wait_for_captcha_frame(
+        self, page: Any, timeout: float = CAPTCHA_FRAME_TIMEOUT
+    ) -> Any | None:
+        """Wait for the GenerateCaptcha iframe and for its grid to render.
+
+        The Kendo loading mask sits over the window until the frame's content
+        arrives, which is the spinner that appeared to hang: the frame existed
+        but was still empty when the parent document was scanned.
+        """
+        waited = 0.0
+        step = 0.5
+        frame = None
+        while waited < timeout:
+            for candidate in page.frames:
+                if CAPTCHA_FRAME_HINT in (candidate.url or "").lower():
+                    frame = candidate
+                    break
+            if frame is not None:
+                try:
+                    ready = await frame.evaluate(
+                        """
+                        () => {
+                          const txt = (document.body && document.body.innerText) || '';
+                          const hasPrompt = /number\\s+\\d+/i.test(txt);
+                          const nums = Array.from(document.querySelectorAll('body *'))
+                            .filter((el) => /^\\d{2,5}$/.test((el.innerText || '').trim()));
+                          return { hasPrompt, tiles: nums.length,
+                                   chars: txt.trim().length };
+                        }
+                        """
+                    )
+                except Exception:
+                    ready = None
+                if ready and ready.get("hasPrompt") and ready.get("tiles", 0) >= 4:
+                    logger.info(
+                        f"monitor: captcha frame ready — {ready['tiles']} number "
+                        f"element(s), url={frame.url}"
+                    )
+                    return frame
+                if waited and int(waited) % 5 == 0:
+                    logger.debug(f"monitor: captcha frame still loading — {ready}")
+            await asyncio.sleep(step)
+            waited += step
+
+        if frame is None:
+            logger.warning(
+                f"monitor: no frame matching {CAPTCHA_FRAME_HINT!r} after "
+                f"{timeout:.0f}s; frames seen: {[f.url for f in page.frames]}"
+            )
+        else:
+            logger.warning(
+                f"monitor: captcha frame never finished rendering ({frame.url})"
+            )
+        return frame
 
     async def _open_verification_popup(self, page: Any) -> Any | None:
         """Click "Verify Selection" and return the page holding the challenge.
