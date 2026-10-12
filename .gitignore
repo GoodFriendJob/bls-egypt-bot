@@ -3,7 +3,6 @@ config.yaml
 config.local.yaml
 session/
 !session/.gitkeep
-docs/
 !docs/.gitkeep
 
 # --- Run artifacts ARE committed on purpose ---
