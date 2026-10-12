@@ -3,6 +3,11 @@ config.yaml
 config.local.yaml
 session/
 !session/.gitkeep
+
+# Applicant documents: passport scan and photo. These MUST stay out of git —
+# they were committed once (893472a) when this line was removed, so do not
+# delete it again. Scans and photos are identity documents, not build inputs.
+docs/
 !docs/.gitkeep
 
 # --- Run artifacts ARE committed on purpose ---
