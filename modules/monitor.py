@@ -1059,10 +1059,132 @@ class Monitor:
         await self._upload_photo(page)
         await utils.screenshot(page, "appointment-details-filled")
 
-        # Last step of this page: request the emailed code and verify it.
-        await self._verify_email(page)
+        # Request the emailed code and verify it.
+        if not await self._verify_email(page):
+            logger.warning("monitor: email not verified — cannot finalise")
+            logger.info("=" * 60)
+            return False
+
+        # Finally: Verify Appointment, then Submit Appointment.
+        ok = await self._finalise_appointment(page)
         logger.info("=" * 60)
+        return ok
+
+    async def _finalise_appointment(self, page: Any) -> bool:
+        """Verify and submit the appointment, securing the slot.
+
+        CONFIRMED controls, all hidden until their prerequisites are met:
+            #btnVerifyAppointment    onclick="VerifyAppointment(event,this)"
+            #btnVerifiedAppointment  (revealed once accepted)
+            #btnSubmit               onclick="return OnAppointmentSubmit(event)"
+
+        This books the slot. It is not a payment step — payment comes later and
+        the bot stops there by design.
+        """
+        # Mobile verification may also be demanded; it needs an SMS the bot
+        # cannot read, so hand over rather than stalling silently.
+        try:
+            mobile_needed = await page.evaluate(
+                """
+                () => {
+                  const box = document.querySelector('.div-mobile-code');
+                  if (!box) return false;
+                  return getComputedStyle(box).display !== 'none';
+                }
+                """
+            )
+        except Exception:
+            mobile_needed = False
+        if mobile_needed:
+            logger.warning("monitor: mobile verification required — handing over")
+            shot = await utils.screenshot(page, "appointment-mobile-verification")
+            self.state.set_manual_pause("mobile verification code")
+            await self.notifier.manual_required(
+                "The booking needs an SMS verification code, which the bot cannot "
+                "read. Enter it in the browser, then send /resume.",
+                screenshot=shot,
+            )
+            await self.notifier.wait_for_resume()
+            self.state.clear_manual_pause()
+
+        for label, fn, button_id in (
+            ("verify appointment", "VerifyAppointment", "btnVerifyAppointment"),
+            ("submit appointment", "OnAppointmentSubmit", "btnSubmit"),
+        ):
+            clicked = await self._click_when_ready(page, button_id, fn)
+            if not clicked:
+                logger.error(f"  {label:<22}: control never became available")
+                await utils.screenshot(page, f"appointment-{button_id}-missing")
+                await utils.dump_page_html(page, f"appointment-{button_id}-missing")
+                return False
+            logger.success(f"  {label:<22}: clicked")
+            await self._settle(page)
+            await asyncio.sleep(2.0)
+
+        await utils.screenshot(page, "appointment-submitted")
+        await utils.dump_page_html(page, "appointment-submitted")
+        logger.success(f"monitor: appointment submitted — now at {page.url}")
+        self.state.log_event("bot", "APPOINTMENT SUBMITTED", status="ok")
+        await self.notifier.send(
+            "✅ Appointment details submitted — the slot is being held.\n"
+            f"Page: {page.url[:120]}\n\n"
+            "The next stage is payment. The bot will stop there and ask you to "
+            "take over."
+        )
+        await self._survey_page(page, "after-appointment-submit")
         return True
+
+    async def _click_when_ready(
+        self, page: Any, button_id: str, fallback_fn: str, timeout: float = 30.0
+    ) -> bool:
+        """Click a button once the page reveals it, or call its handler.
+
+        These controls start style="display:none" and are shown only when their
+        preconditions are satisfied, so clicking immediately would miss them.
+        """
+        waited = 0.0
+        while waited < timeout:
+            try:
+                state = await page.evaluate(
+                    """
+                    (args) => {
+                      const el = document.getElementById(args.id);
+                      if (!el) return 'missing';
+                      const shown = getComputedStyle(el).display !== 'none';
+                      if (!shown) return 'hidden';
+                      if (el.disabled) return 'disabled';
+                      el.click();
+                      return 'clicked';
+                    }
+                    """,
+                    {"id": button_id},
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: {button_id} probe failed: {exc}")
+                state = "error"
+            if state == "clicked":
+                return True
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
+        logger.warning(f"monitor: #{button_id} never appeared — trying {fallback_fn}()")
+        try:
+            called = await page.evaluate(
+                """
+                (name) => {
+                  if (typeof window[name] === 'function') {
+                    window[name](new Event('click'), null);
+                    return true;
+                  }
+                  return false;
+                }
+                """,
+                fallback_fn,
+            )
+            return bool(called)
+        except Exception as exc:
+            logger.debug(f"monitor: {fallback_fn}() failed: {exc}")
+            return False
 
     async def _verify_email(self, page: Any) -> bool:
         """Request the email verification code, read it, and submit it.
