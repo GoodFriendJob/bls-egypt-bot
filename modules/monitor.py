@@ -373,6 +373,9 @@ class Monitor:
         self._page_stage: str | None = None
         self._needs_restart = False
         self._needs_reverify = False
+        # Rotates through bls.locations so consecutive rounds ask about
+        # different centres rather than hammering the same one.
+        self._location_index = 0
 
         # Native JS dialogs raised by the verification captcha.
         self._dialogs: list[str] = []
@@ -466,7 +469,7 @@ class Monitor:
         # Verification lands on /Global/bls/visatype?data=... — the appointment
         # form. Its URL carries a one-time token, so it can only be reached by
         # clicking through; navigating to a fixed URL will never work.
-        primary = self.locations[0] if self.locations else "cairo"
+        primary = self.next_location()
         if not await self.complete_visatype_form(page, primary):
             logger.error("monitor: could not complete the appointment form")
             self.state.log_event("bot", "appointment form not completed", status="error")
@@ -914,9 +917,15 @@ class Monitor:
         # SUCCESS: the portal moves on to the appointment manager.
         if "manageappointment" in (page.url or "").lower():
             logger.success(f"monitor: appointment page reached — {page.url}")
-            self.state.log_event("bot", "reached the appointment page", status="ok")
+            self.state.log_event("bot", "SLOTS AVAILABLE — booking page reached", status="ok")
             self._last_form_result = "appointment_page"
+            await self.notifier.slot_found(location, "booking page reached")
             await self._survey_page(page, "manage-appointment")
+
+            # Step 1 of the booking: date -> time slot -> photo, in that order.
+            if not await self.complete_appointment_details(page):
+                logger.warning("monitor: could not complete the appointment details")
+                self._last_form_result = "no_slots"
             return True
 
         # The form rejects an incomplete submission inline, e.g.
@@ -1006,6 +1015,232 @@ class Monitor:
             f"(options seen: {result.get('options')})"
         )
         return False
+
+    def next_location(self) -> str:
+        """The centre to ask about this round, rotating through bls.locations.
+
+        Each centre has its own slot pool, so asking about the same one every
+        time both misses openings elsewhere and repeats an identical request.
+        Round 1 takes the first configured location, round 2 the next, and so on.
+        """
+        if not self.locations:
+            return "cairo"
+        location = self.locations[self._location_index % len(self.locations)]
+        self._location_index += 1
+        if len(self.locations) > 1:
+            logger.info(
+                f"monitor: this round checks {location!r} "
+                f"(round {self._location_index}, rotating {self.locations})"
+            )
+        return location
+
+    async def complete_appointment_details(self, page: Any) -> bool:
+        """Fill the booking page's first step: date, time slot, photo.
+
+        Order is fixed by the page itself — the Time Slot dropdown stays
+        disabled until a date is chosen, and the slot list is fetched for that
+        date. Availability is colour-coded: green is free, red is booked, grey
+        is unselectable, so only green is ever clicked.
+        """
+        logger.info("=" * 60)
+        logger.info("APPOINTMENT DETAILS (date / slot / photo)")
+        await utils.dump_page_html(page, "manage-appointment")
+
+        if not await self._pick_green_date(page):
+            await utils.screenshot(page, "appointment-no-green-date")
+            logger.warning("monitor: no selectable (green) date offered")
+            return False
+
+        if not await self._pick_green_slot(page):
+            await utils.screenshot(page, "appointment-no-green-slot")
+            logger.warning("monitor: no free (green) time slot for that date")
+            return False
+
+        await self._upload_photo(page)
+        await utils.screenshot(page, "appointment-details-filled")
+        logger.info("=" * 60)
+        return True
+
+    async def _pick_green_date(self, page: Any) -> bool:
+        """Open the live date picker and click an available day.
+
+        The page carries decoy pickers (AppointmentDate1..5); all but one are
+        k-state-disabled, so the enabled one is the real field. Availability is
+        shown by cell colour, so green is detected from the computed background
+        rather than a class name, which is random here as everywhere else.
+        """
+        try:
+            opened = await page.evaluate(
+                """
+                () => {
+                  for (const inp of document.querySelectorAll('input[data-role="datepicker"]')) {
+                    if (inp.disabled) continue;
+                    const wrap = inp.closest('.k-picker-wrap');
+                    if (wrap && wrap.classList.contains('k-state-disabled')) continue;
+                    const dp = window.jQuery && jQuery(inp).data('kendoDatePicker');
+                    if (!dp) continue;
+                    dp.open();
+                    return inp.id;
+                  }
+                  return null;
+                }
+                """
+            )
+        except Exception as exc:
+            logger.warning(f"monitor: could not open the date picker: {exc}")
+            return False
+        if not opened:
+            logger.warning("monitor: no enabled date picker on the page")
+            return False
+        logger.info(f"  date picker           : opened #{opened}")
+        await asyncio.sleep(1.2)
+        await utils.screenshot(page, "appointment-calendar-open")
+
+        try:
+            picked = await page.evaluate(
+                """
+                (pickerId) => {
+                  const green = (el) => {
+                    const bg = getComputedStyle(el).backgroundColor || '';
+                    const m = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(bg);
+                    if (!m) return false;
+                    const r = +m[1], g = +m[2], b = +m[3];
+                    // Clearly green: dominant green channel, not grey/red/amber.
+                    return g > 90 && g > r + 40 && g > b + 40;
+                  };
+                  const cells = Array.from(
+                    document.querySelectorAll('.k-calendar td, .k-calendar .k-link'));
+                  const options = [];
+                  for (const cell of cells) {
+                    if (cell.classList.contains('k-state-disabled')) continue;
+                    if (cell.classList.contains('k-other-month')) continue;
+                    const link = cell.matches('.k-link') ? cell : cell.querySelector('.k-link');
+                    const paint = green(cell) || (link && green(link));
+                    const text = ((link || cell).innerText || '').trim();
+                    if (!text) continue;
+                    options.push({ text, green: !!paint });
+                    if (paint) {
+                      (link || cell).click();
+                      return { clicked: text, offered: options };
+                    }
+                  }
+                  return { clicked: null, offered: options };
+                }
+                """,
+                opened,
+            )
+        except Exception as exc:
+            logger.warning(f"monitor: date selection failed: {exc}")
+            return False
+
+        offered = picked.get("offered") or []
+        logger.info(
+            "  days offered          : "
+            + ", ".join(f"{d['text']}{'*' if d['green'] else ''}" for d in offered[:31])
+            + "   (* = available)"
+        )
+        if not picked.get("clicked"):
+            return False
+        logger.success(f"  date chosen           : {picked['clicked']}")
+        await self._settle(page)
+        await asyncio.sleep(1.5)
+        return True
+
+    async def _pick_green_slot(self, page: Any) -> bool:
+        """Choose a free time slot once a date has been picked.
+
+        The Kendo template renders each slot with bg-success when free and
+        bg-danger when booked (Count < Code), so a date can be selectable while
+        every slot on it is full — only green is acceptable.
+        """
+        try:
+            result = await page.evaluate(
+                """
+                () => {
+                  let dd = null, id = null;
+                  for (const inp of document.querySelectorAll('input[data-role="dropdownlist"]')) {
+                    if (!/AppointmentSlot/i.test(inp.id || '')) continue;
+                    if (inp.disabled) continue;
+                    const w = window.jQuery && jQuery(inp).data('kendoDropDownList');
+                    if (!w) continue;
+                    dd = w; id = inp.id; break;
+                  }
+                  if (!dd) return { ok: false, reason: 'no enabled slot dropdown' };
+
+                  const data = dd.dataSource.data() || [];
+                  const slots = [];
+                  let chosen = null;
+                  for (let i = 0; i < data.length; i++) {
+                    const item = data[i];
+                    const name = String(item.Name || '');
+                    // Mirrors the page's own template: Count < Code means full.
+                    const free = !(Number(item.Count) < Number(item.Code));
+                    slots.push({ name, free });
+                    if (free && !chosen && name && !/^-+\\s*select/i.test(name)) {
+                      chosen = { name, id: item.Id, index: i };
+                    }
+                  }
+                  if (!chosen) return { ok: false, reason: 'all slots booked', slots, id };
+                  dd.value(chosen.id);
+                  dd.trigger('change');
+                  return { ok: true, chosen: chosen.name, slots, id };
+                }
+                """
+            )
+        except Exception as exc:
+            logger.warning(f"monitor: slot selection failed: {exc}")
+            return False
+
+        slots = result.get("slots") or []
+        if slots:
+            logger.info(
+                "  slots offered         : "
+                + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
+                + "   (* = free)"
+            )
+        if not result.get("ok"):
+            logger.warning(f"  slot                  : {result.get('reason')}")
+            return False
+        logger.success(f"  slot chosen           : {result.get('chosen')!r}")
+        await asyncio.sleep(1.0)
+        return True
+
+    async def _upload_photo(self, page: Any) -> bool:
+        """Attach the applicant photo to the booking form."""
+        photo = (self.config.get("applicant", {}) or {}).get("documents", {}).get("photo")
+        if not photo:
+            logger.warning("  photo                 : not configured")
+            return False
+        from pathlib import Path as _Path
+
+        path = _Path(photo)
+        if not path.is_absolute():
+            path = _Path.cwd() / path
+        if not path.exists():
+            logger.error(f"  photo                 : MISSING at {path}")
+            self.state.log_event("bot", f"photo not found: {photo}", status="error")
+            return False
+        size_kb = path.stat().st_size / 1024
+        if size_kb > 200:
+            logger.warning(
+                f"  photo                 : {size_kb:.0f} KB — the form requires "
+                "under 200 KB and will reject it"
+            )
+
+        try:
+            element = await page.query_selector("#uploadfile-1")
+            if element is None:
+                element = await page.query_selector('input[type="file"]')
+            if element is None:
+                logger.warning("  photo                 : no file input found")
+                return False
+            await element.set_input_files(str(path))
+            logger.success(f"  photo                 : uploaded {path.name} ({size_kb:.0f} KB)")
+            await asyncio.sleep(1.5)
+            return True
+        except Exception as exc:
+            logger.warning(f"  photo                 : upload failed — {exc}")
+            return False
 
     async def _unfilled_fields(self, page: Any) -> list[str]:
         """Labels of visible required dropdowns still showing the placeholder."""
