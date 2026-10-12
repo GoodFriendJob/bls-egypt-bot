@@ -69,7 +69,7 @@ applicant:
   city: ""
 
   documents:
-    passport_scan: "docs/passport.pdf"
+    passport_scan: "docs/passport.jpg"
     photo: "docs/photo.jpg"
     # Add any extra documents the form asks for; the key is matched
     # against the upload field's label / name.

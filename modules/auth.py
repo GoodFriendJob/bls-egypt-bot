@@ -612,14 +612,27 @@ class BLSAuth:
                 # and was being reported as SOLVED.
                 if "captchasubmit" in url:
                     self._last_captcha_submit_status = response.status
-                # A 403 on ANY portal response means the edge is blocking us.
-                # Previously only _goto recorded this, so a 403 arriving on an
-                # XHR went unrecorded and the bot kept hammering into the block.
+                # Only a 403 on a real page load means the EDGE is blocking us.
+                # The portal also answers 403 on XHR when a captcha token has
+                # expired ("Your session has been expired"), which is an
+                # application response, not an IP block — recording that as a
+                # block put the bot into a needless cooldown.
                 if response.status == 403:
-                    logger.error(
-                        f"auth: [net] 403 — the portal is blocking {response.url[:110]}"
-                    )
-                    utils.record_block(f"403 on {response.url[:120]}")
+                    try:
+                        kind = response.request.resource_type
+                    except Exception:
+                        kind = "other"
+                    if kind == "document":
+                        logger.error(
+                            f"auth: [net] 403 on a page load — the portal is "
+                            f"blocking {response.url[:100]}"
+                        )
+                        utils.record_block(f"403 on {response.url[:120]}")
+                    else:
+                        logger.warning(
+                            f"auth: [net] 403 on {kind} {response.url[:90]} — "
+                            "expired token or rejected request, not an IP block"
+                        )
 
         def _on_failed(request: Any) -> None:
             url = (request.url or "").lower()
@@ -2020,8 +2033,64 @@ class BLSAuth:
         return False
 
     async def _click_captcha_submit(self, ctx: Any) -> bool:
-        # Real controls first — see CAPTCHA_SUBMIT_SELECTORS for why calling
-        # onSubmit() on the login page breaks a correct selection.
+        """Click submit IMMEDIATELY — the captcha token is short-lived.
+
+        Speed is correctness here. Waiting on selectors that do not exist on
+        this particular page cost 15s (three 5s timeouts before reaching the
+        control that was actually present), which is long enough for the portal
+        to expire the challenge: the next response was 403 with the dialog
+        "Your session has been expired. Please try again".
+
+        So: one JS pass that finds whichever control is present and clicks it
+        with no waiting. The slow per-selector path is kept only as a fallback.
+        """
+        try:
+            clicked = await ctx.evaluate(
+                """
+                () => {
+                  const vis = (el) => {
+                    if (!el) return false;
+                    const r = el.getBoundingClientRect();
+                    if (r.width < 2 || r.height < 2) return false;
+                    let n = el;
+                    while (n && n.nodeType === 1) {
+                      const s = getComputedStyle(n);
+                      if (s.display === 'none' || s.visibility === 'hidden') return false;
+                      n = n.parentElement;
+                    }
+                    return true;
+                  };
+                  // The verification modal's div, then a real <button>.
+                  const order = [
+                    'div.img-action-div[onclick*="onSubmit"]',
+                    '[onclick*="onSubmit"]',
+                    'button[type="submit"]',
+                    'input[type="submit"]',
+                  ];
+                  for (const sel of order) {
+                    for (const el of document.querySelectorAll(sel)) {
+                      if (vis(el)) { el.click(); return sel; }
+                    }
+                  }
+                  // Any visible control whose text is exactly Submit.
+                  for (const el of document.querySelectorAll('button, input[type=button]')) {
+                    const t = ((el.innerText || el.value || '') + '').trim().toLowerCase();
+                    if ((t === 'submit' || t === 'submit selection') && vis(el)) {
+                      el.click();
+                      return 'text:' + t;
+                    }
+                  }
+                  return null;
+                }
+                """
+            )
+            if clicked:
+                logger.info(f"auth: captcha submitted immediately via {clicked}")
+                return True
+        except Exception as exc:
+            logger.debug(f"auth: fast submit failed: {exc}")
+
+        logger.warning("auth: fast submit found nothing — falling back to waits")
         for selector in CAPTCHA_SUBMIT_SELECTORS:
             try:
                 button = ctx.locator(selector).first

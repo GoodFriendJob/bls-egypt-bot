@@ -49,7 +49,11 @@ CONSENT_ACCEPT_TEXTS = (
     "accept",
 )
 # A rejected selection surfaces as a native JS alert, not as page text.
-INVALID_ALERT_HINTS = ("invalid", "wrong", "try again", "not correct", "failed")
+INVALID_ALERT_HINTS = ("invalid", "wrong", "not correct", "failed")
+# These mean the CHALLENGE itself is dead, not that the answer was wrong.
+# Retrying only produces more 403s against an expired token — the journey has
+# to restart so a fresh challenge is issued.
+EXPIRED_ALERT_HINTS = ("session has been expired", "session expired", "expired")
 VERIFY_MAX_ATTEMPTS = 5
 
 # One pass over the modal: the prompt number plus every clickable tile's number,
@@ -623,6 +627,22 @@ class Monitor:
             alerts = list(self._dialogs)
             if alerts:
                 logger.info(f"  dialog(s)       : {alerts}")
+
+            expired = any(
+                any(h in msg.lower() for h in EXPIRED_ALERT_HINTS) for msg in alerts
+            )
+            if expired:
+                # Not a wrong answer — the token is dead. Four more attempts
+                # against it produced nothing but 403s last run.
+                logger.error(
+                    f"monitor: the challenge expired before submission ({alerts}) "
+                    "— abandoning it so a fresh one is issued"
+                )
+                self.state.log_event(
+                    "bot", "verification challenge expired — restarting", status="warn"
+                )
+                await utils.screenshot(main_page, "verify-expired")
+                return False
 
             rejected = any(
                 any(h in msg.lower() for h in INVALID_ALERT_HINTS) for msg in alerts
