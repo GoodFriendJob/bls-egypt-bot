@@ -9,7 +9,7 @@ from typing import Any
 from loguru import logger
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 
-from modules import utils
+from modules import otp, utils
 from modules.auth import LoginError, PortalUnreachableError
 from modules.booking import Booking
 from modules.state import (
@@ -1058,8 +1058,101 @@ class Monitor:
 
         await self._upload_photo(page)
         await utils.screenshot(page, "appointment-details-filled")
+
+        # Last step of this page: request the emailed code and verify it.
+        await self._verify_email(page)
         logger.info("=" * 60)
         return True
+
+    async def _verify_email(self, page: Any) -> bool:
+        """Request the email verification code, read it, and submit it.
+
+        CONFIRMED controls:
+            <button id="btnSenderificationCode" onclick="RequestCode(event,this)">
+            <input  id="EmailVerificationCode">
+            <button id="btnVerifyEmail" onclick="VerifyEmailCode(event,this)">
+            <button id="btnVerifiedEmail">  (revealed once accepted)
+
+        The code is read over IMAP. Without otp.imap_user / imap_pass the step
+        is skipped with a clear message rather than silently stalling.
+        """
+        otp_cfg = self.config.get("otp", {}) or {}
+        if not otp_cfg.get("imap_user") or not otp_cfg.get("imap_pass"):
+            logger.warning(
+                "  email code            : SKIPPED — otp.imap_user / imap_pass "
+                "are empty, so the code cannot be read"
+            )
+            self.state.log_event(
+                "bot", "email verification needs IMAP credentials", status="warn"
+            )
+            return False
+
+        try:
+            requested = await page.evaluate(
+                """
+                () => {
+                  const btn = document.getElementById('btnSenderificationCode')
+                    || document.querySelector('[onclick*="RequestCode"]');
+                  if (!btn) return false;
+                  btn.click();
+                  return true;
+                }
+                """
+            )
+        except Exception as exc:
+            logger.warning(f"  email code            : request failed — {exc}")
+            return False
+        if not requested:
+            logger.warning("  email code            : no 'Get Verification Code' button")
+            return False
+        logger.info("  email code            : requested, waiting for the mail")
+        await asyncio.sleep(3.0)
+
+        code = await otp.fetch_email_code(self.config)
+        if not code:
+            logger.error("  email code            : never arrived")
+            self.state.log_event("bot", "email verification code not received", status="error")
+            return False
+        logger.success(f"  email code            : received ({len(code)} digits)")
+
+        try:
+            filled = await page.evaluate(
+                """
+                (value) => {
+                  const box = document.getElementById('EmailVerificationCode');
+                  if (!box) return false;
+                  box.value = value;
+                  box.dispatchEvent(new Event('input', { bubbles: true }));
+                  box.dispatchEvent(new Event('change', { bubbles: true }));
+                  const btn = document.getElementById('btnVerifyEmail')
+                    || document.querySelector('[onclick*="VerifyEmailCode"]');
+                  if (btn) { btn.click(); return true; }
+                  return 'filled-no-button';
+                }
+                """,
+                code,
+            )
+        except Exception as exc:
+            logger.warning(f"  email code            : entry failed — {exc}")
+            return False
+
+        await asyncio.sleep(2.5)
+        try:
+            verified = await page.evaluate(
+                """
+                () => {
+                  const ok = document.getElementById('btnVerifiedEmail');
+                  const flag = document.getElementById('EmailVerified');
+                  const shown = ok && getComputedStyle(ok).display !== 'none';
+                  return { shown: !!shown, flag: flag ? flag.value : null };
+                }
+                """
+            )
+        except Exception:
+            verified = {}
+        logger.info(f"  email verified        : {verified}")
+        await utils.screenshot(page, "appointment-email-verified")
+        return bool(verified.get("shown") or str(verified.get("flag")).lower() == "true")
 
     async def _pick_green_date(self, page: Any) -> bool:
         """Open the live date picker and click an available day.

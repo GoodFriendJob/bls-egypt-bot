@@ -42,6 +42,23 @@ async def is_otp_prompt(page: Any, config: dict[str, Any]) -> bool:
     return field is not None
 
 
+async def fetch_email_code(
+    config: dict[str, Any], timeout: float | None = None
+) -> str | None:
+    """Poll the mailbox for a verification code and return it.
+
+    Public entry point for callers that already know a code has been sent and
+    just need to read it — the booking page's "Get Verification Code" step.
+    Uses IMAP rather than the Gmail API deliberately: IMAP needs only an app
+    password, while the API would require an OAuth consent flow and a stored
+    refresh token, which is poor fit for an unattended machine.
+    """
+    otp_cfg = config.get("otp", {}) or {}
+    limit = float(timeout if timeout is not None else otp_cfg.get("timeout", 300))
+    deadline = time.monotonic() + limit
+    return await _code_from_email(config, deadline)
+
+
 async def handle_otp(
     page: Any,
     config: dict[str, Any],
