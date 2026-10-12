@@ -480,8 +480,23 @@ class Monitor:
             await self._survey_page(page, "visatype-incomplete")
             return
 
-        # A refresh can drop us back at the verification gate; the session is
-        # still valid there, so redo just that step rather than the whole login.
+        # CONFIRMED: dismissing the "No Appointments Available" modal makes the
+        # server redirect to /Global/bls/VisaTypeVerification. That trips the
+        # navigation watcher, but the answer for this cycle is already known —
+        # there are no slots. Re-solving the gate here would burn a fresh
+        # challenge for nothing, and last run it did exactly that and then hit
+        # the expired-token 403. End the cycle instead and let the configured
+        # wait run; the next cycle solves a fresh gate anyway.
+        if self._last_form_result == "no_slots":
+            self._needs_reverify = False
+            logger.info(
+                f"monitor: '{primary}' has no slots — ending the cycle "
+                "(the next one re-verifies with a fresh challenge)"
+            )
+            return
+
+        # Otherwise a refresh really did drop us back at the gate mid-flow; the
+        # session is still valid, so redo just that step, not the whole login.
         if self._needs_reverify:
             self._needs_reverify = False
             logger.warning("monitor: verification gate reappeared — solving it again")
