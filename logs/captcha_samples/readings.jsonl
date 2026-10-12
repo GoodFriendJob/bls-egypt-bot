@@ -15,3 +15,13 @@
 {"sample": "20261009-173534_target930_attempt1.png", "target": "930", "tiles": ["930", "310", "930", "930", "183", "537", "930", "930", "183"], "positions": [1, 3, 4, 7, 8], "method": "per-tile"}
 {"sample": "20261009-175142_target435_attempt1.png", "target": "435", "tiles": ["435", "435", "435", "355", "435", "435", "794", "392", "435"], "positions": [1, 2, 3, 5, 6, 9], "method": "per-tile"}
 {"sample": "20261009-175522_target799_attempt1.png", "target": "799", "tiles": ["799", "799", "799", "799", "799", "836", "799", "341", "386"], "positions": [1, 2, 3, 4, 5, 7], "method": "whole-grid"}
+{"sample": "20261009-181029_target231_attempt1.png", "target": "231", "tiles": ["231", "231", "654", "411", "512", "373", "231", "480", "231"], "positions": [1, 2, 7, 9], "method": "per-tile"}
+{"sample": "20261009-181121_target523_attempt1.png", "target": "523", "tiles": ["119", "523", "483", "523", "523", "606", "468", "670", "344"], "positions": [2, 4, 5], "method": "per-tile"}
+{"sample": "20261009-202044_target617_attempt1.png", "target": "617", "tiles": ["617", "617", "393", "106", "776", "238", "617", "631", "577"], "positions": [1, 2, 7], "method": "per-tile"}
+{"sample": "20261009-202138_target619_attempt1.png", "target": "619", "tiles": ["619", "619", "437", "453", "887", "619", "404", "619", "735"], "positions": [1, 2, 6, 8], "method": "per-tile"}
+{"sample": "20261012-045538_target272_attempt1.png", "target": "272", "tiles": ["118", "272", "128", "276", "272", "244", "731", "175", "272"], "positions": [2, 5, 9], "method": "per-tile"}
+{"sample": "20261012-045630_target321_attempt1.png", "target": "321", "tiles": ["318", "566", "321", "321", "888", "321", "321", "409", "932"], "positions": [3, 4, 6, 7], "method": "per-tile"}
+{"sample": "20261012-045804_target887_attempt1.png", "target": "887", "tiles": ["821", "887", "887", "887", "887", "887", "541", "587", "887"], "positions": [2, 3, 4, 5, 6, 9], "method": "per-tile"}
+{"sample": "20261012-215642_target943_attempt1.png", "target": "943", "tiles": ["943", "943", "269", "190", "943", "779", "943", "943", "943"], "positions": [1, 2, 5, 7, 8, 9], "method": "per-tile"}
+{"sample": "20261012-215739_target372_attempt1.png", "target": "372", "tiles": ["372", "372", "372", "372", "372", "923", "903", "372", "624"], "positions": [1, 2, 3, 4, 5, 8], "method": "per-tile"}
+{"sample": "20261012-215915_target332_attempt1.png", "target": "332", "tiles": ["332", "332", "800", "731", "473", "332", "332", "332", "332"], "positions": [1, 2, 6, 7, 8, 9], "method": "per-tile"}

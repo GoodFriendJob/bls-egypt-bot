@@ -1,0 +1,191 @@
+BLS appointment bot - run transcript
+started : 2026-10-09T18:10:05
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+18:10:05 | INFO    | __main__ - ==============================================================
+18:10:05 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+18:10:05 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261009_181005.txt
+18:10:05 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+18:10:05 | INFO    | __main__ - visa_type=Short Stay / Tourist poll_interval=90s
+18:10:05 | INFO    | __main__ - ==============================================================
+18:10:05 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+18:10:05 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+18:10:05 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+18:10:05 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+18:10:06 | INFO    | modules.notifier - notifier: telegram listener started
+18:10:06 | INFO    | __main__ - single-cycle mode (--once)
+18:10:07 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+18:10:07 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+18:10:07 | INFO    | modules.auth - auth: http->https upgrade route installed
+18:10:07 | INFO    | modules.auth - auth: browser launched
+18:10:08 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:08 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:10:11 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+18:10:11 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+18:10:19 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:19 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:10:20 | INFO    | modules.auth - auth: login form ready after 0.5s (10 inputs, 1 real)
+18:10:20 | INFO    | modules.utils - find_real_input: real 'text' field is index 2 of 10 (parent div.mb-3 display:block)
+18:10:23 | INFO    | modules.auth - auth: email filled
+18:10:23 | INFO    | modules.auth - auth: email submitted
+18:10:24 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy
+18:10:24 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+18:10:25 | INFO    | modules.utils - find_real_input: real 'password' field is index 8 of 10 (parent div.mb-3 display:block)
+18:10:27 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+18:10:27 | INFO    | modules.auth - auth: password filled
+18:10:27 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=8Jv4wkEMuamyKa815DKXdC91dprHwdGy00Ire%2F29Vh6T2h0IQhnW1%2Bp%2F9vRoOd%2BKHbxyZWNOEa0A%2B2LD9DZHRbU9OwY0dXzMnzCupJMeoR6m148bXYeW9Wq9OXg%2FH6xMTpYaPWKDGWdPcM2P%2B34KAkSQ%2BDOm4jZM%2BqMebj57pqw%3D
+18:10:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181027_password-page-filled.png
+18:10:28 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181028_password-page-filled.html
+18:10:28 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+18:10:28 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=36
+18:10:28 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:10:28 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:10:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181028_captcha-before.png
+18:10:28 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181028_captcha-detected.html
+18:10:28 | INFO    | modules.auth - auth: 36 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:10:28 | INFO    | modules.auth - auth: prompt 231 chosen (contrast=14.59, z-index=925, color=rgb(33, 37, 41))
+18:10:28 | INFO    | modules.auth - ------------------------------------------------------------
+18:10:28 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:10:28 | INFO    | modules.auth -   target number   : 231
+18:10:28 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+18:10:28 | INFO    | modules.auth -   visible labels  : 36 (of 36 box-labels in the DOM)
+18:10:28 | INFO    | modules.auth - auth: captcha attempt 1: target=231, 9 visible tiles
+18:10:28 | INFO    | modules.auth -   grid order      : 1:rxkbwtalz, 2:biyrf, 3:dzfkjstt, 4:wnqkzk, 5:sidtfiz, 6:vvduuegpl, 7:ztqhouqmr, 8:xhmofmod, 9:ofhxzzzbd
+18:10:28 | INFO    | modules.auth -   grid clip       : x=609.41 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+18:10:29 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+18:10:29 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-181029_target231_attempt1.png
+18:10:29 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-181029_target231_attempt1.png
+18:10:29 | INFO    | modules.vision - vision: split 702x700 grid into 9 tiles (~234x233 each)
+18:10:29 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:29 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:29 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:29 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:30 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:30 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:10:30 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+18:10:30 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+18:10:30 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+18:10:42 | INFO    | modules.vision - vision: per-tile reply '231,231,654,411,512,373,231,480,231'
+18:10:42 | INFO    | modules.auth -   tiles read      : 1:231, 2:231, 3:654, 4:411, 5:512, 6:373, 7:231, 8:480, 9:231
+18:10:42 | INFO    | modules.auth -   matching 231      : positions [1, 2, 7, 9]
+18:10:42 | INFO    | modules.auth -   vision positions: [1, 2, 7, 9]
+18:10:42 | INFO    | modules.auth -   matched tiles   : 4 -> ['rxkbwtalz', 'biyrf', 'ztqhouqmr', 'ofhxzzzbd']
+18:10:46 | INFO    | modules.auth -   click results   :
+18:10:46 | INFO    | modules.auth -       id=rxkbwtalz      number=None   clicked=True  img-selected=True
+18:10:46 | INFO    | modules.auth -       id=biyrf          number=None   clicked=True  img-selected=True
+18:10:46 | INFO    | modules.auth -       id=ztqhouqmr      number=None   clicked=True  img-selected=True
+18:10:46 | INFO    | modules.auth -       id=ofhxzzzbd      number=None   clicked=True  img-selected=True
+18:10:47 | INFO    | modules.auth -   SelectedImages  : ''
+18:10:47 | INFO    | modules.auth -   expected ids    : ['biyrf', 'ofhxzzzbd', 'rxkbwtalz', 'ztqhouqmr']
+18:10:47 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:10:47 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181047_captcha-attempt1-before-submit.png
+18:10:47 | INFO    | modules.utils - find_real_input: real 'password' field is index 8 of 10 (parent div.mb-3 display:block)
+18:10:47 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+18:10:47 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:47 | INFO    | modules.auth - auth: captcha submitted via button:has-text("Submit")
+18:10:47 | INFO    | modules.auth -   submit clicked  : True
+18:10:50 | SUCCESS | modules.auth -   outcome         : SOLVED on attempt 1
+18:10:50 | INFO    | modules.auth - ------------------------------------------------------------
+18:10:50 | INFO    | modules.auth - auth: captcha solved (attempt 1)
+18:10:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181050_captcha-solved.png
+18:10:51 | INFO    | modules.auth - auth: already authenticated after the captcha — skipping resubmit
+18:10:51 | INFO    | modules.auth - auth: password submitted
+18:10:51 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:52 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181051_after-password-submit.png
+18:10:52 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181052_after-password-submit.html
+18:10:52 | SUCCESS | modules.auth - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:52 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:52 | INFO    | modules.auth - auth: session saved to session\cookies.json
+18:10:52 | INFO    | modules.auth - auth: login successful
+18:10:52 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:10:54 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+18:10:56 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:11:02 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+18:11:18 | INFO    | modules.monitor - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:11:19 | INFO    | modules.monitor - monitor: verification attempt 1/5
+18:11:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181119_verify-modal-attempt1.png
+18:11:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181120_verify-frame-attempt1.html
+18:11:20 | INFO    | modules.monitor - monitor: captcha frame at x=484 y=126 (398x557)
+18:11:20 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=37
+18:11:20 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:11:20 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:11:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181120_captcha-before.png
+18:11:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181120_captcha-detected.html
+18:11:21 | INFO    | modules.auth - auth: 37 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:11:21 | INFO    | modules.auth - auth: prompt 523 chosen (contrast=15.29, z-index=952, color=rgb(33, 37, 41))
+18:11:21 | INFO    | modules.auth - ------------------------------------------------------------
+18:11:21 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:11:21 | INFO    | modules.auth -   target number   : 523
+18:11:21 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:11:21 | INFO    | modules.auth -   visible labels  : 37 (of 37 box-labels in the DOM)
+18:11:21 | INFO    | modules.auth - auth: captcha attempt 1: target=523, 9 visible tiles
+18:11:21 | INFO    | modules.auth -   grid order      : 1:belgbp, 2:wwkgrroc, 3:sjjems, 4:duvetmhv, 5:szhuup, 6:ymeuekflf, 7:kcbxutqf, 8:gvgublusr, 9:deobdw
+18:11:21 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+18:11:21 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+18:11:21 | INFO    | modules.vision - captcha sample saved: logs\captcha_samples\20261009-181121_target523_attempt1.png
+18:11:21 | INFO    | modules.auth -   grid screenshot : logs\captcha_samples\20261009-181121_target523_attempt1.png
+18:11:21 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+18:11:21 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+18:11:22 | INFO    | modules.vision - vision: upscaled grid 214x214 -> 642x642 (x3, LANCZOS)
+18:11:35 | INFO    | modules.vision - vision: per-tile reply '119,523,483,523,523,606,468,670,344'
+18:11:35 | INFO    | modules.auth -   tiles read      : 1:119, 2:523, 3:483, 4:523, 5:523, 6:606, 7:468, 8:670, 9:344
+18:11:35 | INFO    | modules.auth -   matching 523      : positions [2, 4, 5]
+18:11:35 | INFO    | modules.auth -   vision positions: [2, 4, 5]
+18:11:35 | INFO    | modules.auth -   matched tiles   : 3 -> ['wwkgrroc', 'duvetmhv', 'szhuup']
+18:11:38 | INFO    | modules.auth -   click results   :
+18:11:38 | INFO    | modules.auth -       id=wwkgrroc       number=None   clicked=True  img-selected=True
+18:11:38 | INFO    | modules.auth -       id=duvetmhv       number=None   clicked=True  img-selected=True
+18:11:38 | INFO    | modules.auth -       id=szhuup         number=None   clicked=True  img-selected=True
+18:11:39 | INFO    | modules.auth -   SelectedImages  : ''
+18:11:39 | INFO    | modules.auth -   expected ids    : ['duvetmhv', 'szhuup', 'wwkgrroc']
+18:11:39 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:11:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181139_captcha-attempt1-before-submit.png
+18:11:54 | INFO    | modules.auth - auth: captcha submitted via div.img-action-div[onclick*="onSubmit"]
+18:11:54 | INFO    | modules.auth -   submit clicked  : True
+18:11:54 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+18:12:10 | WARNING | modules.auth - auth: captcha detection failed: Frame.evaluate: Frame was detached
+18:12:10 | SUCCESS | modules.auth -   outcome         : SOLVED on attempt 1
+18:12:10 | INFO    | modules.auth - ------------------------------------------------------------
+18:12:10 | INFO    | modules.auth - auth: captcha solved (attempt 1)
+18:12:10 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181210_captcha-solved.png
+18:12:11 | INFO    | modules.monitor -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+18:12:11 | SUCCESS | modules.monitor - monitor: verification captcha passed
+18:12:11 | INFO    | modules.monitor - monitor: clicked #btnSubmit
+18:12:11 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+18:12:15 | SUCCESS | modules.monitor - monitor: reached the appointment form — https://egypt.blsspainglobal.com/Global/bls/visatype?data=DDAM5xfi1L4yp6qguNdSJyr6C4MoCjeKRgupcqIHaj9y%2bPgvA19wnBz65aRCjR%2byfgIfR7YJFhvv3Tu5BPaOld%2bBczs4jS%2fwIguSa6uhcIG5mJ%2f1S74YIs0%2fQ%2fT2km7fDQzMRNyPktDnlIvRQJp%2feUKWrhcJlmY2sFQrpiBqzaI%3d
+18:12:16 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181216_visatype-form.png
+18:12:17 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181216_visatype-form.html
+18:12:17 | INFO    | modules.monitor - monitor: filling the appointment form
+18:12:17 | WARNING | modules.monitor - monitor: no <select> found for 'location'
+18:12:17 | WARNING | modules.monitor -   location              : NOT SET (wanted 'Cairo')
+18:12:17 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181217_visatype-location-failed.png
+18:12:17 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181217_visatype-form-failed.html
+18:12:17 | ERROR   | modules.monitor - monitor: could not complete the appointment form
+18:12:17 | INFO    | modules.monitor - ============================================================
+18:12:17 | INFO    | modules.monitor - PAGE SURVEY (visatype-incomplete)
+18:12:17 | INFO    | modules.monitor -   url      : https://egypt.blsspainglobal.com/Global/bls/visatype?data=DDAM5xfi1L4yp6qguNdSJyr6C4MoCjeKRgupcqIHaj9y%2bPgvA19wnBz65aRCjR%2byfgIfR7YJFhvv3Tu5BPaOld%2bBczs4jS%2fwIguSa6uhcIG5mJ%2f1S74YIs0%2fQ%2fT2km7fDQzMRNyPktDnlIvRQJp%2feUKWrhcJlmY2sFQrpiBqzaI%3d
+18:12:17 | INFO    | modules.monitor -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+18:12:17 | INFO    | modules.monitor -   headings : ['BLS International']
+18:12:17 | INFO    | modules.monitor -   selects  : []
+18:12:17 | INFO    | modules.monitor -   buttons  : ['Submit']
+18:12:17 | INFO    | modules.monitor -   inputs   : ['AppointmentFor2', 'AppointmentFor2']
+18:12:17 | INFO    | modules.monitor -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', 'index.html', '/']
+18:12:17 | INFO    | modules.monitor - ============================================================
+18:12:17 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261009-181217_visatype-incomplete.png
+18:12:17 | INFO    | modules.utils - DOM dumped: logs\dom\20261009-181217_visatype-incomplete.html
+18:12:17 | INFO    | modules.auth - auth: session saved to session\cookies.json
+18:12:18 | INFO    | modules.auth - auth: browser closed
+18:12:21 | INFO    | modules.notifier - notifier: telegram listener stopped
+18:12:21 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-09T18:12:21
