@@ -102,9 +102,6 @@ otp:
   # Gmail: this must be an APP PASSWORD, not the account password.
   # Requires 2-Step Verification on, then create one at
   #   https://myaccount.google.com/apppasswords
-  # Gmail: this must be an APP PASSWORD, not the account password.
-  # Requires 2-Step Verification on, then create one at
-  #   https://myaccount.google.com/apppasswords
   imap_pass: ""
   imap_folder: "INBOX"
   # Only mails whose sender or subject contains one of these is considered.
