@@ -182,13 +182,33 @@ class Notifier:
     async def status_heartbeat(self, status_text: str) -> bool:
         return await self.send(f"ℹ️ STATUS (heartbeat)\n\n{status_text}")
 
+    @staticmethod
+    def _options(value: Any, *, title: bool = False) -> str:
+        """Render a config field that may be a scalar or a list, always as a list.
+
+        Every appointment field can be swept, so showing them uniformly makes
+        it obvious at a glance how wide the search actually is.
+        """
+        if value is None:
+            items: list[str] = []
+        elif isinstance(value, (list, tuple)):
+            items = [str(v).strip() for v in value if str(v).strip()]
+        else:
+            items = [str(value).strip()] if str(value).strip() else []
+        if title:
+            items = [i.title() for i in items]
+        return "[" + ", ".join(f"'{i}'" for i in items) + "]"
+
     async def startup_notice(self) -> bool:
+        """Announce the run, listing every option the sweep will cover."""
         bls = self.config.get("bls", {}) or {}
-        locations = ", ".join(loc.title() for loc in bls.get("locations", []))
         return await self.send(
             "🤖 Bot started\n"
-            f"Locations: {locations}\n"
-            f"Visa type: {bls.get('visa_type', '')}\n"
+            f"Locations: {self._options(bls.get('locations'), title=True)},\n"
+            f"Category: {self._options(bls.get('appointment_category'))}\n"
+            f"Appointment For: {self._options(bls.get('appointment_for'))},\n"
+            f"Visa type: {self._options(bls.get('visa_type'))},\n"
+            f"Visa sub type: {self._options(bls.get('visa_sub_type'))}\n"
             f"Interval: {self.config.get('poll_interval', 90)}s\n\n"
             "Send /help for commands."
         )

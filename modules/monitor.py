@@ -1388,6 +1388,10 @@ class Monitor:
         This books the slot. It is not a payment step — payment comes later and
         the bot stops there by design.
         """
+        # Clear anything still on screen first: a modal left open swallows the
+        # click on Verify/Submit and the step silently does nothing.
+        await self._dismiss_open_modals(page)
+
         # Mobile verification may also be demanded; it needs an SMS the bot
         # cannot read, so hand over rather than stalling silently.
         try:
@@ -1418,6 +1422,9 @@ class Monitor:
             ("verify appointment", "VerifyAppointment", "btnVerifyAppointment"),
             ("submit appointment", "OnAppointmentSubmit", "btnSubmit"),
         ):
+            # Anything left on screen eats the click.
+            await self._dismiss_open_modals(page)
+
             clicked = await self._click_when_ready(page, button_id, fn)
             if not clicked:
                 logger.error(f"  {label:<22}: control never became available")
@@ -1425,8 +1432,25 @@ class Monitor:
                 await utils.dump_page_html(page, f"appointment-{button_id}-missing")
                 return False
             logger.success(f"  {label:<22}: clicked")
+            await asyncio.sleep(1.5)
+
+            # CONFIRMED: "Verify Appointment" raises a THIRD captcha, served
+            # from /Global/CaptchaPublic/GenerateCaptcha. Run 20261013_162707
+            # loaded it at 16:29:10 and never answered it, so 31s later the
+            # portal said "Your session has been expired", returned 403, and
+            # #btnSubmit never appeared. Solve it here, immediately, while its
+            # token is young. solve_captcha returns True when there is none.
+            await self._dismiss_open_modals(page)
+            try:
+                if not await self.auth.solve_captcha(page):
+                    logger.error(f"  {label:<22}: its captcha was not solved")
+                    await utils.screenshot(page, f"appointment-{button_id}-captcha")
+                    return False
+            except Exception as exc:
+                logger.warning(f"  {label:<22}: captcha step errored — {exc}")
+            await self._dismiss_open_modals(page)
             await self._settle(page)
-            await asyncio.sleep(2.0)
+            await asyncio.sleep(1.5)
 
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
@@ -1535,7 +1559,11 @@ class Monitor:
             logger.warning("  email code            : no 'Get Verification Code' button")
             return False
         logger.info("  email code            : requested, waiting for the mail")
-        await asyncio.sleep(3.0)
+        # RequestCode() pops a confirmation modal; the code step cannot proceed
+        # while it is up.
+        await asyncio.sleep(1.5)
+        await self._dismiss_open_modals(page)
+        await asyncio.sleep(1.5)
 
         code = await otp.fetch_email_code(self.config)
         if not code:
@@ -1845,6 +1873,79 @@ class Monitor:
         await asyncio.sleep(1.0)
         return True
 
+    async def _dismiss_open_modals(self, page: Any, *, rounds: int = 3) -> list[str]:
+        """Close every modal that is actually on screen, confirming it.
+
+        CONFIRMED: the booking page carries a stack of modals (photoUploadModal,
+        familyDisclaimer, LivenessDeclaration, userConsent, scamAlert,
+        commonModal, ...) and only the open one has computed display:block.
+        Uploading the photo opens "Confirm Photo", whose primary button is
+        "Understood"; leaving it up blocks every later click. Run
+        20261013_162707 ended with photoUploadModal still show/display:block,
+        which is why "Verify Appointment" then sat for 31s until the final
+        captcha expired and #btnSubmit never appeared.
+
+        The PRIMARY button is the one to press: "Understood" / "Ok" / "Accept".
+        Never the secondary ("Change Photo"), which restarts the upload.
+        """
+        dismissed: list[str] = []
+        for _ in range(rounds):
+            try:
+                closed = await page.evaluate(
+                    """
+                    () => {
+                      // Bootstrap marks the OPEN modal with .show plus an
+                      // inline display:block, and leaves the rest display:none
+                      // via its stylesheet. Requiring a positive signal (not
+                      // merely "the stylesheet did not hide it") keeps a
+                      // dormant modal from being clicked if the CSS is slow or
+                      // absent -- without this, scamAlert was picked ahead of
+                      // the photo modal that was actually up.
+                      const onScreen = (el) => {
+                        const s = getComputedStyle(el);
+                        if (s.display === 'none' || s.visibility === 'hidden') return false;
+                        const open = el.classList.contains('show')
+                          || (el.style && el.style.display === 'block');
+                        if (!open) return false;
+                        const r = el.getBoundingClientRect();
+                        return r.width > 20 && r.height > 20;
+                      };
+                      for (const modal of document.querySelectorAll('.modal')) {
+                        if (!onScreen(modal)) continue;
+                        const label =
+                          (modal.querySelector('.modal-title') || {}).innerText ||
+                          modal.id || 'modal';
+                        // Primary action first; it is the confirming one.
+                        let btn = modal.querySelector('.modal-footer .btn-primary')
+                               || modal.querySelector('.btn-primary');
+                        if (!btn) {
+                          for (const b of modal.querySelectorAll('button, a.btn')) {
+                            const t = (b.innerText || '').trim().toLowerCase();
+                            if (['ok', 'okay', 'understood', 'accept', 'yes', 'close']
+                                  .includes(t)) { btn = b; break; }
+                          }
+                        }
+                        if (!btn) continue;
+                        btn.click();
+                        return { label: String(label).trim().slice(0, 60),
+                                 button: (btn.innerText || '').trim().slice(0, 30),
+                                 id: modal.id || '' };
+                      }
+                      return null;
+                    }
+                    """
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: modal sweep failed: {exc}")
+                return dismissed
+            if not closed:
+                break
+            what = f"{closed.get('label')!r} via {closed.get('button')!r}"
+            logger.info(f"  modal dismissed       : {what}")
+            dismissed.append(str(closed.get("id") or closed.get("label")))
+            await asyncio.sleep(0.8)
+        return dismissed
+
     async def _upload_photo(self, page: Any) -> bool:
         """Attach the applicant photo to the booking form."""
         photo = (self.config.get("applicant", {}) or {}).get("documents", {}).get("photo")
@@ -1876,6 +1977,9 @@ class Monitor:
                 return False
             await element.set_input_files(str(path))
             logger.success(f"  photo                 : uploaded {path.name} ({size_kb:.0f} KB)")
+            # "Confirm Photo" opens here and blocks everything behind it.
+            await asyncio.sleep(1.2)
+            await self._dismiss_open_modals(page)
             await asyncio.sleep(1.5)
             return True
         except Exception as exc:
