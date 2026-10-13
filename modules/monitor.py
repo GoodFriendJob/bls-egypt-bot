@@ -356,6 +356,10 @@ class Monitor:
         self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 5))
         # Each combination costs a verification captcha; cap the per-cycle fan-out.
         self.max_combinations = int(config.get("max_combinations_per_cycle", 12))
+        # Seconds between the sessions of two combinations. Each combination
+        # needs its own browser session (one verification per session), so this
+        # is the main throttle on how hard a sweep hits the portal.
+        self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
         self.page_error_wait = float(retry.get("page_error_wait", 30))
@@ -484,6 +488,15 @@ class Monitor:
         # wait justified.
         combos = self.build_combinations()
         logger.info(f"monitor: sweeping {len(combos)} option combination(s) this cycle")
+        if len(combos) > 1:
+            # Say the real cost out loud: every combination after the first
+            # rebuilds the session, which means a login captcha AND a
+            # verification captcha.
+            logger.info(
+                f"monitor: that is {len(combos)} session(s), about "
+                f"{len(combos) * 2} captcha solves — trim the lists in "
+                "config.yaml if the portal starts refusing requests"
+            )
         checked: list[str] = []
         for index, combo in enumerate(combos):
             if self.state.stop_requested or not self.state.running:
@@ -494,14 +507,43 @@ class Monitor:
             )
 
             if index > 0:
-                # Back at the gate after the previous location's modal; a fresh
-                # challenge is required before the form can be reached again.
-                # Back at the gate after the previous answer; a fresh
-                # challenge is needed before the form is reachable again.
+                # MEASURED: the portal allows exactly ONE visa-type verification
+                # per browser session. The second SubmitCaptcha always answers
+                # 403 + "Your session has been expired", regardless of how fresh
+                # the grid is -- run 20261013_154625 failed at a grid age of
+                # 16.8s, well inside the ~45s token life, after only two
+                # GenerateCaptcha hits. Reloading the page or the tiles does not
+                # help because neither replaces the session that was consumed.
+                #
+                # So recycle the whole browser: drop the cookies, close the
+                # context, log in again. That is the only thing that restores a
+                # usable gate, and it is what a human opening a fresh private
+                # window would get.
+                logger.info(
+                    "monitor: recycling the browser session — the portal allows "
+                    "one verification per session"
+                )
+                self.state.log_event("bot", "new session for next combination")
+                await self._reset_session()
+                # Space the sessions out. Each one is a fresh login plus a fresh
+                # verification, i.e. TWO captchas and a burst of requests;
+                # running them back to back is what the portal rate-limits.
+                pause = self.session_recycle_wait
+                logger.info(f"monitor: pausing {pause}s before the next session")
+                await utils.interruptible_sleep(pause, self.state)
+                if self.state.stop_requested or not self.state.running:
+                    return
+                try:
+                    page = await self.auth.ensure_logged_in(force=True)
+                except PortalUnreachableError:
+                    raise
+                except Exception as exc:
+                    logger.error(f"monitor: could not log in again: {exc}")
+                    return
+                self.install_navigation_watch(page)
+
                 self._needs_reverify = False
-                # hard_refresh: this document already spent its captcha on the
-                # previous combination.
-                if not await self.ensure_visa_type_verified(page, hard_refresh=True):
+                if not await self.ensure_visa_type_verified(page):
                     logger.error("monitor: could not re-clear the gate — ending cycle")
                     return
 
@@ -1627,8 +1669,43 @@ class Monitor:
         bg-danger when booked (Count < Code), so a date can be selectable while
         every slot on it is full — only green is acceptable.
         """
+        # Poll: the slot list arrives by AJAX after the date is chosen.
+        deadline = 20.0
+        waited = 0.0
+        result: dict[str, Any] = {}
+        while waited < deadline:
+            result = await self._read_slot_dropdown(page)
+            if result.get("reason") != "not-loaded":
+                break
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        if result.get("reason") == "not-loaded":
+            logger.warning(
+                f"  slot                  : the list never loaded within "
+                f"{deadline:.0f}s — treating as no slots"
+            )
+            return False
+
+        slots = result.get("slots") or []
+        if slots:
+            logger.info(
+                "  slots offered         : "
+                + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
+                + "   (* = free)"
+            )
+        if result.get("sample"):
+            logger.info(f"  slot row sample       : {result['sample']}")
+        if not result.get("ok"):
+            logger.warning(f"  slot                  : {result.get('reason')}")
+            return False
+        logger.success(f"  slot chosen           : {result.get('chosen')!r}")
+        await self._settle(page)
+        return True
+
+    async def _read_slot_dropdown(self, page: Any) -> dict[str, Any]:
+        """One read of the Time Slot Kendo dropdown. See _pick_green_slot."""
         try:
-            result = await page.evaluate(
+            return await page.evaluate(
                 """
                 () => {
                   let dd = null, id = null;
@@ -1642,6 +1719,12 @@ class Monitor:
                   if (!dd) return { ok: false, reason: 'no enabled slot dropdown' };
 
                   const data = dd.dataSource.data() || [];
+                  // The list is fetched by AJAX for the chosen date, so an
+                  // empty dataSource means NOT LOADED YET, not "all booked".
+                  // Reporting the latter lost a real opening: run
+                  // 20261013_154625 read the list ~2s after picking the date,
+                  // got zero items, and declared every slot taken.
+                  if (!data.length) return { ok: false, reason: 'not-loaded', id };
                   const slots = [];
                   let chosen = null;
                   for (let i = 0; i < data.length; i++) {
@@ -1654,7 +1737,13 @@ class Monitor:
                       chosen = { name, id: item.Id, index: i };
                     }
                   }
-                  if (!chosen) return { ok: false, reason: 'all slots booked', slots, id };
+                  if (!chosen) {
+                    // Carry one raw row: the free/full rule below is inferred
+                    // from the page template and has never been seen against
+                    // real data, so make the next run able to confirm it.
+                    return { ok: false, reason: 'all slots booked', slots, id,
+                             sample: JSON.stringify(data[0] || {}).slice(0, 300) };
+                  }
                   dd.value(chosen.id);
                   dd.trigger('change');
                   return { ok: true, chosen: chosen.name, slots, id };
@@ -1663,19 +1752,7 @@ class Monitor:
             )
         except Exception as exc:
             logger.warning(f"monitor: slot selection failed: {exc}")
-            return False
-
-        slots = result.get("slots") or []
-        if slots:
-            logger.info(
-                "  slots offered         : "
-                + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
-                + "   (* = free)"
-            )
-        if not result.get("ok"):
-            logger.warning(f"  slot                  : {result.get('reason')}")
-            return False
-        logger.success(f"  slot chosen           : {result.get('chosen')!r}")
+            return {"ok": False, "reason": f"read failed: {exc}"}
         await asyncio.sleep(1.0)
         return True
 

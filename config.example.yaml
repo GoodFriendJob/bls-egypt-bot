@@ -160,6 +160,15 @@ no_slots_wait_minutes: 5
 # limits how many are attempted per cycle.
 max_combinations_per_cycle: 12
 
+# Seconds to wait between combinations. MEASURED: the portal allows exactly
+# ONE visa-type verification per browser session -- the second SubmitCaptcha
+# answers 403 "Your session has been expired" however fresh the grid is. So
+# each combination after the first gets a brand-new session: new cookies, new
+# login (login captcha) and a new verification (verification captcha). That is
+# two captcha solves and a burst of requests per combination, so they are
+# spaced out rather than run back to back.
+session_recycle_wait: 45
+
 # false opens a visible browser window — use while debugging selectors.
 headless: true
 

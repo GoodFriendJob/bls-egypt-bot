@@ -47,7 +47,9 @@
       "Bash(echo \"=== exit: $? ===\")",
       "Bash(./.venv/Scripts/python.exe -m pyflakes bot.py modules/*.py)",
       "Bash(PYTHONIOENCODING=utf-8 ./.venv/Scripts/python.exe -c ' *)",
-      "Bash(./.venv/Scripts/python.exe -m pyflakes modules/notifier.py modules/monitor.py)"
+      "Bash(./.venv/Scripts/python.exe -m pyflakes modules/notifier.py modules/monitor.py)",
+      "Bash(./.venv/Scripts/python.exe -m pyflakes modules/monitor.py)",
+      "Bash(./.venv/Scripts/python.exe -c \"import yaml;[yaml.safe_load\\(open\\(f,encoding='utf-8'\\)\\) for f in \\('config.yaml','config.example.yaml'\\)];print\\('both configs parse'\\)\")"
     ]
   }
 }
