@@ -155,7 +155,11 @@ CAPTCHA_MAX_ATTEMPTS = 4
 # has been expired", even though the tiles read and clicked were all correct.
 # The cycle before it submitted at 43s and passed. So never submit an answer
 # built against a grid older than this; pull a fresh grid instead.
-CAPTCHA_MAX_AGE = 25.0
+#
+# Kept close to the real TTL rather than tight, because pulling a fresh grid
+# costs a GenerateCaptcha request and the portal only allows a few of those per
+# session -- the 4th in two minutes came back 403 (run 20261013_044241).
+CAPTCHA_MAX_AGE = 35.0
 CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
 CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
 CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
@@ -468,6 +472,7 @@ class BLSAuth:
         # listener. None means no response was seen for this attempt.
         self._last_captcha_submit_status: int | None = None
         self._captcha_issued_at: float = 0.0
+        self._last_captcha_generate_status: int | None = None
 
         self.session_file = Path(SESSION_FILE)
 
@@ -627,6 +632,12 @@ class BLSAuth:
                 # and was being reported as SOLVED.
                 if "captchasubmit" in url:
                     self._last_captcha_submit_status = response.status
+                # A refused GENERATE means the portal is rationing new grids.
+                # Nothing downstream can succeed, and the iframe is about to
+                # detach, so record it and let the caller stop early instead of
+                # scanning a dead frame for ten seconds.
+                if "generatecaptcha" in url:
+                    self._last_captcha_generate_status = response.status
                 # Only a 403 on a real page load means the EDGE is blocking us.
                 # The portal also answers 403 on XHR when a captcha token has
                 # expired ("Your session has been expired"), which is an
@@ -1654,6 +1665,25 @@ class BLSAuth:
         """Ask the modal for a fresh grid via its own onReload() handler."""
         return await self._call_captcha_action(ctx, CAPTCHA_RELOAD_FN)
 
+    def captcha_generation_refused(self) -> bool:
+        """True when the portal last answered a new-grid request with 4xx/5xx.
+
+        The portal allows only a few GenerateCaptcha hits per session; the 4th
+        within two minutes came back 403 (run 20261013_044241).
+        """
+        status = self._last_captcha_generate_status
+        return status is not None and status >= 400
+
+    def note_captcha_issued(self) -> None:
+        """Record that a page load just minted a fresh captcha.
+
+        A full page load generates its own grid, so the clock must start there.
+        Leaving it to solve_captcha would start it several seconds late and
+        under-report the age of the grid actually on screen.
+        """
+        self._captcha_issued_at = time.monotonic()
+        self._last_captcha_generate_status = None
+
     async def refresh_captcha(self, ctx: Any) -> bool:
         """Public: pull a fresh captcha grid and restart its age clock.
 
@@ -2468,7 +2498,12 @@ class BLSAuth:
     async def _settle(self, page: Page) -> None:
         """Wait for the network to go quiet, then add a human-ish pause."""
         try:
-            await page.wait_for_load_state("networkidle", timeout=15000)
+        # MEASURED: networkidle never fires on this portal — it keeps a
+        # connection open, so this ALWAYS burns the full timeout. At 15s it was
+        # costing 15s per call and pushing the captcha token past its ~45s life
+        # (run 20261013_044241: "clicked Verify Selection" 04:45:01 -> frame
+        # ready 04:45:17). 3s is enough for the DOM work that follows.
+            await page.wait_for_load_state("networkidle", timeout=3000)
         except PlaywrightTimeout:
             logger.debug("auth: networkidle timed out — continuing")
         await utils.human_delay(self.config, scale=0.5)

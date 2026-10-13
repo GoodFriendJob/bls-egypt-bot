@@ -499,7 +499,9 @@ class Monitor:
                 # Back at the gate after the previous answer; a fresh
                 # challenge is needed before the form is reachable again.
                 self._needs_reverify = False
-                if not await self.ensure_visa_type_verified(page):
+                # hard_refresh: this document already spent its captcha on the
+                # previous combination.
+                if not await self.ensure_visa_type_verified(page, hard_refresh=True):
                     logger.error("monitor: could not re-clear the gate — ending cycle")
                     return
 
@@ -545,12 +547,22 @@ class Monitor:
     # ------------------------------------------------------------------ #
     # Visa-type verification gate
     # ------------------------------------------------------------------ #
-    async def ensure_visa_type_verified(self, page: Any) -> bool:
+    async def ensure_visa_type_verified(
+        self, page: Any, *, hard_refresh: bool = False
+    ) -> bool:
         """Clear the post-login verification page.
 
         Flow: open /Global/bls/visatypeverification -> dismiss consent modals ->
         click "Verify Selection" -> solve the text-based captcha in the modal ->
         "Submit Selection" -> submit the form.
+
+        ``hard_refresh`` reloads the page before starting. Use it for the second
+        and later combinations in a sweep: the document sitting there has
+        already spent its captcha, and a reload mints a new grid as part of the
+        SAME request. Asking the iframe for one via onReload() instead adds a
+        second GenerateCaptcha hit, and the portal only allows a few per
+        session -- the 4th in two minutes answered 403 and took the whole page
+        down with it (run 20261013_044241, 04:45:19).
         """
         # MUST be installed before anything can trigger an alert: with no handler
         # Playwright auto-dismisses dialogs, so an "Invalid selection" alert
@@ -563,7 +575,26 @@ class Monitor:
         # that was just established.
         url = self.auth.path("dashboard")
         current = (page.url or "").lower()
-        if "visatypeverification" in current:
+        if "visatypeverification" in current and hard_refresh:
+            # Safe here, unlike straight after login: the portal itself just
+            # served this page as a GET redirect when the no-slots modal was
+            # dismissed, so re-issuing that GET is what a human pressing F5
+            # does. Gives a brand-new document AND a brand-new captcha token.
+            logger.info("monitor: hard-refreshing the verification page")
+            try:
+                await page.reload(wait_until="domcontentloaded")
+                self.auth.note_captcha_issued()
+                await self._settle(page)
+            except Exception as exc:
+                logger.error(f"monitor: could not refresh the verification page: {exc}")
+                return False
+            if "/account/login" in (page.url or "").lower():
+                logger.error(
+                    f"monitor: the refresh bounced to login — session lost "
+                    f"({page.url})"
+                )
+                return False
+        elif "visatypeverification" in current:
             logger.info(f"monitor: already on the verification page — {page.url}")
         else:
             logger.info(f"monitor: navigating to verification at {url}")
@@ -620,6 +651,18 @@ class Monitor:
                 logger.warning("monitor: dropped to login mid-verification — aborting")
                 return False
 
+            if self.auth.captcha_generation_refused():
+                logger.error(
+                    "monitor: the portal refused to issue a new captcha grid "
+                    "(HTTP 403) — it rations them per session. Ending the cycle "
+                    "so the wait can do its job; nothing downstream can pass."
+                )
+                self.state.log_event(
+                    "bot", "captcha generation refused (403)", status="error"
+                )
+                await utils.screenshot(main_page, "verify-generate-refused")
+                return False
+
             if _frame_gone(work):
                 # The frame is torn down on success; the outcome is on the parent.
                 logger.info("monitor: verification frame closed")
@@ -649,15 +692,14 @@ class Monitor:
             # text-based scan reported zero tiles. Reuse the vision solver,
             # pointed at the frame.
             self._dialogs.clear()
-            # refresh_first: this grid was generated when the page loaded,
-            # seconds before "Verify Selection" was even clicked. Submitting
-            # against it raced a ~45s server-side token and lost (403 "Your
-            # session has been expired") despite a correct reading.
+            # Deliberately NOT refresh_first. The grid on screen was minted by
+            # this page's own load, which is recent because the caller either
+            # just logged in or just hard-refreshed. Asking for another one
+            # spends a GenerateCaptcha request the portal may refuse: doing so
+            # returned 403 and detached the frame (run 20261013_044241).
+            # auth's age guard still refuses to submit against a dead grid.
             submitted = await self.auth.solve_captcha(
-                main_page,
-                ctx=work,
-                offset=await self._frame_offset(work),
-                refresh_first=True,
+                main_page, ctx=work, offset=await self._frame_offset(work)
             )
 
             # STEP 3 — a rejected answer arrives as a JS alert, so give the
@@ -2244,7 +2286,12 @@ class Monitor:
 
     async def _settle(self, page: Any) -> None:
         try:
-            await page.wait_for_load_state("networkidle", timeout=15000)
+        # MEASURED: networkidle never fires on this portal — it keeps a
+        # connection open, so this ALWAYS burns the full timeout. At 15s it was
+        # costing 15s per call and pushing the captcha token past its ~45s life
+        # (run 20261013_044241: "clicked Verify Selection" 04:45:01 -> frame
+        # ready 04:45:17). 3s is enough for the DOM work that follows.
+            await page.wait_for_load_state("networkidle", timeout=3000)
         except Exception:
             logger.debug("monitor: networkidle timed out")
         await utils.human_delay(self.config, scale=0.5)
