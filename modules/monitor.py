@@ -1046,9 +1046,18 @@ class Monitor:
         # SUCCESS: the portal moves on to the appointment manager.
         if "manageappointment" in (page.url or "").lower():
             logger.success(f"monitor: appointment page reached — {page.url}")
-            self.state.log_event("bot", "SLOTS AVAILABLE — booking page reached", status="ok")
+            combo_text = self.describe_combo(combo)
+            self.state.log_event(
+                "bot", f"SLOTS AVAILABLE — {combo_text}", status="ok"
+            )
             self._last_form_result = "appointment_page"
-            await self.notifier.slot_found(location, "booking page reached")
+            # Name the combination, not just the city: with a sweep running,
+            # "Cairo" alone does not say which visa type opened up.
+            await self.notifier.slot_found(
+                combo.get("location_key", combo.get("location", "")),
+                "booking page reached",
+                selection=combo_text,
+            )
             await self._survey_page(page, "manage-appointment")
 
             # Step 1 of the booking: date -> time slot -> photo, in that order.
@@ -1489,6 +1498,24 @@ class Monitor:
         except Exception as exc:
             logger.warning(f"  email code            : entry failed — {exc}")
             return False
+
+        # The result was being discarded, which made a MISSING code box look
+        # like success: the booking would then carry on unverified.
+        if filled is False:
+            logger.error(
+                "  email code            : no #EmailVerificationCode box on the "
+                "page — cannot enter the code"
+            )
+            await utils.screenshot(page, "email-code-no-input")
+            await utils.dump_page_html(page, "email-code-no-input")
+            return False
+        if filled == "filled-no-button":
+            logger.warning(
+                "  email code            : entered, but no verify button found — "
+                "relying on the form submit to carry it"
+            )
+        else:
+            logger.info("  email code            : entered and verify clicked")
 
         await asyncio.sleep(2.5)
         try:

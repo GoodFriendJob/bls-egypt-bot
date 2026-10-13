@@ -40,7 +40,14 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(./.venv/Scripts/python.exe -m compileall -q modules)",
-      "Bash(./.venv/Scripts/python.exe -c \"import yaml;yaml.safe_load\\(open\\('config.example.yaml',encoding='utf-8'\\)\\);print\\('example yaml parses'\\)\")"
+      "Bash(./.venv/Scripts/python.exe -c \"import yaml;yaml.safe_load\\(open\\('config.example.yaml',encoding='utf-8'\\)\\);print\\('example yaml parses'\\)\")",
+      "Bash(./.venv/Scripts/python.exe -m pyflakes --version)",
+      "Bash(./.venv/Scripts/python.exe -m pip install -q pyflakes)",
+      "Bash(./.venv/Scripts/python.exe -m pyflakes bot.py modules/*.py dashboard/*.py tools/*.py)",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(./.venv/Scripts/python.exe -m pyflakes bot.py modules/*.py)",
+      "Bash(PYTHONIOENCODING=utf-8 ./.venv/Scripts/python.exe -c ' *)",
+      "Bash(./.venv/Scripts/python.exe -m pyflakes modules/notifier.py modules/monitor.py)"
     ]
   }
 }

@@ -139,11 +139,26 @@ class Notifier:
     # ------------------------------------------------------------------ #
     # Alert types
     # ------------------------------------------------------------------ #
-    async def slot_found(self, location: str, date: str = "", time: str = "") -> bool:
+    async def slot_found(
+        self,
+        location: str,
+        date: str = "",
+        time: str = "",
+        *,
+        selection: str = "",
+    ) -> bool:
+        """Announce an opening.
+
+        ``selection`` names the swept combination (location / visa type / sub
+        type / category / applicant). With several combinations in play, the
+        city alone does not say which one actually opened up.
+        """
         detail = " ".join(part for part in (date, time) if part) or "details on the page"
-        return await self.send(
-            f"🟢 SLOT FOUND\nLocation: {location.title()}\nWhen: {detail}\n\nBooking now…"
-        )
+        lines = ["🟢 SLOT FOUND", f"Location: {location.title()}"]
+        if selection:
+            lines.append(f"Selection: {selection}")
+        lines.append(f"When: {detail}")
+        return await self.send("\n".join(lines) + "\n\nBooking now…")
 
     async def manual_required(self, reason: str, *, screenshot: str | None = None) -> bool:
         text = (
