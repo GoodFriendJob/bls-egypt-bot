@@ -9,22 +9,76 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from pathlib import Path
+
 from flask import Flask, jsonify, render_template, request
+
+from dashboard import config_api
 from loguru import logger
 
 
-def create_app(config: dict[str, Any], state: Any) -> Flask:
+def create_app(
+    config: dict[str, Any], state: Any, config_path: str = "config.yaml"
+) -> Flask:
     app = Flask(__name__)
     app.config["JSON_AS_ASCII"] = False  # keep Arabic readable in API responses
     dash_cfg = config.get("dashboard", {}) or {}
 
     @app.route("/")
     def index() -> str:
+        # ?lang=en / ?lang=ar overrides the configured default for this visit,
+        # so the English dashboard has a shareable link of its own.
+        requested = str(request.args.get("lang", "")).lower()
+        language = requested if requested in ("ar", "en") else str(
+            dash_cfg.get("default_language", "ar")
+        )
         return render_template(
             "index.html",
-            default_language=dash_cfg.get("default_language", "ar"),
+            default_language=language,
             poll_interval=config.get("poll_interval", 90),
         )
+
+    @app.route("/api/config")
+    def api_config() -> Any:
+        """The whole of config.yaml, grouped, with secrets masked."""
+        return jsonify(config_api.describe(config))
+
+    @app.route("/api/config", methods=["POST"])
+    def api_config_save() -> Any:
+        payload = request.get_json(silent=True) or {}
+        changes = payload.get("changes") or {}
+        if not isinstance(changes, dict) or not changes:
+            return jsonify({"ok": False, "error": "no changes supplied"}), 400
+
+        applied, rejected = config_api.apply_changes(config, changes)
+        if not applied:
+            return jsonify({"ok": False, "error": "nothing applied", "rejected": rejected}), 400
+
+        saved = True
+        error = ""
+        try:
+            config_api.save(config, Path(config_path))
+        except Exception as exc:  # the live edit still stands if the write fails
+            saved = False
+            error = str(exc)
+            logger.error(f"dashboard: could not write config: {exc}")
+
+        # Push the edit into the values the Monitor cached at startup.
+        live = state.reload_config()
+        state.log_event(
+            "bot",
+            f"settings updated from dashboard: {', '.join(applied)}",
+            status="ok" if (saved and live) else "warn",
+        )
+        logger.info(f"dashboard: applied {applied} (saved={saved}, live={live})")
+        return jsonify({
+            "ok": True,
+            "applied": applied,
+            "rejected": rejected,
+            "saved_to_disk": saved,
+            "applied_live": live,
+            "error": error,
+        })
 
     @app.route("/api/status")
     def api_status() -> Any:
@@ -63,7 +117,9 @@ def create_app(config: dict[str, Any], state: Any) -> Flask:
     return app
 
 
-def run_dashboard(config: dict[str, Any], state: Any) -> None:
+def run_dashboard(
+    config: dict[str, Any], state: Any, config_path: str = "config.yaml"
+) -> None:
     """Blocking Flask server — call from a daemon thread."""
     dash_cfg = config.get("dashboard", {}) or {}
     host = dash_cfg.get("host", "127.0.0.1")
@@ -72,7 +128,7 @@ def run_dashboard(config: dict[str, Any], state: Any) -> None:
     # Werkzeug's per-request logging would drown the bot's own output.
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
-    app = create_app(config, state)
+    app = create_app(config, state, config_path)
     try:
         app.run(host=host, port=port, threaded=True, use_reloader=False, debug=False)
     except Exception as exc:

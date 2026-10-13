@@ -9,6 +9,10 @@ playwright-stealth==2.0.3
 python-telegram-bot==21.6
 Flask==3.0.3
 PyYAML==6.0.2
+# Round-trip YAML: the dashboard writes config.yaml back after an edit, and
+# config.yaml carries ~70 lines of comments recording confirmed portal
+# behaviour. ruamel preserves them; PyYAML's dump would delete every one.
+ruamel.yaml==0.18.17
 loguru==0.7.2
 python-dateutil==2.9.0.post0
 # GPT-4o vision, used to read the CAPTCHA tile digits.

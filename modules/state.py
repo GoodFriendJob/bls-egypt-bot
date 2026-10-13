@@ -12,6 +12,8 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
+from loguru import logger
+
 # Location status values surfaced on the dashboard.
 STATUS_IDLE = "idle"
 STATUS_RUNNING = "running"
@@ -60,6 +62,10 @@ class BotState:
             }
 
         self._counters = {"cycles": 0, "slots_found": 0, "errors": 0, "bookings": 0}
+        # Set by bot.py once the Monitor exists. The dashboard thread starts
+        # BEFORE the Monitor is constructed, so it cannot hold a reference to
+        # it directly; going through here keeps the ordering irrelevant.
+        self._config_reloader: Any = None
         self._last_error: str | None = None
         self._appointment: dict[str, Any] | None = None
         self._last_heartbeat: datetime | None = None
@@ -209,6 +215,24 @@ class BotState:
     # ------------------------------------------------------------------ #
     # Snapshot for the dashboard / Telegram /status
     # ------------------------------------------------------------------ #
+    def set_config_reloader(self, fn: Any) -> None:
+        """Register the callback that re-reads config into the live objects."""
+        self._config_reloader = fn
+
+    def reload_config(self) -> bool:
+        """Push edited config into the running bot. True when something applied."""
+        fn = self._config_reloader
+        if fn is None:
+            logger.warning("state: no config reloader registered — edit saved only")
+            return False
+        try:
+            fn(self._config)
+            logger.info("state: live config reloaded")
+            return True
+        except Exception as exc:
+            logger.error(f"state: config reload failed: {exc}")
+            return False
+
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
             locations = {

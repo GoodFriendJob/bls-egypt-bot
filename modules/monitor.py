@@ -412,6 +412,52 @@ class Monitor:
     # ------------------------------------------------------------------ #
     # Loop
     # ------------------------------------------------------------------ #
+    def reload_config(self, config: dict[str, Any] | None = None) -> None:
+        """Re-read every value __init__ cached, so dashboard edits take effect.
+
+        Nested lookups (detection phrases, bls options) already read through
+        self.config and go live the moment the dict is mutated. The scalars
+        below were copied into attributes at construction, so without this they
+        would keep their startup values for the lifetime of the process.
+
+        Deliberately NOT reloaded: anything the browser session was built from
+        (proxy, stealth, user agent). Those only take effect on a new context,
+        and the sweep recycles sessions between combinations anyway.
+        """
+        if config is not None:
+            self.config = config
+        config = self.config
+        bls_cfg = config.get("bls", {}) or {}
+
+        self.locations = [str(loc).lower() for loc in bls_cfg.get("locations", [])]
+        self.poll_interval = float(config.get("poll_interval", 90))
+        self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 5))
+        self.max_combinations = int(config.get("max_combinations_per_cycle", 12))
+        self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
+        self.min_days_ahead = int(config.get("min_days_ahead", 2))
+
+        retry = config.get("retry", {}) or {}
+        self.max_attempts = int(retry.get("max_attempts", 3))
+        self.page_error_wait = float(retry.get("page_error_wait", 30))
+        self.network_error_wait = float(retry.get("network_error_wait", 60))
+        self.block_cooldown_minutes = float(retry.get("block_cooldown_minutes", 60))
+        self.critical_login_failures = int(retry.get("critical_login_failures", 8))
+
+        # Collaborators hold their own copies.
+        for holder in (self.booking, self.auth, self.notifier):
+            if holder is not None and hasattr(holder, "config"):
+                holder.config = config
+
+        # A changed calendar rule invalidates the "already reported" memo,
+        # otherwise widening min_days_ahead would stay silent.
+        self._last_no_date_signature = ""
+
+        logger.info(
+            f"monitor: config reloaded — locations={self.locations} "
+            f"poll={self.poll_interval}s lead={self.min_days_ahead}d "
+            f"combos<={self.max_combinations}"
+        )
+
     async def run(self) -> None:
         """Poll until a stop is requested."""
         logger.info(f"monitor: watching {self.locations} every {self.poll_interval}s")

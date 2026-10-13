@@ -10,45 +10,60 @@
   <header class="topbar">
     <div class="brand">
       <span class="dot" id="live-dot"></span>
-      <h1 data-i18n="title">لوحة متابعة مواعيد BLS</h1>
+      <div>
+        <h1 data-i18n="title">لوحة متابعة مواعيد BLS</h1>
+        <div class="sub" id="brand-sub">—</div>
+      </div>
     </div>
+    <nav class="chips" role="tablist">
+      <button class="chip" id="tab-overview" role="tab" aria-pressed="true"
+              data-i18n="tabOverview">نظرة عامة</button>
+      <button class="chip" id="tab-settings" role="tab" aria-pressed="false"
+              data-i18n="tabSettings">الإعدادات</button>
+    </nav>
     <div class="actions">
-      <button id="btn-start" class="btn btn-ok" data-i18n="start">تشغيل</button>
-      <button id="btn-pause" class="btn btn-warn" data-i18n="pause">إيقاف مؤقت</button>
+      <button id="btn-resume" class="btn btn-ok hidden" data-i18n="resume">استئناف</button>
       <button id="btn-stop" class="btn btn-danger" data-i18n="stop">إيقاف</button>
-      <button id="btn-lang" class="btn btn-ghost">EN</button>
+      <button id="btn-theme" class="btn btn-icon" title="Theme">◐</button>
+      <button id="btn-lang" class="btn btn-icon">EN</button>
     </div>
   </header>
 
-  <main>
-    <!-- Bot state ------------------------------------------------------- -->
+  <main id="view-overview">
+    <!-- Hero ------------------------------------------------------------- -->
     <section class="card">
-      <h2 data-i18n="botState">حالة البوت</h2>
-      <div class="grid">
-        <div class="stat"><label data-i18n="state">الحالة</label><strong id="bot-state">—</strong></div>
-        <div class="stat"><label data-i18n="uptime">مدة التشغيل</label><strong id="uptime">—</strong></div>
-        <div class="stat"><label data-i18n="interval">فترة الفحص</label><strong id="interval">{{ poll_interval }}s</strong></div>
-        <div class="stat"><label data-i18n="cycles">عدد الدورات</label><strong id="cycles">0</strong></div>
-        <div class="stat"><label data-i18n="slots">مواعيد تم إيجادها</label><strong id="slots">0</strong></div>
-        <div class="stat"><label data-i18n="errors">الأخطاء</label><strong id="errors">0</strong></div>
+      <div class="hero">
+        <div class="hero-state">
+          <span class="hero-label" data-i18n="botState">حالة البوت</span>
+          <span class="hero-value" id="bot-state">—</span>
+          <span class="hero-detail" id="bot-detail">—</span>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><span class="n" id="cycles">0</span><span class="k" data-i18n="cycles">الدورات</span></div>
+          <div class="kpi good"><span class="n" id="slots">0</span><span class="k" data-i18n="slots">مواعيد</span></div>
+          <div class="kpi good"><span class="n" id="bookings">0</span><span class="k" data-i18n="bookings">حجوزات</span></div>
+          <div class="kpi bad"><span class="n" id="errors">0</span><span class="k" data-i18n="errors">أخطاء</span></div>
+          <div class="kpi"><span class="n" id="uptime">—</span><span class="k" data-i18n="uptime">التشغيل</span></div>
+          <div class="kpi"><span class="n" id="interval">{{ poll_interval }}s</span><span class="k" data-i18n="interval">الفحص</span></div>
+        </div>
       </div>
       <p id="pause-banner" class="banner hidden"></p>
       <p id="error-banner" class="banner err hidden"></p>
     </section>
 
-    <!-- Locations ------------------------------------------------------- -->
+    <!-- Locations -------------------------------------------------------- -->
     <section class="card">
       <h2 data-i18n="locations">حالة المتابعة لكل مدينة</h2>
       <div id="locations" class="locations"></div>
     </section>
 
-    <!-- Appointment ----------------------------------------------------- -->
+    <!-- Appointment ------------------------------------------------------ -->
     <section class="card hidden" id="appointment-card">
       <h2 data-i18n="appointment">تفاصيل الموعد المؤكد</h2>
       <table class="kv" id="appointment-table"></table>
     </section>
 
-    <!-- Applicant ------------------------------------------------------- -->
+    <!-- Applicant -------------------------------------------------------- -->
     <section class="card">
       <h2 data-i18n="applicant">بيانات مقدم الطلب</h2>
       <table class="kv">
@@ -62,9 +77,18 @@
       </table>
     </section>
 
-    <!-- Live log -------------------------------------------------------- -->
+    <!-- Live log --------------------------------------------------------- -->
     <section class="card">
       <h2 data-i18n="log">السجل المباشر</h2>
+      <div class="log-tools">
+        <input id="log-filter" class="input" type="search" data-i18n-ph="filterLog">
+        <div class="chips">
+          <button class="chip" data-level="all" aria-pressed="true" data-i18n="fAll">الكل</button>
+          <button class="chip" data-level="ok" aria-pressed="false" data-i18n="fOk">ناجح</button>
+          <button class="chip" data-level="warn" aria-pressed="false" data-i18n="fWarn">تحذير</button>
+          <button class="chip" data-level="error" aria-pressed="false" data-i18n="fErr">خطأ</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table class="log">
           <thead>
@@ -81,67 +105,139 @@
     </section>
   </main>
 
+  <!-- Settings ----------------------------------------------------------- -->
+  <main id="view-settings" class="hidden">
+    <section class="card">
+      <h2 data-i18n="settings">إعدادات البوت</h2>
+      <p class="hero-detail" data-i18n="settingsHelp">
+        تُطبَّق التغييرات على البوت أثناء تشغيله وتُحفظ في config.yaml.
+      </p>
+      <div class="log-tools settings-bar">
+        <input id="settings-filter" class="input" type="search" data-i18n-ph="filterSettings">
+        <button id="btn-save" class="btn btn-ok" data-i18n="save">حفظ التغييرات</button>
+        <button id="btn-revert" class="btn" data-i18n="revert">تراجع</button>
+      </div>
+      <p id="settings-msg" class="banner hidden"></p>
+    </section>
+    <div id="settings-sections"></div>
+  </main>
+
   <footer>
-    <span data-i18n="refreshed">آخر تحديث</span>: <span id="refreshed">—</span>
+    <span data-i18n="refreshed">آخر تحديث</span>:
+    <span id="refreshed" class="mono">—</span>
     <span class="sep">·</span>
-    <span data-i18n="autoRefresh">تحديث تلقائي كل 30 ثانية</span>
+    <span id="live-label" data-i18n="liveUpdates">تحديث مباشر</span>
+    <span class="refresh-bar"><i id="refresh-fill"></i></span>
   </footer>
 
 <script>
+/* ---------------------------------------------------------------------------
+   Strings. Every key exists in both languages; a missing one renders its key,
+   which makes an omission obvious rather than silently falling back to Arabic.
+   --------------------------------------------------------------------------- */
 const I18N = {
   ar: {
-    title: "لوحة متابعة مواعيد BLS", start: "تشغيل", pause: "إيقاف مؤقت", stop: "إيقاف",
-    botState: "حالة البوت", state: "الحالة", uptime: "مدة التشغيل", interval: "فترة الفحص",
-    cycles: "عدد الدورات", slots: "مواعيد تم إيجادها", errors: "الأخطاء",
+    title: "لوحة متابعة مواعيد BLS", stop: "إيقاف", resume: "استئناف",
+    tabOverview: "نظرة عامة", tabSettings: "الإعدادات",
+    botState: "حالة البوت", uptime: "التشغيل", interval: "الفحص",
+    cycles: "الدورات", slots: "مواعيد", bookings: "حجوزات", errors: "أخطاء",
     locations: "حالة المتابعة لكل مدينة", appointment: "تفاصيل الموعد المؤكد",
     applicant: "بيانات مقدم الطلب", fullName: "الاسم الكامل", passport: "رقم جواز السفر",
     nationality: "الجنسية", dob: "تاريخ الميلاد", phone: "الهاتف", email: "البريد الإلكتروني",
     visaType: "نوع التأشيرة", log: "السجل المباشر", time: "الوقت", location: "الموقع",
-    event: "الحدث", status: "الحالة", refreshed: "آخر تحديث",
-    autoRefresh: "تحديث تلقائي كل 30 ثانية", lastChecked: "آخر فحص", never: "لم يتم بعد",
-    checks: "عدد الفحوصات",
+    event: "الحدث", status: "الحالة", refreshed: "آخر تحديث", liveUpdates: "تحديث مباشر",
+    lastChecked: "آخر فحص", never: "لم يتم بعد", checks: "عدد الفحوصات",
     st_running: "يعمل", st_idle: "متوقف", st_checking: "جاري الفحص", st_no_slots: "لا توجد مواعيد",
     st_slot_found: "تم إيجاد موعد", st_booking: "جاري الحجز", st_booked: "تم الحجز",
     st_paused: "متوقف مؤقتاً", st_error: "خطأ", st_stopping: "جاري الإيقاف",
-    pausedFor: "متوقف في انتظار إجراء يدوي", lastError: "آخر خطأ"
+    pausedFor: "متوقف في انتظار إجراء يدوي", lastError: "آخر خطأ",
+    monitoring: "يراقب", noLocations: "لا توجد مواقع", noLog: "لا توجد أحداث بعد",
+    fAll: "الكل", fOk: "ناجح", fWarn: "تحذير", fErr: "خطأ",
+    filterLog: "بحث في السجل…", filterSettings: "بحث في الإعدادات…",
+    settings: "إعدادات البوت", save: "حفظ التغييرات", revert: "تراجع",
+    settingsHelp: "تُطبَّق التغييرات على البوت أثناء تشغيله وتُحفظ في config.yaml.",
+    saved: "تم الحفظ والتطبيق", saveFailed: "فشل الحفظ", noChanges: "لا توجد تغييرات",
+    restartNeeded: "يتطلب إعادة تشغيل", secretHint: "اتركه كما هو للإبقاء على القيمة الحالية",
+    listHint: "قيمة واحدة في كل سطر", dirty: "تغييرات غير محفوظة",
+    confirmStop: "إيقاف البوت؟"
   },
   en: {
-    title: "BLS Appointment Bot Dashboard", start: "Start", pause: "Pause", stop: "Stop",
-    botState: "Bot state", state: "Status", uptime: "Uptime", interval: "Check interval",
-    cycles: "Cycles", slots: "Slots found", errors: "Errors",
+    title: "BLS Appointment Bot", stop: "Stop", resume: "Resume",
+    tabOverview: "Overview", tabSettings: "Settings",
+    botState: "Bot state", uptime: "Uptime", interval: "Interval",
+    cycles: "Cycles", slots: "Slots", bookings: "Bookings", errors: "Errors",
     locations: "Monitoring status per location", appointment: "Confirmed appointment",
     applicant: "Applicant data", fullName: "Full name", passport: "Passport number",
     nationality: "Nationality", dob: "Date of birth", phone: "Phone", email: "Email",
     visaType: "Visa type", log: "Live log", time: "Time", location: "Location",
-    event: "Event", status: "Status", refreshed: "Last refreshed",
-    autoRefresh: "Auto-refresh every 30s", lastChecked: "Last checked", never: "never",
-    checks: "Checks",
+    event: "Event", status: "Status", refreshed: "Last refreshed", liveUpdates: "Live",
+    lastChecked: "Last checked", never: "never", checks: "Checks",
     st_running: "Running", st_idle: "Idle", st_checking: "Checking", st_no_slots: "No slots",
     st_slot_found: "Slot found", st_booking: "Booking", st_booked: "Booked",
     st_paused: "Paused", st_error: "Error", st_stopping: "Stopping",
-    pausedFor: "Paused — waiting for a manual step", lastError: "Last error"
+    pausedFor: "Paused — waiting for a manual step", lastError: "Last error",
+    monitoring: "Monitoring", noLocations: "No locations configured",
+    noLog: "No events yet", fAll: "All", fOk: "OK", fWarn: "Warn", fErr: "Error",
+    filterLog: "Search the log…", filterSettings: "Search settings…",
+    settings: "Bot settings", save: "Save changes", revert: "Revert",
+    settingsHelp: "Changes apply to the running bot and are written to config.yaml.",
+    saved: "Saved and applied", saveFailed: "Save failed", noChanges: "No changes to save",
+    restartNeeded: "needs a restart", secretHint: "leave as-is to keep the current value",
+    listHint: "one value per line", dirty: "unsaved changes",
+    confirmStop: "Stop the bot?"
   }
 };
 
-let lang = document.documentElement.dataset.lang === "en" ? "en" : "ar";
+const REFRESH_MS = 2000;        // real-time: the bot moves in seconds, not minutes
+let lang  = document.documentElement.dataset.lang === "en" ? "en" : "ar";
+let theme = localStorage.getItem("bls-theme") || "auto";
 
-function t(key) { return (I18N[lang] && I18N[lang][key]) || key; }
+const t  = (k) => (I18N[lang] && I18N[lang][k]) || k;
+const $  = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g,
+  (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
+/* --- theme ---------------------------------------------------------------- */
+function applyTheme() {
+  const root = document.documentElement;
+  if (theme === "auto") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", theme);
+  $("btn-theme").textContent = theme === "dark" ? "☾" : theme === "light" ? "☀" : "◐";
+  localStorage.setItem("bls-theme", theme);
+}
+
+/* --- language ------------------------------------------------------------- */
 function applyLanguage() {
   const html = document.documentElement;
   html.lang = lang;
   html.dir = lang === "ar" ? "rtl" : "ltr";
-  document.getElementById("btn-lang").textContent = lang === "ar" ? "EN" : "ع";
+  $("btn-lang").textContent = lang === "ar" ? "EN" : "ع";
   document.querySelectorAll("[data-i18n]").forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  localStorage.setItem("bls-lang", lang);
   render();
+  renderSettings();
 }
+
+const locale = () => (lang === "ar" ? "ar-EG" : "en-GB");
 
 function fmtTime(iso) {
   if (!iso) return t("never");
   const d = new Date(iso);
-  return isNaN(d) ? iso : d.toLocaleString(lang === "ar" ? "ar-EG" : "en-GB");
+  return isNaN(d) ? iso : d.toLocaleString(locale());
+}
+
+function fmtAgo(iso) {
+  if (!iso) return t("never");
+  const secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (isNaN(secs)) return iso;
+  if (secs < 60) return `${Math.round(secs)}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m`;
+  return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
 }
 
 function fmtUptime(seconds) {
@@ -150,101 +246,271 @@ function fmtUptime(seconds) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-let snapshot = null, logEntries = [];
+/* --- overview ------------------------------------------------------------- */
+let snapshot = null, logEntries = [], logLevel = "all", logQuery = "";
 
 function render() {
   if (!snapshot) return;
 
-  let stateKey = "st_idle";
-  if (snapshot.stopping) stateKey = "st_stopping";
-  else if (snapshot.paused) stateKey = "st_paused";
-  else if (snapshot.running) stateKey = "st_running";
+  let key = "st_idle", tone = "";
+  if (snapshot.stopping)      { key = "st_stopping"; }
+  else if (snapshot.paused)   { key = "st_paused";  tone = "paused"; }
+  else if (snapshot.running)  { key = "st_running"; tone = "running"; }
+  if (snapshot.last_error && !snapshot.running) tone = "error";
 
-  document.getElementById("bot-state").textContent = t(stateKey);
-  document.getElementById("live-dot").className = "dot " + (snapshot.running ? "on" : "off");
-  document.getElementById("uptime").textContent = fmtUptime(snapshot.uptime_seconds);
-  document.getElementById("interval").textContent = snapshot.poll_interval + "s";
-  document.getElementById("cycles").textContent = snapshot.counters.cycles;
-  document.getElementById("slots").textContent = snapshot.counters.slots_found;
-  document.getElementById("errors").textContent = snapshot.counters.errors;
+  const stateEl = $("bot-state");
+  stateEl.textContent = t(key);
+  stateEl.className = "hero-value " + tone;
+  $("live-dot").className = "dot " +
+    (snapshot.paused ? "warn" : snapshot.running ? "on" : "off");
 
-  const pauseBanner = document.getElementById("pause-banner");
+  const names = Object.keys(snapshot.locations || {})
+    .map(n => n.charAt(0).toUpperCase() + n.slice(1));
+  $("bot-detail").textContent = names.length
+    ? `${t("monitoring")}: ${names.join(" · ")}`
+    : t("noLocations");
+  $("brand-sub").textContent = `${t("st_" + (snapshot.running ? "running" : "idle"))} · ${fmtUptime(snapshot.uptime_seconds)}`;
+
+  $("uptime").textContent   = fmtUptime(snapshot.uptime_seconds);
+  $("interval").textContent = snapshot.poll_interval + "s";
+  const c = snapshot.counters || {};
+  $("cycles").textContent   = c.cycles || 0;
+  $("slots").textContent    = c.slots_found || 0;
+  $("bookings").textContent = c.bookings || 0;
+  $("errors").textContent   = c.errors || 0;
+
+  $("btn-resume").classList.toggle("hidden", !snapshot.paused);
+
+  const pause = $("pause-banner");
   if (snapshot.paused) {
-    pauseBanner.textContent = `${t("pausedFor")}: ${snapshot.pause_reason || ""}`;
-    pauseBanner.classList.remove("hidden");
-  } else {
-    pauseBanner.classList.add("hidden");
-  }
+    pause.textContent = `${t("pausedFor")}: ${snapshot.pause_reason || ""}`;
+    pause.classList.remove("hidden");
+  } else pause.classList.add("hidden");
 
-  const errBanner = document.getElementById("error-banner");
+  const err = $("error-banner");
   if (snapshot.last_error) {
-    errBanner.textContent = `${t("lastError")}: ${snapshot.last_error}`;
-    errBanner.classList.remove("hidden");
-  } else {
-    errBanner.classList.add("hidden");
-  }
+    err.textContent = `${t("lastError")}: ${snapshot.last_error}`;
+    err.classList.remove("hidden");
+  } else err.classList.add("hidden");
 
   // Locations
-  const wrap = document.getElementById("locations");
-  wrap.innerHTML = "";
-  Object.entries(snapshot.locations).forEach(([name, info]) => {
-    const card = document.createElement("div");
-    card.className = "loc " + info.status;
-    card.innerHTML = `
+  const wrap = $("locations");
+  const entries = Object.entries(snapshot.locations || {});
+  wrap.innerHTML = entries.length ? entries.map(([name, info]) => `
+    <div class="loc ${esc(info.status)}">
       <div class="loc-head">
-        <span class="loc-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-        <span class="pill ${info.status}">${t("st_" + info.status) }</span>
+        <span class="loc-name">${esc(name.charAt(0).toUpperCase() + name.slice(1))}</span>
+        <span class="pill ${esc(info.status)}">${esc(t("st_" + info.status))}</span>
       </div>
-      <div class="loc-row"><span>${t("lastChecked")}</span><span>${fmtTime(info.last_checked)}</span></div>
-      <div class="loc-row"><span>${t("checks")}</span><span>${info.checks}</span></div>
-      <div class="loc-detail">${info.detail || ""}</div>`;
-    wrap.appendChild(card);
-  });
+      <div class="loc-row"><span>${esc(t("lastChecked"))}</span><span>${esc(fmtAgo(info.last_checked))}</span></div>
+      <div class="loc-row"><span>${esc(t("checks"))}</span><span>${esc(info.checks)}</span></div>
+      <div class="loc-detail">${esc(info.detail || "")}</div>
+    </div>`).join("") : `<div class="empty">${esc(t("noLocations"))}</div>`;
 
   // Applicant
   const a = snapshot.applicant || {};
-  const set = (id, val) => document.getElementById(id).textContent = val || "—";
+  const set = (id, v) => $(id).textContent = v || "—";
   set("ap-name", a.full_name); set("ap-passport", a.passport_number);
   set("ap-nat", a.nationality); set("ap-dob", a.dob);
   set("ap-phone", a.phone); set("ap-email", a.email);
-  set("ap-visa", snapshot.visa_type);
+  set("ap-visa", Array.isArray(snapshot.visa_type)
+    ? snapshot.visa_type.join(", ") : snapshot.visa_type);
 
   // Appointment
-  const apCard = document.getElementById("appointment-card");
-  const apTable = document.getElementById("appointment-table");
+  const apCard = $("appointment-card"), apTable = $("appointment-table");
   if (snapshot.appointment) {
     apTable.innerHTML = Object.entries(snapshot.appointment)
       .filter(([, v]) => v)
-      .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+      .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("");
     apCard.classList.remove("hidden");
+  } else apCard.classList.add("hidden");
+
+  renderLog();
+  $("refreshed").textContent = new Date().toLocaleTimeString(locale());
+}
+
+function renderLog() {
+  const q = logQuery.trim().toLowerCase();
+  const rows = logEntries.filter(e => {
+    if (logLevel !== "all" && String(e.status) !== logLevel) return false;
+    if (!q) return true;
+    return `${e.location} ${e.event} ${e.status}`.toLowerCase().includes(q);
+  });
+  $("log-body").innerHTML = rows.length ? rows.map(e => `
+    <tr class="${e.status === "error" ? "row-error" : e.status === "ok" ? "row-ok" : ""}">
+      <td class="mono">${esc(fmtTime(e.timestamp))}</td>
+      <td>${esc(e.location)}</td>
+      <td class="evt">${esc(e.event)}</td>
+      <td><span class="pill ${esc(e.status)}">${esc(e.status)}</span></td>
+    </tr>`).join("")
+    : `<tr><td colspan="4" class="empty">${esc(t("noLog"))}</td></tr>`;
+}
+
+/* --- settings ------------------------------------------------------------- */
+let settings = null;          // as served
+let edits = {};               // path -> new value, only what actually changed
+let settingsQuery = "";
+
+function fieldId(path) { return "cfg__" + path.replace(/[^\w]/g, "_"); }
+
+async function loadSettings() {
+  try {
+    settings = await (await fetch("/api/config")).json();
+    edits = {};
+    renderSettings();
+  } catch (e) { console.error("settings load failed", e); }
+}
+
+function renderSettings() {
+  if (!settings) return;
+  const q = settingsQuery.trim().toLowerCase();
+  const host = $("settings-sections");
+
+  host.innerHTML = settings.sections.map(section => {
+    const fields = section.fields.filter(f => !q || f.path.toLowerCase().includes(q));
+    if (!fields.length) return "";
+    return `
+      <section class="card">
+        <h2>${esc(section.name)}</h2>
+        <div class="fields">${fields.map(renderField).join("")}</div>
+      </section>`;
+  }).join("") || `<section class="card"><div class="empty">—</div></section>`;
+
+  host.querySelectorAll("[data-path]").forEach(el => {
+    el.addEventListener("input", onFieldInput);
+    el.addEventListener("change", onFieldInput);
+  });
+  markDirty();
+}
+
+function renderField(f) {
+  const id = fieldId(f.path);
+  const label = f.path.split(".").slice(1).join(".") || f.path;
+  const note = f.restart ? `<span class="pill warn">${esc(t("restartNeeded"))}</span>`
+             : f.secret ? `<span class="pill">${esc(t("secretHint"))}</span>`
+             : f.kind === "list" ? `<span class="pill">${esc(t("listHint"))}</span>` : "";
+
+  let control;
+  if (f.kind === "bool") {
+    control = `<label class="switch">
+                 <input type="checkbox" id="${id}" data-path="${esc(f.path)}"
+                        data-kind="bool" ${f.value ? "checked" : ""}>
+                 <span class="track"></span>
+                 <span class="on-label">${f.value ? "on" : "off"}</span>
+               </label>`;
+  } else if (f.kind === "list") {
+    control = `<textarea class="input" id="${id}" data-path="${esc(f.path)}" data-kind="list"
+                 rows="${Math.min(8, Math.max(2, (f.value || []).length))}"
+                 >${esc((f.value || []).join("\n"))}</textarea>`;
+  } else if (f.kind === "number") {
+    control = `<input class="input" type="number" step="any" id="${id}"
+                 data-path="${esc(f.path)}" data-kind="number" value="${esc(f.value)}">`;
   } else {
-    apCard.classList.add("hidden");
+    control = `<input class="input" type="${f.secret ? "password" : "text"}" id="${id}"
+                 data-path="${esc(f.path)}" data-kind="text" value="${esc(f.value)}">`;
   }
 
-  // Log (already newest-first from the API)
-  document.getElementById("log-body").innerHTML = logEntries.map(e => `
-    <tr>
-      <td class="mono">${fmtTime(e.timestamp)}</td>
-      <td>${e.location}</td>
-      <td>${e.event}</td>
-      <td><span class="pill ${e.status}">${e.status}</span></td>
-    </tr>`).join("");
-
-  document.getElementById("refreshed").textContent =
-    new Date().toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-GB");
+  return `
+    <div class="field">
+      <label for="${id}">${esc(label)}</label>
+      ${control}
+      ${note}
+    </div>`;
 }
+
+function currentValue(el) {
+  if (el.dataset.kind === "bool") return el.checked;
+  if (el.dataset.kind === "list") {
+    return el.value.split("\n").map(s => s.trim()).filter(Boolean);
+  }
+  return el.value;
+}
+
+function originalOf(path) {
+  for (const s of settings.sections) {
+    for (const f of s.fields) if (f.path === path) return f;
+  }
+  return null;
+}
+
+function onFieldInput(ev) {
+  const el = ev.target;
+  if (el.dataset.kind === "bool") {
+    const cap = el.parentElement.querySelector(".on-label");
+    if (cap) cap.textContent = el.checked ? "on" : "off";
+  }
+  const path = el.dataset.path;
+  const original = originalOf(path);
+  const now = currentValue(el);
+  const same = JSON.stringify(now) === JSON.stringify(original ? original.value : null);
+  if (same) delete edits[path]; else edits[path] = now;
+  markDirty();
+}
+
+function markDirty() {
+  const n = Object.keys(edits).length;
+  const btn = $("btn-save");
+  btn.textContent = n ? `${t("save")} (${n})` : t("save");
+  btn.classList.toggle("btn-ok", n > 0);
+}
+
+async function saveSettings() {
+  const msg = $("settings-msg");
+  if (!Object.keys(edits).length) {
+    msg.className = "banner";
+    msg.textContent = t("noChanges");
+    msg.classList.remove("hidden");
+    return;
+  }
+  try {
+    const res = await fetch("/api/config", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({changes: edits})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      msg.className = "banner";
+      const bits = [t("saved"), data.applied.join(", ")];
+      if (!data.saved_to_disk) bits.push("(config.yaml: " + (data.error || "not written") + ")");
+      if (!data.applied_live) bits.push("(not applied live)");
+      msg.textContent = bits.join(" — ");
+      await loadSettings();
+      refresh();
+    } else {
+      msg.className = "banner err";
+      msg.textContent = `${t("saveFailed")}: ${data.error || ""} ${(data.rejected || []).join(", ")}`;
+    }
+    msg.classList.remove("hidden");
+  } catch (e) {
+    msg.className = "banner err";
+    msg.textContent = `${t("saveFailed")}: ${e}`;
+    msg.classList.remove("hidden");
+  }
+}
+
+/* --- polling -------------------------------------------------------------- */
+let tickStart = Date.now();
 
 async function refresh() {
   try {
-    const [statusRes, logRes] = await Promise.all([
-      fetch("/api/status"), fetch("/api/log?limit=150")
+    const [s, l] = await Promise.all([
+      fetch("/api/status"), fetch("/api/log?limit=200")
     ]);
-    snapshot = await statusRes.json();
-    logEntries = (await logRes.json()).entries || [];
+    snapshot = await s.json();
+    logEntries = (await l.json()).entries || [];
     render();
-  } catch (err) {
-    console.error("refresh failed", err);
+  } catch (e) {
+    console.error("refresh failed", e);
+    $("live-dot").className = "dot err";
   }
+  tickStart = Date.now();
+}
+
+function animateBar() {
+  const pct = Math.min(1, (Date.now() - tickStart) / REFRESH_MS);
+  $("refresh-fill").style.transform = `scaleX(${1 - pct})`;
+  requestAnimationFrame(animateBar);
 }
 
 async function control(action) {
@@ -255,20 +521,55 @@ async function control(action) {
       body: JSON.stringify({action})
     });
     refresh();
-  } catch (err) { console.error("control failed", err); }
+  } catch (e) { console.error("control failed", e); }
 }
 
-document.getElementById("btn-start").onclick = () => control("start");
-document.getElementById("btn-pause").onclick = () => control("pause");
-document.getElementById("btn-stop").onclick = () => control("stop");
-document.getElementById("btn-lang").onclick = () => {
-  lang = lang === "ar" ? "en" : "ar";
-  applyLanguage();
+/* --- wiring --------------------------------------------------------------- */
+function showTab(which) {
+  const overview = which === "overview";
+  $("view-overview").classList.toggle("hidden", !overview);
+  $("view-settings").classList.toggle("hidden", overview);
+  $("tab-overview").setAttribute("aria-pressed", String(overview));
+  $("tab-settings").setAttribute("aria-pressed", String(!overview));
+  if (!overview && !settings) loadSettings();
+}
+
+$("tab-overview").onclick = () => showTab("overview");
+$("tab-settings").onclick = () => showTab("settings");
+
+// Stop is the only destructive control the manager has; Resume appears only
+// while the bot is paused for a manual step. Starting is automatic by design.
+$("btn-stop").onclick   = () => { if (confirm(t("confirmStop"))) control("stop"); };
+$("btn-resume").onclick = () => control("start");
+
+$("btn-lang").onclick = () => { lang = lang === "ar" ? "en" : "ar"; applyLanguage(); };
+$("btn-theme").onclick = () => {
+  theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto";
+  applyTheme();
 };
 
+$("log-filter").oninput = (e) => { logQuery = e.target.value; renderLog(); };
+document.querySelectorAll("[data-level]").forEach(btn => {
+  btn.onclick = () => {
+    logLevel = btn.dataset.level;
+    document.querySelectorAll("[data-level]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b === btn)));
+    renderLog();
+  };
+});
+
+$("settings-filter").oninput = (e) => { settingsQuery = e.target.value; renderSettings(); };
+$("btn-save").onclick   = saveSettings;
+$("btn-revert").onclick = () => { loadSettings(); $("settings-msg").classList.add("hidden"); };
+
+const savedLang = localStorage.getItem("bls-lang");
+if (savedLang === "ar" || savedLang === "en") lang = savedLang;
+
+applyTheme();
 applyLanguage();
 refresh();
-setInterval(refresh, 30000);
+setInterval(refresh, REFRESH_MS);
+requestAnimationFrame(animateBar);
 </script>
 </body>
 </html>

@@ -357,7 +357,9 @@ def ensure_dirs() -> None:
 # --------------------------------------------------------------------------- #
 # Background tasks
 # --------------------------------------------------------------------------- #
-def start_dashboard(config: dict[str, Any], state: BotState) -> threading.Thread | None:
+def start_dashboard(
+    config: dict[str, Any], state: BotState, config_path: str = "config.yaml"
+) -> threading.Thread | None:
     dash = config.get("dashboard", {}) or {}
     if not dash.get("enabled", True):
         logger.info("dashboard disabled by config")
@@ -367,7 +369,7 @@ def start_dashboard(config: dict[str, Any], state: BotState) -> threading.Thread
 
     thread = threading.Thread(
         target=run_dashboard,
-        args=(config, state),
+        args=(config, state, config_path),
         name="dashboard",
         daemon=True,
     )
@@ -480,7 +482,7 @@ def _main_inner(args: argparse.Namespace, run_log: Path) -> int:
         state = BotState(config)
         state_holder["state"] = state
         # Dashboard shares the same BotState instance as the bot.
-        start_dashboard(config, state)
+        start_dashboard(config, state, str(args.config))
         return await _run_with_state(config, args, state)
 
     try:
@@ -503,6 +505,11 @@ async def _run_with_state(
     auth = BLSAuth(config, state=state, notifier=notifier)
     monitor = Monitor(config, state=state, auth=auth, notifier=notifier)
     notifier.bind(monitor=monitor)
+    # The dashboard edits config.yaml and mutates the shared config dict; this
+    # is what pushes those edits into the values Monitor cached at startup.
+    # Registered here rather than passed to the dashboard because the dashboard
+    # thread is already running by this point.
+    state.set_config_reloader(monitor.reload_config)
 
     loop = asyncio.get_running_loop()
     for sig_name in ("SIGINT", "SIGTERM"):
