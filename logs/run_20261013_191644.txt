@@ -1,0 +1,59 @@
+BLS appointment bot - run transcript
+started : 2026-10-13T19:16:44
+command : bot.py
+python  : 3.11.9
+======================================================================
+19:16:44 | INFO    | __main__ - ==============================================================
+19:16:44 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+19:16:44 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261013_191644.txt
+19:16:44 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+19:16:44 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+19:16:44 | INFO    | __main__ - ==============================================================
+19:16:44 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+19:16:45 | INFO    | modules.notifier - notifier: telegram listener started
+19:16:46 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+19:16:46 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+19:16:46 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+19:16:46 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+19:16:46 | INFO    | modules.auth - auth: browser launched
+19:16:59 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+19:17:01 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+19:17:01 | INFO    | modules.monitor - monitor: navigation watch installed (now: verification)
+19:17:01 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+19:17:06 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+19:17:07 | WARNING | modules.auth - auth: [net] FAILED https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha — net::ERR_ABORTED
+19:17:14 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+19:17:49 | WARNING | modules.monitor - monitor: no frame matching 'generatecaptcha' after 30s; frames seen: ['https://egypt.blsspainglobal.com/Global/bls/visatypeverification', '']
+19:17:49 | ERROR   | modules.monitor - monitor: the verification iframe never appeared — the challenge cannot be read
+19:17:49 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-191749_verify-no-frame.png
+19:17:49 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-191749_verify-no-frame.html
+19:17:49 | INFO    | modules.monitor - monitor: probing the captcha endpoint directly — https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+19:17:50 | INFO    | modules.monitor -   probe status    : 403
+19:17:50 | INFO    | modules.monitor -   probe final url : https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+19:17:50 | INFO    | modules.monitor -   looks like login: False
+19:17:50 | INFO    | modules.monitor -   has number prompt: False
+19:17:50 | INFO    | modules.monitor -   body starts     : '403 Forbidden'
+19:17:50 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-191750_captcha-endpoint-probe.png
+19:17:50 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-191750_captcha-endpoint-probe.html
+19:17:50 | ERROR   | modules.monitor - monitor: visa-type verification not cleared — skipping cycle
+19:19:21 | INFO    | modules.auth - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+19:19:21 | ERROR   | modules.auth - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+19:19:21 | WARNING | modules.utils - block recorded in logs\cooldown.json
+19:19:21 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-191921_http-403.png
+19:19:21 | ERROR   | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+19:19:21 | INFO    | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+19:19:21 | WARNING | modules.utils - block recorded in logs\cooldown.json
+19:19:22 | ERROR   | modules.monitor - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+19:19:22 | WARNING | modules.monitor - monitor: sleeping 5 min, then logging in from scratch
+19:19:22 | INFO    | modules.auth - auth: browser closed
+19:19:22 | INFO    | modules.monitor - monitor: browser closed without saving the session
+19:19:22 | INFO    | modules.auth - auth: stored session discarded
+19:19:22 | INFO    | modules.monitor - monitor: stored cookies cleared — next login is clean
+19:20:28 | INFO    | modules.notifier - notifier: /stop command received
+19:20:28 | INFO    | modules.monitor - monitor: loop ended
+19:20:28 | INFO    | modules.auth - auth: browser closed
+19:20:32 | INFO    | modules.notifier - notifier: telegram listener stopped
+======================================================================
+finished: 2026-10-13T19:20:34
