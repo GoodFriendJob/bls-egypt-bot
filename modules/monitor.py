@@ -361,6 +361,15 @@ class Monitor:
         # needs its own browser session (one verification per session), so this
         # is the main throttle on how hard a sweep hits the portal.
         self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
+        # How many combinations to try per cycle. MEASURED: each one needs its
+        # own browser session (one verification per session), and therefore its
+        # own login. Two logins inside ~2.5 minutes was enough for the portal
+        # to answer 403 to LoginCaptchaSubmit and then to the login page itself
+        # (run 20261013_184753). So the sweep is spread ACROSS cycles instead
+        # of crammed into one: each cycle takes the next slice and the cursor
+        # carries over, giving full coverage over time without the burst.
+        self.combos_per_cycle = max(1, int(config.get("combinations_per_cycle", 1)))
+        self._combo_cursor = 0
         # The portal will not take a booking that is too close to today, so a
         # day inside this window is skipped even when the calendar paints it
         # green. Confirmed by run 20261013_155949: tomorrow was offered and
@@ -412,6 +421,16 @@ class Monitor:
     # ------------------------------------------------------------------ #
     # Loop
     # ------------------------------------------------------------------ #
+    def _cycle_slice(self, combos: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """The combinations this cycle will try, continuing where the last left off."""
+        if not combos:
+            return []
+        size = min(self.combos_per_cycle, len(combos))
+        start = self._combo_cursor % len(combos)
+        picked = [combos[(start + i) % len(combos)] for i in range(size)]
+        self._combo_cursor = (start + size) % len(combos)
+        return picked
+
     def reload_config(self, config: dict[str, Any] | None = None) -> None:
         """Re-read every value __init__ cached, so dashboard edits take effect.
 
@@ -434,6 +453,7 @@ class Monitor:
         self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 5))
         self.max_combinations = int(config.get("max_combinations_per_cycle", 12))
         self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
+        self.combos_per_cycle = max(1, int(config.get("combinations_per_cycle", 1)))
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
 
         retry = config.get("retry", {}) or {}
@@ -516,6 +536,9 @@ class Monitor:
             else:
                 wait = self.poll_interval
             self._last_form_result = None
+            # Keep the artifact directories from growing without bound on a
+            # 24/7 run; retention is logging.retention_days (default 2).
+            utils.prune_logs(self.config)
             await utils.interruptible_sleep(wait, self.state)
 
         logger.info("monitor: loop ended")
@@ -541,16 +564,22 @@ class Monitor:
         # and ask about the NEXT location, rather than ending the cycle and
         # waiting. Only once every location has answered "no slots" is the long
         # wait justified.
-        combos = self.build_combinations()
-        logger.info(f"monitor: sweeping {len(combos)} option combination(s) this cycle")
+        everything = self.build_combinations()
+        combos = self._cycle_slice(everything)
+        logger.info(
+            f"monitor: {len(everything)} combination(s) configured; trying "
+            f"{len(combos)} this cycle, then continuing from there next cycle"
+        )
+        for position, combo in enumerate(combos, 1):
+            logger.info(f"monitor:   {position}. {self.describe_combo(combo)}")
         if len(combos) > 1:
             # Say the real cost out loud: every combination after the first
             # rebuilds the session, which means a login captcha AND a
             # verification captcha.
             logger.info(
-                f"monitor: that is {len(combos)} session(s), about "
-                f"{len(combos) * 2} captcha solves — trim the lists in "
-                "config.yaml if the portal starts refusing requests"
+                f"monitor: that is {len(combos)} login(s) this cycle, about "
+                f"{len(combos) * 2} captcha solves — the portal starts "
+                "refusing requests at roughly two logins per few minutes"
             )
         checked: list[str] = []
         for index, combo in enumerate(combos):
@@ -590,8 +619,23 @@ class Monitor:
                     return
                 try:
                     page = await self.auth.ensure_logged_in(force=True)
-                except PortalUnreachableError:
-                    raise
+                except PortalUnreachableError as exc:
+                    # The portal rate-limits logins. Ending the cycle quietly
+                    # is right: the caller already waits, and raising here
+                    # killed the whole process under --once with a traceback.
+                    logger.error(
+                        f"monitor: portal refused the re-login ({exc}) — ending "
+                        "the cycle; the next one starts from this combination"
+                    )
+                    self.state.log_event(
+                        "bot", "portal refused re-login (403)", status="error"
+                    )
+                    # Re-try this same combination first next time.
+                    self._combo_cursor = (self._combo_cursor - 1) % max(
+                        1, len(everything)
+                    )
+                    await self._handle_portal_block(exc)
+                    return
                 except Exception as exc:
                     logger.error(f"monitor: could not log in again: {exc}")
                     return

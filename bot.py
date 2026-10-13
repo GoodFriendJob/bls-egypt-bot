@@ -28,11 +28,12 @@ from loguru import logger
 
 ROOT = Path(__file__).resolve().parent
 
-from modules.auth import BLSAuth
+from modules.auth import BLSAuth, PortalUnreachableError
 from modules.monitor import Monitor
 from modules.notifier import Notifier
 from modules.state import BotState
 from modules.utils import block_cooldown_remaining as utils_block_cooldown
+from modules.utils import prune_logs as utils_prune_logs
 from modules.utils import interruptible_sleep
 
 CONFIG_PATH = ROOT / "config.yaml"
@@ -483,6 +484,8 @@ def _main_inner(args: argparse.Namespace, run_log: Path) -> int:
         state_holder["state"] = state
         # Dashboard shares the same BotState instance as the bot.
         start_dashboard(config, state, str(args.config))
+        # Housekeeping before anything writes new artifacts.
+        utils_prune_logs(config)
         return await _run_with_state(config, args, state)
 
     try:
@@ -529,7 +532,18 @@ async def _run_with_state(
     try:
         if args.once:
             logger.info("single-cycle mode (--once)")
-            await monitor.run_once()
+            try:
+                await monitor.run_once()
+            except PortalUnreachableError as exc:
+                # A 403 is an expected outcome, not a crash. Under --once it
+                # used to escape as a fatal error with a full traceback
+                # (run 20261013_184753); report it plainly and exit non-zero.
+                logger.error(f"portal unreachable: {exc}")
+                logger.info(
+                    "the cooldown is recorded — a normal run would wait it out "
+                    "and carry on by itself"
+                )
+                exit_code = 2
         else:
             tasks.append(asyncio.create_task(monitor.run(), name="monitor"))
             tasks.append(
