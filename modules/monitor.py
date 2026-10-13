@@ -1757,6 +1757,11 @@ class Monitor:
         await self._settle(page)
         await asyncio.sleep(2.0)
 
+        # Submitting lands on a Terms of Service page that must be consented to
+        # before the booking proceeds.
+        await self._accept_terms_of_service(page)
+        await self._dismiss_open_modals(page)
+
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
         logger.success(f"monitor: appointment submitted — now at {page.url}")
@@ -1769,6 +1774,83 @@ class Monitor:
         )
         await self._survey_page(page, "after-appointment-submit")
         return True
+
+    async def _accept_terms_of_service(self, page: Any, timeout: float = 30.0) -> bool:
+        """Give consent on the Terms of Service page that follows submission.
+
+        CONFIRMED markup — the two buttons sit side by side:
+
+          <button class="btn btn-danger p-2"
+                  onclick="onDisagree()">I disagree and don't give my consent
+          <button class="btn btn-success ml-4 p-2"
+                  onclick="onAgree()">I agree to provide my consent
+
+        Targeted by its onclick handler, never by position or by being "the
+        other one": clicking Disagree would throw the booking away, so the
+        match has to be positive. Anything whose handler or text mentions
+        disagreeing is rejected outright, and if only that one is present this
+        returns False rather than guessing.
+        """
+        waited = 0.0
+        while waited < timeout:
+            try:
+                result = await page.evaluate(
+                    """
+                    () => {
+                      const vis = (el) => {
+                        const s = getComputedStyle(el);
+                        if (s.display === 'none' || s.visibility === 'hidden') return false;
+                        const r = el.getBoundingClientRect();
+                        return r.width > 2 && r.height > 2;
+                      };
+                      const all = Array.from(document.querySelectorAll('button, a.btn'));
+                      const blob = (el) =>
+                        ((el.getAttribute('onclick') || '') + ' ' +
+                         (el.innerText || '')).toLowerCase();
+
+                      const seen = [];
+                      let agree = null;
+                      for (const el of all) {
+                        if (!vis(el)) continue;
+                        const b = blob(el);
+                        seen.push((el.innerText || '').trim().slice(0, 40));
+                        // Reject the refusal explicitly before anything else.
+                        if (b.includes('ondisagree') || b.includes('disagree') ||
+                            b.includes("don't give") || b.includes('do not give')) {
+                          continue;
+                        }
+                        if (b.includes('onagree') ||
+                            (b.includes('agree') && b.includes('consent'))) {
+                          agree = el;
+                          break;
+                        }
+                      }
+                      if (!agree) return { found: false, seen };
+                      agree.click();
+                      return { found: true, text: (agree.innerText || '').trim(),
+                               handler: agree.getAttribute('onclick') || '' };
+                    }
+                    """
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: consent scan failed: {exc}")
+                result = {"found": False}
+
+            if result.get("found"):
+                logger.success(
+                    f"  terms of service      : agreed via "
+                    f"{result.get('handler') or result.get('text')!r}"
+                )
+                self.state.log_event("bot", "terms of service accepted", status="ok")
+                await self._settle(page)
+                await asyncio.sleep(1.5)
+                return True
+
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
+        logger.info("  terms of service      : no consent page appeared")
+        return False
 
     async def _wait_for_verified(self, page: Any, timeout: float = 45.0) -> bool:
         """Wait for "Appointment Verified" to appear after the captcha.
