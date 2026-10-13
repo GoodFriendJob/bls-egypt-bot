@@ -36,7 +36,9 @@
       "Bash(./.venv/Scripts/python.exe -c \"import ast,sys; ast.parse\\(open\\('modules/monitor.py',encoding='utf-8'\\).read\\(\\)\\); print\\('monitor.py parses'\\)\")",
       "Bash(./.venv/Scripts/python.exe -m compileall -q modules/monitor.py)",
       "Bash(git add *)",
-      "Bash(git -c core.pager=cat diff --cached --stat)"
+      "Bash(git -c core.pager=cat diff --cached --stat)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
