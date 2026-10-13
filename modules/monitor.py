@@ -222,6 +222,34 @@ APPOINTMENT_FIELD_ORDER = (
     ("Visa Sub Type", "visa_sub_type"),
 )
 
+# The real picker among the AppointmentDate1..5 decoys: initialised as a Kendo
+# widget, not disabled, and not wrapped in a k-state-disabled container. The
+# counters come back on every poll so a failure says WHY, not just "none".
+_DATEPICKER_OPEN_JS = r"""
+() => {
+  const inputs = Array.from(
+    document.querySelectorAll('input[data-role="datepicker"], input[id^="AppointmentDate"]'));
+  const ids = [];
+  let ready = 0, enabled = 0;
+  for (const inp of inputs) {
+    const dp = window.jQuery && jQuery(inp).data('kendoDatePicker');
+    if (dp) ready++;
+    if (!inp.disabled) enabled++;
+    ids.push(inp.id + (inp.disabled ? ':off' : ':on') + (dp ? ':kendo' : ':raw'));
+  }
+  for (const inp of inputs) {
+    if (inp.disabled) continue;
+    const wrap = inp.closest('.k-picker-wrap');
+    if (wrap && wrap.classList.contains('k-state-disabled')) continue;
+    const dp = window.jQuery && jQuery(inp).data('kendoDatePicker');
+    if (!dp) continue;
+    dp.open();
+    return { opened: inp.id, total: inputs.length, ready, enabled, ids };
+  }
+  return { opened: null, total: inputs.length, ready, enabled, ids };
+}
+"""
+
 _KENDO_SET_JS = r"""
 (args) => {
   const { label, wanted } = args;
@@ -1730,29 +1758,47 @@ class Monitor:
         shown by cell colour, so green is detected from the computed background
         rather than a class name, which is random here as everywhere else.
         """
-        try:
-            opened = await page.evaluate(
-                """
-                () => {
-                  for (const inp of document.querySelectorAll('input[data-role="datepicker"]')) {
-                    if (inp.disabled) continue;
-                    const wrap = inp.closest('.k-picker-wrap');
-                    if (wrap && wrap.classList.contains('k-state-disabled')) continue;
-                    const dp = window.jQuery && jQuery(inp).data('kendoDatePicker');
-                    if (!dp) continue;
-                    dp.open();
-                    return inp.id;
-                  }
-                  return null;
-                }
-                """
-            )
-        except Exception as exc:
-            logger.warning(f"monitor: could not open the date picker: {exc}")
-            return False
+        # The booking page is server-rendered first and turned into Kendo
+        # widgets afterwards. Scanning too early finds the raw input -- which
+        # carries disabled="disabled" and NO data-role attribute yet -- and
+        # concludes there is no picker at all. Run 20261013_213811 hit exactly
+        # that ~3s after the page loaded and reported "no selectable (green)
+        # date offered" on a booking page that was perfectly fine; the tell is
+        # that its page survey still listed the raw AppointmentSlot3,
+        # MissionId and VisaType inputs, which Kendo hides once it wraps them.
+        # So poll until a picker is genuinely initialised AND enabled.
+        deadline = 25.0
+        waited = 0.0
+        opened = None
+        report: dict[str, Any] = {}
+        while waited < deadline:
+            try:
+                report = await page.evaluate(_DATEPICKER_OPEN_JS)
+            except Exception as exc:
+                logger.warning(f"monitor: could not open the date picker: {exc}")
+                return False
+            opened = report.get("opened")
+            if opened:
+                break
+            if report.get("ready") and not report.get("enabled"):
+                # Initialised but still disabled: the page gates the date on
+                # something else finishing. Keep waiting rather than giving up.
+                pass
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
         if not opened:
-            logger.warning("monitor: no enabled date picker on the page")
+            logger.warning(
+                f"monitor: no usable date picker after {deadline:.0f}s — "
+                f"{report.get('total', 0)} datepicker input(s), "
+                f"{report.get('ready', 0)} initialised, "
+                f"{report.get('enabled', 0)} enabled; "
+                f"ids={report.get('ids')}"
+            )
+            await utils.dump_page_html(page, "appointment-no-datepicker")
             return False
+        if waited:
+            logger.info(f"  date picker           : ready after {waited:.0f}s")
         logger.info(f"  date picker           : opened #{opened}")
         # The slot dropdown shares this suffix; see _read_slot_dropdown.
         self._date_field_id = str(opened)
@@ -1864,16 +1910,21 @@ class Monitor:
         deadline = 20.0
         waited = 0.0
         result: dict[str, Any] = {}
+        # "no enabled slot dropdown" is also a not-ready state, not a verdict:
+        # the widget is created by the same Kendo pass that builds the date
+        # picker, so it can legitimately be missing for the first seconds.
+        pending = ("not-loaded", "no enabled slot dropdown")
         while waited < deadline:
             result = await self._read_slot_dropdown(page, date_id)
-            if result.get("reason") != "not-loaded":
+            if result.get("reason") not in pending:
                 break
             await asyncio.sleep(1.0)
             waited += 1.0
-        if result.get("reason") == "not-loaded":
+        if result.get("reason") in pending:
             logger.warning(
-                f"  slot                  : the list never loaded within "
-                f"{deadline:.0f}s — treating as no slots"
+                f"  slot                  : {result.get('reason')} after "
+                f"{deadline:.0f}s — treating as no slots "
+                f"(widgets seen: {result.get('seen')})"
             )
             return False
 
