@@ -1474,14 +1474,61 @@ class Monitor:
         logger.info("APPOINTMENT DETAILS (date / slot / photo)")
         await utils.dump_page_html(page, "manage-appointment")
 
-        if not await self._pick_green_date(page):
-            await utils.screenshot(page, "appointment-no-green-date")
-            logger.warning("monitor: no selectable (green) date offered")
+        # Walk EVERY bookable date, not just the first. A green day does not
+        # mean it has slots: across every run so far the 14th was painted
+        # available and its time-slot list was empty, while the 15th offered
+        # three. Stopping at the first date threw away the ones behind it.
+        survey = await self._pick_green_date(page)
+        if not survey.get("ok"):
+            await utils.screenshot(page, "appointment-no-datepicker")
             return False
 
-        if not await self._pick_green_slot(page, self._date_field_id):
+        offered = survey.get("offered") or []
+        bookable = [
+            d for d in offered if d.get("green") and not d.get("soon") and d.get("iso")
+        ]
+        if not bookable:
+            free = [d for d in offered if d.get("green")]
+            if free:
+                logger.warning(
+                    f"  date                  : {len(free)} free date(s) offered but "
+                    f"all inside the {self.min_days_ahead}-day lead time — skipping"
+                )
+            else:
+                logger.warning("  date                  : no free date offered at all")
+            await utils.screenshot(page, "appointment-no-green-date")
+            await self._report_no_date(free)
+            return False
+
+        logger.info(
+            f"  bookable dates        : {', '.join(d['iso'] for d in bookable)}"
+        )
+
+        chosen_slot = False
+        for index, day in enumerate(bookable, 1):
+            iso = day["iso"]
+            logger.info(f"  trying date           : {iso} ({index}/{len(bookable)})")
+            # _pick_green_date reopens the picker each time, which is required:
+            # selecting a day closes the calendar.
+            result = await self._pick_green_date(page, iso)
+            if not result.get("clicked"):
+                logger.warning(f"  date                  : could not select {iso}")
+                continue
+
+            if await self._pick_green_slot(page, self._date_field_id):
+                chosen_slot = True
+                break
+            logger.info(
+                f"  date                  : {iso} has no free slot — trying the next"
+            )
+
+        if not chosen_slot:
             await utils.screenshot(page, "appointment-no-green-slot")
-            logger.warning("monitor: no free (green) time slot for that date")
+            logger.warning(
+                f"monitor: none of the {len(bookable)} bookable date(s) had a free "
+                "time slot"
+            )
+            await self._report_no_slot_on_any_date(bookable)
             return False
 
         await self._upload_photo(page)
@@ -1750,8 +1797,13 @@ class Monitor:
         await utils.screenshot(page, "appointment-email-verified")
         return bool(verified.get("shown") or str(verified.get("flag")).lower() == "true")
 
-    async def _pick_green_date(self, page: Any) -> bool:
-        """Open the live date picker and click an available day.
+    async def _pick_green_date(
+        self, page: Any, want_iso: str = ""
+    ) -> dict[str, Any]:
+        """Open the date picker; report the days on offer, optionally clicking one.
+
+        Returns {"ok", "offered", "clicked"}. With ``want_iso`` empty this only
+        surveys the calendar, so the caller can walk the candidates itself.
 
         The page carries decoy pickers (AppointmentDate1..5); all but one are
         k-state-disabled, so the enabled one is the real field. Availability is
@@ -1776,7 +1828,7 @@ class Monitor:
                 report = await page.evaluate(_DATEPICKER_OPEN_JS)
             except Exception as exc:
                 logger.warning(f"monitor: could not open the date picker: {exc}")
-                return False
+                return {"ok": False, "offered": []}
             opened = report.get("opened")
             if opened:
                 break
@@ -1796,7 +1848,7 @@ class Monitor:
                 f"ids={report.get('ids')}"
             )
             await utils.dump_page_html(page, "appointment-no-datepicker")
-            return False
+            return {"ok": False, "offered": []}
         if waited:
             logger.info(f"  date picker           : ready after {waited:.0f}s")
         logger.info(f"  date picker           : opened #{opened}")
@@ -1819,7 +1871,7 @@ class Monitor:
         try:
             picked = await page.evaluate(
                 """
-                ({ pickerId, minStamp }) => {
+                ({ pickerId, minStamp, wantIso }) => {
                   const green = (el) => {
                     const bg = getComputedStyle(el).backgroundColor || '';
                     const m = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(bg);
@@ -1860,7 +1912,14 @@ class Monitor:
                     seen[iso] = true;
                     const soon = when.getTime() < minStamp;
                     options.push({ text, green: !!paint, soon, iso });
-                    if (paint && !soon) {
+                    // Click only the date asked for; with no target, just
+                    // report what is on offer so the caller can try each in
+                    // turn. A date being green does NOT mean it has slots:
+                    // the 14th was painted available in every run and its
+                    // time-slot list was empty every time, while the 15th
+                    // offered three. Abandoning the combination after one
+                    // empty date threw away the dates behind it.
+                    if (wantIso && iso === wantIso) {
                       (link || cell).click();
                       return { clicked: text, clickedIso: iso, offered: options };
                     }
@@ -1868,11 +1927,11 @@ class Monitor:
                   return { clicked: null, offered: options };
                 }
                 """,
-                {"pickerId": opened, "minStamp": min_stamp},
+                {"pickerId": opened, "minStamp": min_stamp, "wantIso": want_iso},
             )
         except Exception as exc:
             logger.warning(f"monitor: date selection failed: {exc}")
-            return False
+            return {"ok": False, "offered": []}
 
         offered = picked.get("offered") or []
         logger.info(
@@ -1884,20 +1943,12 @@ class Monitor:
             + "   (* = available)"
         )
         if not picked.get("clicked"):
-            free = [d for d in offered if d.get("green")]
-            if free:
-                logger.warning(
-                    f"  date                  : {len(free)} free date(s) offered but "
-                    f"all inside the {self.min_days_ahead}-day lead time — skipping"
-                )
-            else:
-                logger.warning("  date                  : no free date offered at all")
-            await self._report_no_date(free)
-            return False
+            return {"ok": True, "offered": offered, "clicked": None}
+
         logger.success(f"  date chosen           : {picked['clicked']}")
         await self._settle(page)
         await asyncio.sleep(1.5)
-        return True
+        return {"ok": True, "offered": offered, "clicked": picked["clicked"]}
 
     async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
         """Choose a free time slot once a date has been picked.
@@ -2027,6 +2078,29 @@ class Monitor:
             return {"ok": False, "reason": f"read failed: {exc}"}
         await asyncio.sleep(1.0)
         return True
+
+    async def _report_no_slot_on_any_date(self, dates: list[dict[str, Any]]) -> None:
+        """Tell the manager the dates were offered but none had a free slot.
+
+        Distinct from "no possible appointment date": here the calendar DID
+        offer bookable days, they simply had nothing behind them.
+        """
+        shown = []
+        for entry in dates:
+            iso = str(entry.get("iso") or "")
+            shown.append(f"{iso[5:7]}/{iso[8:10]}" if len(iso) == 10 else str(entry.get("text", "")))
+        combo = self._current_combo_text or "current selection"
+        signature = f"noslot|{combo}|{','.join(shown)}"
+        if signature == self._last_no_date_signature:
+            return
+        self._last_no_date_signature = signature
+        message = (
+            "no free time slot on any available date, dates checked are "
+            + ", ".join(shown)
+        )
+        logger.info(f"  notified              : {message}")
+        self.state.log_event("bot", message, status="warn")
+        await self.notifier.send(f"🕒 {message}\n{combo}")
 
     async def _report_no_date(self, free: list[dict[str, Any]]) -> None:
         """Tell the manager no bookable date exists, naming what WAS offered.

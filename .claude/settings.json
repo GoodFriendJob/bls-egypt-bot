@@ -70,7 +70,8 @@
       "Bash(./.venv/Scripts/python.exe -m pyflakes bot.py modules/*.py dashboard/*.py)",
       "Bash(./.venv/Scripts/python.exe -c \"import yaml;[yaml.safe_load\\(open\\(f,encoding='utf-8'\\)\\) for f in \\('config.yaml','config.example.yaml'\\)];print\\('both parse'\\)\")",
       "Bash(./.venv/Scripts/python.exe -m pyflakes modules/utils.py)",
-      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/dptest.py\")"
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/dptest.py\")",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/caltest.py\")"
     ]
   }
 }
