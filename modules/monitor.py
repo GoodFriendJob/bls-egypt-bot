@@ -473,57 +473,60 @@ class Monitor:
         # Verification lands on /Global/bls/visatype?data=... — the appointment
         # form. Its URL carries a one-time token, so it can only be reached by
         # clicking through; navigating to a fixed URL will never work.
-        primary = self.next_location()
-        if not await self.complete_visatype_form(page, primary):
-            logger.error("monitor: could not complete the appointment form")
-            self.state.log_event("bot", "appointment form not completed", status="error")
-            await self._survey_page(page, "visatype-incomplete")
-            return
-
-        # CONFIRMED: dismissing the "No Appointments Available" modal makes the
-        # server redirect to /Global/bls/VisaTypeVerification. That trips the
-        # navigation watcher, but the answer for this cycle is already known —
-        # there are no slots. Re-solving the gate here would burn a fresh
-        # challenge for nothing, and last run it did exactly that and then hit
-        # the expired-token 403. End the cycle instead and let the configured
-        # wait run; the next cycle solves a fresh gate anyway.
-        if self._last_form_result == "no_slots":
-            self._needs_reverify = False
-            logger.info(
-                f"monitor: '{primary}' has no slots — ending the cycle "
-                "(the next one re-verifies with a fresh challenge)"
-            )
-            return
-
-        # Otherwise a refresh really did drop us back at the gate mid-flow; the
-        # session is still valid, so redo just that step, not the whole login.
-        if self._needs_reverify:
-            self._needs_reverify = False
-            logger.warning("monitor: verification gate reappeared — solving it again")
-            if not await self.ensure_visa_type_verified(page):
-                logger.error("monitor: re-verification failed")
-                return
-
-        if not self.appointment_path_confirmed:
-            # Navigating to the placeholder URL just produces
-            # ERR_HTTP_RESPONSE_CODE_FAILURE three times per location and fires
-            # a Telegram error alert for each. Stop here until the real route is
-            # read off the survey above.
-            logger.warning(
-                "monitor: appointment route not confirmed yet — stopping after the "
-                "survey. Set bls.paths.appointment (and clear "
-                "appointment_path_confirmed) once the real URL is known."
-            )
-            self.state.log_event(
-                "bot", "logged in and verified; appointment route still unknown", status="warn"
-            )
-            return
-
-        for location in self.locations:
+        # CONFIRMED: dismissing "No Appointments Available" makes the server
+        # redirect to /Global/bls/VisaTypeVerification. So after a no-slots
+        # answer the portal has already put us back at the gate — re-solve it
+        # and ask about the NEXT location, rather than ending the cycle and
+        # waiting. Only once every location has answered "no slots" is the long
+        # wait justified.
+        checked: list[str] = []
+        for index, location in enumerate(self.locations):
             if self.state.stop_requested or not self.state.running:
                 return
-            await self._check_location(page, location)
-            await utils.human_delay(self.config)
+
+            if index > 0:
+                # Back at the gate after the previous location's modal; a fresh
+                # challenge is required before the form can be reached again.
+                logger.info(
+                    f"monitor: trying the next location '{location}' "
+                    f"({index + 1} of {len(self.locations)})"
+                )
+                self._needs_reverify = False
+                if not await self.ensure_visa_type_verified(page):
+                    logger.error("monitor: could not re-clear the gate — ending cycle")
+                    return
+
+            self._last_form_result = None
+            if not await self.complete_visatype_form(page, location):
+                logger.error(f"monitor: appointment form failed for '{location}'")
+                self.state.log_event(
+                    "bot", f"appointment form failed ({location})", status="error"
+                )
+                await self._survey_page(page, f"visatype-incomplete-{location}")
+                return
+
+            checked.append(location)
+            if self._last_form_result != "no_slots":
+                # Slots, a validation problem or an unknown modal — stop the
+                # sweep so the outcome is handled rather than overwritten.
+                logger.info(
+                    f"monitor: '{location}' returned {self._last_form_result!r} "
+                    "— not continuing the sweep"
+                )
+                return
+
+            logger.info(f"monitor: '{location}' has no slots")
+            self.state.set_location_status(
+                location, STATUS_NO_SLOTS, "no slots", checked=True
+            )
+
+        logger.info(f"monitor: no slots at any of {checked} — cycle complete")
+        self._last_form_result = "no_slots"
+        return
+        # NOTE: the old _check_location() sweep used to run here. It navigated
+        # to the guessed bls.paths.appointment URL, which does not exist — the
+        # appointment form is only reachable by clicking through with a
+        # one-time token. Availability is now answered by the form submit above.
 
     # ------------------------------------------------------------------ #
     # Visa-type verification gate

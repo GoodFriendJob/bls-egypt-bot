@@ -590,8 +590,12 @@ class BLSAuth:
                     pass
 
         try:
-            await context.route("http://*/**", _upgrade)
-            logger.info("auth: http->https upgrade route installed")
+            # A regex, not a glob. "http://*/**" did not match the redirect hop,
+            # so the browser still attempted plain http and sat there for ~42s
+            # per navigation until ERR_CONNECTION_TIMED_OUT — port 80 does not
+            # answer on this host.
+            await context.route(re.compile(r"^http://", re.IGNORECASE), _upgrade)
+            logger.info("auth: http->https upgrade route installed (regex)")
         except Exception as exc:
             logger.warning(f"auth: could not install the https upgrade route: {exc}")
 
@@ -2328,11 +2332,26 @@ class BLSAuth:
                 break
             except Exception as exc:
                 message = str(exc)
+                # The portal redirects to http:// and port 80 never answers, so
+                # a navigation can die on a timeout that has nothing to do with
+                # the URL we asked for. Retrying the https form directly is the
+                # only way through.
+                timed_out = (
+                    "ERR_CONNECTION_TIMED_OUT" in message
+                    or "ERR_CONNECTION_REFUSED" in message
+                    or "Timeout" in message
+                )
                 transient = (
                     "interrupted by another navigation" in message
                     or "chromewebdata" in message
                     or "ERR_ABORTED" in message
+                    or timed_out
                 )
+                if timed_out and nav_attempt == 1:
+                    logger.warning(
+                        "auth: navigation timed out (the portal's http:// "
+                        "redirect does not answer) — retrying over https"
+                    )
                 if not transient or nav_attempt == 2:
                     raise
                 logger.warning(
