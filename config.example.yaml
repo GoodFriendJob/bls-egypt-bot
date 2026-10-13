@@ -169,6 +169,16 @@ max_combinations_per_cycle: 12
 # spaced out rather than run back to back.
 session_recycle_wait: 45
 
+# How many option combinations to try per cycle. Each one needs its own
+# browser session AND its own login, and the portal rate-limits that hard:
+# two logins inside ~2.5 minutes was enough for it to answer 403 to
+# LoginCaptchaSubmit and then to the login page itself (run 20261013_184753).
+# So the sweep is spread ACROSS cycles -- each cycle takes the next slice and
+# resumes there next time, still covering every combination, just over minutes
+# rather than all at once. With 8 combinations and a 5-minute wait, full
+# coverage takes about 40 minutes. Raise only if your IP proves tolerant.
+combinations_per_cycle: 1
+
 # Earliest appointment to accept, in days from today. The portal offers dates
 # it will not actually serve slots for: picking tomorrow left the Time Slot
 # list permanently empty. A green day inside this window is skipped.
@@ -219,6 +229,15 @@ logging:
   file: "logs/bot.log"
   rotation: "10 MB"
   retention: "14 days"
+  # Days of run artifacts to keep. Screenshots, DOM dumps, captcha samples
+  # and run transcripts older than this are deleted at startup and after
+  # every cycle: they reached 301 MB across 758 files in a few days, and only
+  # the run that produced a failure is ever worth reading.
+  retention_days: 2
+  # Captcha grid images were only ever kept to grade the solver against
+  # hand-written labels. It is reliable now, and they were the single largest
+  # thing on disk (110 MB), so they are off.
+  save_captcha_samples: false
 
 retry:
   max_attempts: 3              # Playwright action/navigation retries

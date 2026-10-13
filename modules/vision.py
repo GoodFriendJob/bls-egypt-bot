@@ -424,9 +424,14 @@ def upscale_png(image_bytes: bytes, factor: int = UPSCALE_FACTOR) -> bytes:
         return image_bytes
 
 
-def save_sample(image_bytes: bytes, label: str) -> str | None:
-    """Persist a captcha grid screenshot for auditing. Returns the path."""
-    if not image_bytes:
+def save_sample(image_bytes: bytes, label: str, *, enabled: bool = True) -> str | None:
+    """Persist a captcha grid screenshot for auditing. Returns the path.
+
+    Off by default in config now that the solver is reliable: these were the
+    single largest thing on disk (110 MB), and they only ever existed to grade
+    readings against hand-written ground truth.
+    """
+    if not image_bytes or not enabled:
         return None
     try:
         SAMPLE_DIR.mkdir(parents=True, exist_ok=True)

@@ -11,6 +11,7 @@ import asyncio
 import random
 import re
 from datetime import datetime
+import time
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Iterable, Sequence
 
@@ -595,3 +596,58 @@ async def with_retries(
                 await asyncio.sleep(delay * attempt)
     assert last is not None
     raise last
+
+
+def prune_logs(config: dict[str, Any] | None = None) -> dict[str, int]:
+    """Delete run artifacts older than logging.retention_days.
+
+    The artifact directories grow without bound -- 301 MB over 758 files in a
+    few days of testing, dominated by screenshots, DOM dumps and captcha
+    samples. Only recent ones are ever useful: a failure is diagnosed from the
+    run that produced it.
+
+    bot.log is left alone; loguru rotates it on its own schedule.
+    """
+    cfg = (config or {}).get("logging", {}) or {}
+    try:
+        days = float(cfg.get("retention_days", 2))
+    except (TypeError, ValueError):
+        days = 2.0
+    if days <= 0:
+        return {}
+
+    cutoff = time.time() - days * 86400
+    targets = (
+        (SCREENSHOT_DIR, "*.png"),
+        (DOM_DIR, "*.html"),
+        (Path("logs/captcha_samples"), "*.png"),
+        (Path("logs"), "run_*.txt"),
+    )
+
+    removed: dict[str, int] = {}
+    freed = 0
+    for directory, pattern in targets:
+        if not directory.exists():
+            continue
+        count = 0
+        for path in directory.glob(pattern):
+            try:
+                stat = path.stat()
+                if stat.st_mtime >= cutoff:
+                    continue
+                size = stat.st_size
+                path.unlink()
+                count += 1
+                freed += size
+            except OSError as exc:
+                logger.debug(f"prune: could not remove {path}: {exc}")
+        if count:
+            removed[str(directory)] = count
+
+    if removed:
+        total = sum(removed.values())
+        logger.info(
+            f"logs: pruned {total} file(s) older than {days:g} day(s), "
+            f"freed {freed / 1048576:.0f} MB — {removed}"
+        )
+    return removed

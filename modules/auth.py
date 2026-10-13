@@ -1302,6 +1302,11 @@ class BLSAuth:
             sample = vision.save_sample(
                 vision.upscale_png(grid_png),
                 f"{_sample_stamp()}_target{target}_attempt{attempt}",
+                enabled=bool(
+                    (self.config.get("logging", {}) or {}).get(
+                        "save_captcha_samples", False
+                    )
+                ),
             )
             logger.info(f"  grid screenshot : {sample or 'FAILED'}")
 
@@ -1465,7 +1470,14 @@ class BLSAuth:
                 return False
 
             logger.info(f"  grid age        : {age:.1f}s (limit {CAPTCHA_MAX_AGE:.0f}s)")
-            submitted = await self._click_captcha_submit(ctx)
+            # On the LOGIN captcha page the submit button belongs to the login
+            # form and is the correct target. Only the verification modal
+            # (solved inside the GenerateCaptcha iframe) must avoid it, where a
+            # generic submit is the account form and fires LoginSubmit instead
+            # of SubmitCaptcha. Filtering unconditionally broke the login
+            # captcha's fast path: run 20261013_184753 logged "fast submit
+            # found nothing" on both logins and fell back to the slow waits.
+            submitted = await self._click_captcha_submit(ctx, avoid_login=ctx is not page)
             logger.info(f"  submit clicked  : {submitted}")
             if not submitted:
                 # Do not abort: a failed submit usually means the modal moved on
@@ -2159,7 +2171,7 @@ class BLSAuth:
         logger.debug(f"auth: {fn}() not present on this page")
         return False
 
-    async def _click_captcha_submit(self, ctx: Any) -> bool:
+    async def _click_captcha_submit(self, ctx: Any, *, avoid_login: bool = False) -> bool:
         """Click submit IMMEDIATELY — the captcha token is short-lived.
 
         Speed is correctness here. Waiting on selectors that do not exist on
@@ -2174,7 +2186,7 @@ class BLSAuth:
         try:
             clicked = await ctx.evaluate(
                 """
-                () => {
+                (avoidLogin) => {
                   const vis = (el) => {
                     if (!el) return false;
                     const r = el.getBoundingClientRect();
@@ -2193,6 +2205,7 @@ class BLSAuth:
                   // SubmitCaptcha + the verify-selection post, and the gate is
                   // left unsolved.
                   const isLogin = (el) => {
+                    if (!avoidLogin) return false;
                     const form = el.closest('form');
                     const action = ((form && form.getAttribute('action')) || '');
                     const blob = (action + ' ' + (el.id || '') + ' ' +
@@ -2224,7 +2237,8 @@ class BLSAuth:
                   }
                   return null;
                 }
-                """
+                """,
+                avoid_login,
             )
             if clicked:
                 logger.info(f"auth: captcha submitted immediately via {clicked}")

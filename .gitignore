@@ -54,9 +54,11 @@ playwright-report/
 test-results/
 *.har
 
-# NOTE: logs/captcha_samples/readings.jsonl is deliberately NOT ignored. It is
-# written on the machine that runs the bot and must travel back with
-# push_logs.bat to be graded against ground_truth.json.
+# Captcha grid images are no longer produced (logging.save_captcha_samples is
+# off — the solver is reliable, and these were 110 MB of the 301 MB the logs
+# had grown to). The grading workflow they fed lives in tools/grade_captcha.py
+# and still works if the switch is turned back on.
+logs/captcha_samples/*.png
 
 # Block cooldown marker, written when the portal 403s. Machine-local.
 logs/cooldown.json
