@@ -1,1 +1,1 @@
-{"blocked_at": "2026-10-13T04:45:27.722229", "reason": "403 on https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification"}
+{"blocked_at": "2026-10-13T18:17:37.728874", "reason": "portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) \u2014 awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated auto"}
