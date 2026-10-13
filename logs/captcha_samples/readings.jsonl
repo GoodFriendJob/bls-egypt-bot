@@ -33,3 +33,6 @@
 {"sample": "20261013-044403_target779_attempt1.png", "target": "779", "tiles": ["779", "544", "873", "338", "779", "779", "779", "779", "267"], "positions": [1, 5, 6, 7, 8], "method": "per-tile"}
 {"sample": "20261013-050552_target754_attempt1.png", "target": "754", "tiles": ["754", "723", "754", "442", "799", "245", "754", "867", "668"], "positions": [1, 3, 7], "method": "per-tile"}
 {"sample": "20261013-050630_target597_attempt1.png", "target": "597", "tiles": ["302", "314", "597", "597", "424", "542", "327", "405", "597"], "positions": [3, 4, 9], "method": "per-tile"}
+{"sample": "20261013-154656_target996_attempt1.png", "target": "996", "tiles": ["990", "996", "387", "439", "996", "755", "434", "686", "996"], "positions": [2, 5, 9], "method": "per-tile"}
+{"sample": "20261013-154735_target798_attempt1.png", "target": "798", "tiles": ["798", "759", "798", "246", "798", "385", "730", "216", "798"], "positions": [1, 3, 5, 9], "method": "per-tile"}
+{"sample": "20261013-154833_target548_attempt1.png", "target": "548", "tiles": ["284", "882", "660", "548", "775", "143", "548", "239", "548"], "positions": [4, 7, 9], "method": "per-tile"}
