@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -146,6 +147,15 @@ CAPTCHA_CLEAR_TEXTS = ("clear selection", "clear")
 # escalate rate limiting into an IP block; 4 still absorbs the occasional
 # misread without hammering.
 CAPTCHA_MAX_ATTEMPTS = 4
+
+# MEASURED: the portal's captcha token lives about 45 seconds, counted from the
+# moment the server generated the grid — NOT from when the modal was opened.
+# Run 20261013_041433: generated 04:16:45 (as the page loaded, 7s before the
+# "Verify Selection" click), submitted 04:17:30 = 45s -> HTTP 403 "Your session
+# has been expired", even though the tiles read and clicked were all correct.
+# The cycle before it submitted at 43s and passed. So never submit an answer
+# built against a grid older than this; pull a fresh grid instead.
+CAPTCHA_MAX_AGE = 25.0
 CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
 CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
 CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
@@ -457,6 +467,7 @@ class BLSAuth:
         # HTTP status of the most recent captcha submit, set by the network
         # listener. None means no response was seen for this attempt.
         self._last_captcha_submit_status: int | None = None
+        self._captcha_issued_at: float = 0.0
 
         self.session_file = Path(SESSION_FILE)
 
@@ -626,15 +637,22 @@ class BLSAuth:
                         kind = response.request.resource_type
                     except Exception:
                         kind = "other"
-                    if kind == "document":
+                    main_frame = False
+                    try:
+                        frame = response.frame
+                        main_frame = frame is not None and frame.parent_frame is None
+                    except Exception:
+                        main_frame = True
+                    if kind == "document" and main_frame:
                         logger.error(
                             f"auth: [net] 403 on a page load — the portal is "
                             f"blocking {response.url[:100]}"
                         )
                         utils.record_block(f"403 on {response.url[:120]}")
                     else:
+                        where = "sub-frame" if kind == "document" else kind
                         logger.warning(
-                            f"auth: [net] 403 on {kind} {response.url[:90]} — "
+                            f"auth: [net] 403 on {where} {response.url[:90]} — "
                             "expired token or rejected request, not an IP block"
                         )
 
@@ -1099,8 +1117,15 @@ class BLSAuth:
         *,
         ctx: Any = None,
         offset: tuple[float, float] = (0.0, 0.0),
+        refresh_first: bool = False,
     ) -> bool:
         """Solve the DOM-based BLS captcha.
+
+        ``refresh_first`` pulls a brand-new grid before the first attempt. Set
+        it for the visa-type verification gate: that captcha is generated when
+        the page loads, so by the time the modal has opened and the tiles have
+        been read, the token is most of the way through its ~45s life. Asking
+        for a fresh one restarts that clock and costs about 2 seconds.
 
         Returns True when there is no captcha, or when one was solved. Returns
         False when a captcha is present but could not be solved — the caller then
@@ -1126,6 +1151,17 @@ class BLSAuth:
 
         logger.info("auth: CAPTCHA detected, attempting to solve")
         self._log("CAPTCHA detected — solving", status="warn")
+
+        # Start the age clock. Without a refresh the true issue time is the
+        # parent page load, which is already seconds in the past — assuming
+        # "now" would under-report the age, so refresh and make it true.
+        self._captcha_issued_at = time.monotonic()
+        if refresh_first:
+            logger.info("auth: pulling a fresh grid before solving (token age reset)")
+            if not await self._reload_captcha(ctx):
+                logger.warning(
+                    "auth: could not refresh the grid — solving the one on screen"
+                )
         await utils.screenshot(page, "captcha-before")
         # Always keep the markup of a real challenge: if the tile selectors turn
         # out not to match, this dump is what identifies the correct ones.
@@ -1377,6 +1413,24 @@ class BLSAuth:
             # password" — which looks like a captcha rejection but is not.
             await self._ensure_password_filled(ctx)
 
+            # Do not submit against a dead token. The portal answers 403 and
+            # pops "Your session has been expired", which the caller then has
+            # to treat as a failure even though the reading was right.
+            age = time.monotonic() - self._captcha_issued_at
+            if age > CAPTCHA_MAX_AGE:
+                logger.warning(
+                    f"  outcome         : STALE - grid is {age:.0f}s old "
+                    f"(limit {CAPTCHA_MAX_AGE:.0f}s); refreshing instead of "
+                    "submitting a doomed answer"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._clear_captcha_selection(ctx)
+                    await self._reload_captcha(ctx)
+                    continue
+                self._log("captcha grid expired before submit", status="error")
+                return False
+
+            logger.info(f"  grid age        : {age:.1f}s (limit {CAPTCHA_MAX_AGE:.0f}s)")
             submitted = await self._click_captcha_submit(ctx)
             logger.info(f"  submit clicked  : {submitted}")
             if not submitted:
@@ -1600,7 +1654,18 @@ class BLSAuth:
         """Ask the modal for a fresh grid via its own onReload() handler."""
         return await self._call_captcha_action(ctx, CAPTCHA_RELOAD_FN)
 
-    async def _reload_captcha(self, ctx: Any) -> None:
+    async def refresh_captcha(self, ctx: Any) -> bool:
+        """Public: pull a fresh captcha grid and restart its age clock.
+
+        Callers outside this module (the verification gate in monitor) must go
+        through here rather than clicking "Reload Images" themselves, so that
+        ``_captcha_issued_at`` always reflects the grid actually on screen. A
+        reload that does not update the clock would let the age guard wave
+        through an answer built against an already-dead token.
+        """
+        return await self._reload_captcha(ctx)
+
+    async def _reload_captcha(self, ctx: Any) -> bool:
         """Ask for a fresh grid after an unusable reading or a failed submit.
 
         ``ctx`` may be a Page or the GenerateCaptcha frame, so nothing here may
@@ -1621,9 +1686,14 @@ class BLSAuth:
             )
         if requested:
             logger.info("auth: requested a fresh captcha grid")
+            # Stamp BEFORE waiting for the tiles, not after: the server mints
+            # the token when the request fires, so stamping once the grid has
+            # rendered would hide the render time and under-report the age.
+            self._captcha_issued_at = time.monotonic()
             await asyncio.sleep(1.0)
             await self._wait_for_captcha_tiles(ctx)
         await utils.human_delay(self.config)
+        return requested
 
     async def _ensure_password_filled(self, page: Page) -> bool:
         """Refill the password box if the page cleared it.

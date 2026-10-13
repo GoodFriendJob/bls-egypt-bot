@@ -11,6 +11,7 @@ None and the caller falls back to a manual solve over Telegram.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import io
 import json
@@ -108,7 +109,14 @@ class VisionSolver:
         as separate images removes the spatial bookkeeping from the task
         entirely — every image contains exactly one number.
 
-        Still a single API call: the parts are sent together in one message.
+        One request PER TILE, all issued concurrently. Nine high-detail images
+        in a single request cost ~16s of wall clock, and the portal's captcha
+        token only lives about 45 seconds measured from when the page generated
+        it — so that one call was eating a third of the budget and submits were
+        landing on HTTP 403 "Your session has been expired". Nine parallel
+        one-image calls return in roughly the time of the slowest single tile,
+        and each request still contains exactly one number, which is the
+        property that made per-tile reading accurate in the first place.
         """
         if not self.enabled or not image_bytes:
             return None
@@ -120,54 +128,64 @@ class VisionSolver:
             )
             return None
 
-        content: list[dict[str, Any]] = [
-            {
-                "type": "text",
-                "text": (
-                    f"You will see {count} separate images. Each is one CAPTCHA "
-                    "tile containing a single number.\n"
-                    "Read the number in each image, in the order given.\n"
-                    "The digits may be coloured, styled, crossed out, underlined "
-                    "or decorated. Ignore all colour and decoration and read only "
-                    "the digit shapes.\n"
-                    f"Output ONLY the {count} numbers separated by commas, "
-                    "nothing else.\n"
-                    "Example: 123,456,789,234,567,890,345,678,901"
-                ),
-            }
-        ]
-        for crop in crops:
+        prompt = (
+            "This image is one CAPTCHA tile containing a single number.\n"
+            "The digits may be coloured, styled, crossed out, underlined or "
+            "decorated. Ignore all colour and decoration and read only the "
+            "digit shapes.\n"
+            "Output ONLY that number, nothing else. Example: 123"
+        )
+
+        async def read_one(index: int, crop: bytes) -> str | None:
             encoded = base64.b64encode(upscale_png(crop)).decode("ascii")
-            content.append(
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{encoded}",
-                        "detail": "high",
-                    },
-                }
-            )
-
-        try:
-            response = await self._get_client().chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": content}],
-                max_tokens=120,
-                temperature=0,
-            )
+            try:
+                response = await self._get_client().chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/png;base64,{encoded}",
+                                        "detail": "high",
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    max_tokens=16,
+                    temperature=0,
+                )
+            except Exception as exc:
+                logger.error(
+                    f"vision: tile {index + 1} call failed: "
+                    f"{type(exc).__name__}: {exc}"
+                )
+                return None
             reply = (response.choices[0].message.content or "").strip()
-        except Exception as exc:
-            logger.error(f"vision: per-tile call failed: {type(exc).__name__}: {exc}")
-            return None
+            found = _POSITION_RE.findall(reply)
+            if len(found) != 1:
+                logger.warning(
+                    f"vision: tile {index + 1} replied {reply!r} — not one number"
+                )
+                return None
+            return found[0]
 
-        logger.info(f"vision: per-tile reply {reply!r}")
-        numbers = _POSITION_RE.findall(reply)
-        if len(numbers) != count:
-            logger.warning(
-                f"vision: per-tile reply held {len(numbers)} numbers, expected {count}"
-            )
+        # Results stay index-aligned with the crops: gather preserves order, so
+        # position bookkeeping never depends on what the model wrote.
+        numbers = await asyncio.gather(
+            *(read_one(i, crop) for i, crop in enumerate(crops))
+        )
+
+        logger.info(f"vision: per-tile reply {','.join(n or '?' for n in numbers)!r}")
+        if any(n is None for n in numbers):
+            unread = [i + 1 for i, n in enumerate(numbers) if n is None]
+            logger.warning(f"vision: tile(s) {unread} could not be read")
             return None
-        return numbers
+        return list(numbers)
 
     async def read_grid_numbers(
         self,

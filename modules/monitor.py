@@ -353,7 +353,9 @@ class Monitor:
         # After the portal explicitly says there are no slots, polling every 90s
         # is pointless and is exactly the behaviour that got the IP throttled.
         # Slots are released in batches, so wait much longer before retrying.
-        self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 12))
+        self.no_slots_wait_minutes = float(config.get("no_slots_wait_minutes", 5))
+        # Each combination costs a verification captcha; cap the per-cycle fan-out.
+        self.max_combinations = int(config.get("max_combinations_per_cycle", 12))
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
         self.page_error_wait = float(retry.get("page_error_wait", 30))
@@ -370,6 +372,7 @@ class Monitor:
         self._login_failures = 0
         self._block_alerted = False
         self._last_form_result: str | None = None
+        self._option_unavailable: str | None = None
         self._last_visatype_status: int | None = None
         self._form_hooked: set[int] = set()
         # Live page-stage tracking, fed by the navigation watcher.
@@ -479,25 +482,29 @@ class Monitor:
         # and ask about the NEXT location, rather than ending the cycle and
         # waiting. Only once every location has answered "no slots" is the long
         # wait justified.
+        combos = self.build_combinations()
+        logger.info(f"monitor: sweeping {len(combos)} option combination(s) this cycle")
         checked: list[str] = []
-        for index, location in enumerate(self.locations):
+        for index, combo in enumerate(combos):
             if self.state.stop_requested or not self.state.running:
                 return
+            location = combo["location_key"]
+            logger.info(
+                f"monitor: [{index + 1}/{len(combos)}] {self.describe_combo(combo)}"
+            )
 
             if index > 0:
                 # Back at the gate after the previous location's modal; a fresh
                 # challenge is required before the form can be reached again.
-                logger.info(
-                    f"monitor: trying the next location '{location}' "
-                    f"({index + 1} of {len(self.locations)})"
-                )
+                # Back at the gate after the previous answer; a fresh
+                # challenge is needed before the form is reachable again.
                 self._needs_reverify = False
                 if not await self.ensure_visa_type_verified(page):
                     logger.error("monitor: could not re-clear the gate — ending cycle")
                     return
 
             self._last_form_result = None
-            if not await self.complete_visatype_form(page, location):
+            if not await self.complete_visatype_form(page, combo):
                 logger.error(f"monitor: appointment form failed for '{location}'")
                 self.state.log_event(
                     "bot", f"appointment form failed ({location})", status="error"
@@ -505,22 +512,29 @@ class Monitor:
                 await self._survey_page(page, f"visatype-incomplete-{location}")
                 return
 
-            checked.append(location)
+            if self._last_form_result == "option_unavailable":
+                logger.info("monitor: combination not offered — moving to the next")
+                continue
+
+            checked.append(self.describe_combo(combo))
             if self._last_form_result != "no_slots":
                 # Slots, a validation problem or an unknown modal — stop the
                 # sweep so the outcome is handled rather than overwritten.
                 logger.info(
-                    f"monitor: '{location}' returned {self._last_form_result!r} "
-                    "— not continuing the sweep"
+                    f"monitor: {self.describe_combo(combo)} returned "
+                    f"{self._last_form_result!r} — not continuing the sweep"
                 )
                 return
 
-            logger.info(f"monitor: '{location}' has no slots")
+            logger.info(f"monitor: no slots for {self.describe_combo(combo)}")
             self.state.set_location_status(
                 location, STATUS_NO_SLOTS, "no slots", checked=True
             )
 
-        logger.info(f"monitor: no slots at any of {checked} — cycle complete")
+        logger.info(
+            f"monitor: no slots for any of the {len(checked)} combination(s) "
+            "— cycle complete"
+        )
         self._last_form_result = "no_slots"
         return
         # NOTE: the old _check_location() sweep used to run here. It navigated
@@ -635,8 +649,15 @@ class Monitor:
             # text-based scan reported zero tiles. Reuse the vision solver,
             # pointed at the frame.
             self._dialogs.clear()
+            # refresh_first: this grid was generated when the page loaded,
+            # seconds before "Verify Selection" was even clicked. Submitting
+            # against it raced a ~45s server-side token and lost (403 "Your
+            # session has been expired") despite a correct reading.
             submitted = await self.auth.solve_captcha(
-                main_page, ctx=work, offset=await self._frame_offset(work)
+                main_page,
+                ctx=work,
+                offset=await self._frame_offset(work),
+                refresh_first=True,
             )
 
             # STEP 3 — a rejected answer arrives as a JS alert, so give the
@@ -650,16 +671,24 @@ class Monitor:
                 any(h in msg.lower() for h in EXPIRED_ALERT_HINTS) for msg in alerts
             )
             if expired:
-                # Not a wrong answer — the token is dead. Four more attempts
-                # against it produced nothing but 403s last run.
-                logger.error(
-                    f"monitor: the challenge expired before submission ({alerts}) "
-                    "— abandoning it so a fresh one is issued"
+                # Not a wrong answer — the token died before the submit landed.
+                # A fresh grid is two seconds away, so pull one and try again
+                # rather than abandoning the whole cycle. Retrying against the
+                # SAME dead token is what produced a run of 403s previously;
+                # _reload_captcha mints a new one and resets the age clock.
+                logger.warning(
+                    f"monitor: the challenge expired before submission ({alerts})"
                 )
+                await utils.screenshot(main_page, f"verify-expired-attempt{attempt}")
+                if attempt < VERIFY_MAX_ATTEMPTS and not _frame_gone(work):
+                    self.state.log_event(
+                        "bot", "verification token expired — retrying", status="warn"
+                    )
+                    await self.auth.refresh_captcha(work)
+                    continue
                 self.state.log_event(
                     "bot", "verification challenge expired — restarting", status="warn"
                 )
-                await utils.screenshot(main_page, "verify-expired")
                 return False
 
             rejected = any(
@@ -682,7 +711,9 @@ class Monitor:
                 logger.warning(f"  outcome         : REJECTED — {alerts}")
 
             if attempt < VERIFY_MAX_ATTEMPTS and not _frame_gone(work):
-                await self._reload_captcha_images(work)
+                # Through auth so the token age clock is reset with the grid.
+                if not await self.auth.refresh_captcha(work):
+                    await self._reload_captcha_images(work)
                 await utils.human_delay(self.config)
 
         logger.error("monitor: verification not cleared after all attempts")
@@ -824,7 +855,7 @@ class Monitor:
             )
         return frame
 
-    async def complete_visatype_form(self, page: Any, location: str) -> bool:
+    async def complete_visatype_form(self, page: Any, combo: dict[str, str]) -> bool:
         """Fill and submit /Global/bls/visatype.
 
         Order matters and is fixed: Appointment Category -> Appointment For ->
@@ -840,14 +871,16 @@ class Monitor:
         self.install_navigation_watch(page)
 
         bls = self.config.get("bls", {}) or {}
-        labels = bls.get("location_labels", {}) or {}
+        # Values come from the combination being swept, not straight from
+        # config, because each field may be a list of options to try.
         wanted = {
-            "appointment_category": bls.get("appointment_category", ""),
-            "location": labels.get(location, location.title()),
-            "visa_type": bls.get("visa_type", ""),
-            "visa_sub_type": bls.get("visa_sub_type", ""),
+            "appointment_category": combo.get("appointment_category", ""),
+            "location": combo.get("location", ""),
+            "visa_type": combo.get("visa_type", ""),
+            "visa_sub_type": combo.get("visa_sub_type", ""),
         }
 
+        self._option_unavailable = None
         logger.info("=" * 60)
         logger.info("APPOINTMENT FORM")
 
@@ -858,7 +891,7 @@ class Monitor:
 
         # 2. Appointment For (radio) — before the cascading dropdowns, because
         #    choosing Family reveals a "Number Of Members" field.
-        appointment_for = str(bls.get("appointment_for", "Individual"))
+        appointment_for = str(combo.get("appointment_for", "Individual"))
         try:
             result = await page.evaluate(_RADIO_SET_JS, appointment_for)
         except Exception as exc:
@@ -891,6 +924,14 @@ class Monitor:
         ):
             if not await self._set_kendo(page, label, wanted[key]):
                 return await self._form_failed(page, label.lower().replace(" ", "-"))
+
+        if self._option_unavailable:
+            logger.info(
+                f"monitor: skipping this combination — {self._option_unavailable} "
+                "is not offered by the portal"
+            )
+            self._last_form_result = "option_unavailable"
+            return True
 
         await utils.screenshot(page, "visatype-form-filled")
 
@@ -1038,10 +1079,14 @@ class Monitor:
                     f"(of {len(opts)} options, widget {result.get('id')})"
                 )
                 if wanted and result.get("chosen") and                         wanted.lower() not in str(result["chosen"]).lower():
+                    # The option is not offered for this combination — e.g. a
+                    # Schengen sub-type under National Visa. Falling back would
+                    # silently re-test a combination already covered, so flag it.
                     logger.warning(
-                        f"      wanted {wanted!r} but took {result['chosen']!r} — "
-                        f"available: {opts}"
+                        f"      {wanted!r} is not available here (took "
+                        f"{result['chosen']!r}); options: {opts}"
                     )
+                    self._option_unavailable = f"{label}={wanted!r}"
                 # Give the dependent list time to be refilled by 'change'.
                 await asyncio.sleep(1.2)
                 return True
@@ -1053,6 +1098,66 @@ class Monitor:
             f"(options seen: {result.get('options')})"
         )
         return False
+
+    @staticmethod
+    def _as_list(value: Any) -> list[str]:
+        """Accept either a scalar or a list in config, always return a list."""
+        if value is None:
+            return [""]
+        if isinstance(value, (list, tuple)):
+            items = [str(v).strip() for v in value if str(v).strip()]
+            return items or [""]
+        text = str(value).strip()
+        return [text] if text else [""]
+
+    def build_combinations(self) -> list[dict[str, str]]:
+        """Every booking option to try, in order.
+
+        location, visa_type, visa_sub_type, appointment_category and
+        appointment_for may each be a single value or a list. The cross-product
+        of the lists is swept in one cycle.
+
+        Ordered with location outermost so the two centres are covered early:
+        if only one option per field is configured this is just the single
+        combination, and nothing changes.
+        """
+        bls = self.config.get("bls", {}) or {}
+        labels = bls.get("location_labels", {}) or {}
+
+        combos: list[dict[str, str]] = []
+        for location in self.locations:
+            for visa_type in self._as_list(bls.get("visa_type")):
+                for sub_type in self._as_list(bls.get("visa_sub_type")):
+                    for category in self._as_list(bls.get("appointment_category")):
+                        for who in self._as_list(bls.get("appointment_for")):
+                            combos.append(
+                                {
+                                    "location_key": location,
+                                    "location": labels.get(location, location.title()),
+                                    "visa_type": visa_type,
+                                    "visa_sub_type": sub_type,
+                                    "appointment_category": category,
+                                    "appointment_for": who or "Individual",
+                                }
+                            )
+
+        if len(combos) > self.max_combinations:
+            logger.warning(
+                f"monitor: {len(combos)} option combinations configured — capping "
+                f"at {self.max_combinations} per cycle. Each one needs its own "
+                "verification captcha, and too many requests per cycle is what "
+                "triggers the portal's rate limiting."
+            )
+            combos = combos[: self.max_combinations]
+        return combos
+
+    @staticmethod
+    def describe_combo(combo: dict[str, str]) -> str:
+        return (
+            f"{combo['location']} / {combo['visa_type']} / "
+            f"{combo['visa_sub_type']} / {combo['appointment_category']} / "
+            f"{combo['appointment_for']}"
+        )
 
     def next_location(self) -> str:
         """The centre to ask about this round, rotating through bls.locations.

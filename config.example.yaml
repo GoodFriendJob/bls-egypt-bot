@@ -121,7 +121,14 @@ poll_interval: 90
 
 # Minutes to wait after the portal explicitly reports no slots. Slots are
 # released in batches, so polling every 90s only risks rate limiting.
-no_slots_wait_minutes: 12
+no_slots_wait_minutes: 5
+
+# Safety cap on the option sweep. visa_type, visa_sub_type,
+# appointment_category and appointment_for may each be a LIST, and the bot
+# tries every combination with every location in one cycle. Each combination
+# needs its own verification captcha, so the cross-product grows fast — this
+# limits how many are attempted per cycle.
+max_combinations_per_cycle: 12
 
 # false opens a visible browser window — use while debugging selectors.
 headless: true
