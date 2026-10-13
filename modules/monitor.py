@@ -250,6 +250,103 @@ _DATEPICKER_OPEN_JS = r"""
 }
 """
 
+# Open the real Time Slot dropdown and report its rendered options.
+#
+# The dataSource route read Count/Code off the model and set the value
+# programmatically. It kept coming back empty ("not-loaded after 20s") even
+# though the control was populated on screen, because the list is only built
+# when the widget is OPENED. So drive it the way a person does: open the box,
+# read the rendered <li>s, and click the green one. Availability is a
+# BACKGROUND COLOUR on the item, exactly like the calendar.
+_SLOT_OPEN_JS = r"""
+(dateId) => {
+  // The slot widget is decoyed like everything else (AppointmentSlot1..5) and
+  // the real one carries the same numeric suffix as the real date picker.
+  const suffix = (String(dateId || '').match(/([0-9]+)$/) || [])[1];
+  const all = Array.from(document.querySelectorAll('input'))
+    .filter((i) => /AppointmentSlot/i.test(i.id || ''));
+  const widget = (i) => window.jQuery && jQuery(i).data('kendoDropDownList');
+
+  let dd = null, input = null;
+  const paired = suffix ? all.find((i) => i.id === 'AppointmentSlot' + suffix) : null;
+  if (paired && widget(paired) && !paired.disabled) { dd = widget(paired); input = paired; }
+  if (!dd) {
+    for (const i of all) {
+      if (i.disabled || !widget(i)) continue;
+      dd = widget(i); input = i; break;
+    }
+  }
+  if (!dd) {
+    return { ok: false, reason: 'no enabled slot dropdown',
+             seen: all.map((i) => i.id + (i.disabled ? ':off' : ':on') +
+                                 (widget(i) ? ':kendo' : ':raw')) };
+  }
+
+  dd.open();
+  return { ok: true, id: input.id, opened: true };
+}
+"""
+
+# Read the options the open dropdown is showing, and click one by index.
+_SLOT_PICK_JS = r"""
+({ inputId, wantIndex }) => {
+  const input = document.getElementById(inputId);
+  const dd = input && window.jQuery && jQuery(input).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'widget vanished' };
+
+  const list = dd.ul;                       // the rendered <ul> of <li> items
+  if (!list) return { ok: false, reason: 'no list element' };
+  const items = Array.from(list.querySelectorAll('li'));
+  if (!items.length) return { ok: false, reason: 'not-loaded' };
+
+  const colourOf = (el) => {
+    // Walk up a little: the colour may sit on the li or on an inner span.
+    for (const node of [el, ...el.querySelectorAll('*')]) {
+      const bg = getComputedStyle(node).backgroundColor || '';
+      const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?/.exec(bg);
+      if (!m) continue;
+      if (m[4] !== undefined && Number(m[4]) === 0) continue;   // transparent
+      const r = +m[1], g = +m[2], b = +m[3];
+      if (r === 255 && g === 255 && b === 255) continue;        // plain white
+      return { r, g, b };
+    }
+    return null;
+  };
+
+  const options = items.map((li, index) => {
+    const text = (li.innerText || '').trim();
+    const c = colourOf(li);
+    // Judge by WHICH channel leads, not by how far it leads. The portal
+    // uses Bootstrap's pale tints as well as saturated fills: bg-success is
+    // rgb(212,237,218), where green tops red by exactly 25 -- a "g > r + 25"
+    // rule read that as not-green and skipped a free 09:00 slot in testing.
+    const lead = (c) => {
+      if (!c) return '';
+      const lo = Math.min(c.r, c.g, c.b);
+      const spread = Math.max(c.r, c.g, c.b) - lo;
+      if (spread < 10) return '';                 // grey / white: no signal
+      if (c.g >= c.r && c.g >= c.b) return 'free';
+      if (c.r >= c.g && c.r >= c.b) return 'full';
+      return '';
+    };
+    const tone = lead(c);
+    const free = tone === 'free';
+    const full = tone === 'full';
+    return { index, text, free, full,
+             colour: c ? `rgb(${c.r},${c.g},${c.b})` : 'none' };
+  }).filter((o) => o.text && !/^-+\s*select/i.test(o.text));
+
+  if (wantIndex === null || wantIndex === undefined) {
+    return { ok: true, options };
+  }
+  const target = items[wantIndex];
+  if (!target) return { ok: false, reason: 'index gone', options };
+  // Click the actual <li> so the portal's own change handlers run.
+  target.click();
+  return { ok: true, options, clicked: (target.innerText || '').trim() };
+}
+"""
+
 _KENDO_SET_JS = r"""
 (args) => {
   const { label, wanted } = args;
@@ -1610,7 +1707,18 @@ class Monitor:
             # token is young. solve_captcha returns True when there is none.
             await self._dismiss_open_modals(page)
             try:
-                if not await self.auth.solve_captcha(page):
+                # The grid is inside an IFRAME, exactly like the visa-type
+                # gate: the popup is a Kendo window and its body is
+                # /Global/CaptchaPublic/GenerateCaptcha. Solving against the
+                # PAGE found no captcha at all, so solve_captcha returned
+                # "nothing to do" and the step walked straight past it.
+                # CAPTCHA_FRAME_HINT ("generatecaptcha") matches this URL too.
+                work = await self._wait_for_captcha_frame(page, timeout=20.0)
+                ctx = work if work is not None else page
+                offset = await self._frame_offset(work) if work is not None else (0.0, 0.0)
+                if work is not None:
+                    logger.info(f"  {label:<22}: captcha frame at offset {offset}")
+                if not await self.auth.solve_captcha(page, ctx=ctx, offset=offset):
                     logger.error(f"  {label:<22}: its captcha was not solved")
                     await utils.screenshot(page, f"appointment-{button_id}-captcha")
                     return False
@@ -1852,7 +1960,7 @@ class Monitor:
         if waited:
             logger.info(f"  date picker           : ready after {waited:.0f}s")
         logger.info(f"  date picker           : opened #{opened}")
-        # The slot dropdown shares this suffix; see _read_slot_dropdown.
+        # The slot dropdown shares this suffix; see _SLOT_OPEN_JS.
         self._date_field_id = str(opened)
         await asyncio.sleep(1.2)
         await utils.screenshot(page, "appointment-calendar-open")
@@ -1951,131 +2059,107 @@ class Monitor:
         return {"ok": True, "offered": offered, "clicked": picked["clicked"]}
 
     async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
-        """Choose a free time slot once a date has been picked.
+        """Open the Time Slot box and click a free (green) option.
 
-        The Kendo template renders each slot with bg-success when free and
-        bg-danger when booked (Count < Code), so a date can be selectable while
-        every slot on it is full — only green is acceptable.
+        Driven the way a person drives it: open the select, look at the
+        options, click the green one. The previous version read the widget's
+        dataSource and assigned the value programmatically, and it kept
+        reporting "not-loaded after 20s" on a control that was populated on
+        screen -- Kendo only builds the list when the dropdown is OPENED, so
+        there was nothing in the DOM to read.
         """
-        # Poll: the slot list arrives by AJAX after the date is chosen.
-        deadline = 20.0
+        deadline = 25.0
         waited = 0.0
-        result: dict[str, Any] = {}
-        # "no enabled slot dropdown" is also a not-ready state, not a verdict:
-        # the widget is created by the same Kendo pass that builds the date
-        # picker, so it can legitimately be missing for the first seconds.
-        pending = ("not-loaded", "no enabled slot dropdown")
+        opened: dict[str, Any] = {}
+
+        # The widget is built by the same Kendo pass as the date picker, so a
+        # missing one early on is "not ready", not "not there".
         while waited < deadline:
-            result = await self._read_slot_dropdown(page, date_id)
-            if result.get("reason") not in pending:
+            try:
+                opened = await page.evaluate(_SLOT_OPEN_JS, date_id)
+            except Exception as exc:
+                logger.warning(f"  slot                  : open failed — {exc}")
+                return False
+            if opened.get("ok"):
                 break
             await asyncio.sleep(1.0)
             waited += 1.0
-        if result.get("reason") in pending:
+
+        if not opened.get("ok"):
             logger.warning(
-                f"  slot                  : {result.get('reason')} after "
-                f"{deadline:.0f}s — treating as no slots "
-                f"(widgets seen: {result.get('seen')})"
+                f"  slot                  : {opened.get('reason')} after "
+                f"{deadline:.0f}s (widgets seen: {opened.get('seen')})"
             )
             return False
 
-        slots = result.get("slots") or []
-        if slots:
-            logger.info(
-                "  slots offered         : "
-                + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
-                + "   (* = free)"
-            )
-        if result.get("seen"):
-            logger.info(f"  slot widgets seen     : {result['seen']}")
-        if result.get("sample"):
-            logger.info(f"  slot row sample       : {result['sample']}")
-        if not result.get("ok"):
-            logger.warning(f"  slot                  : {result.get('reason')}")
-            return False
-        logger.success(f"  slot chosen           : {result.get('chosen')!r}")
-        await self._settle(page)
-        return True
+        input_id = opened.get("id")
+        logger.info(f"  slot dropdown         : opened #{input_id}")
 
-    async def _read_slot_dropdown(
-        self, page: Any, date_id: str = ""
-    ) -> dict[str, Any]:
-        """One read of the Time Slot Kendo dropdown. See _pick_green_slot."""
+        # The options are fetched for the chosen date, so give them time to
+        # render INTO the open list.
+        options: list[dict[str, Any]] = []
+        waited = 0.0
+        read: dict[str, Any] = {}
+        while waited < deadline:
+            try:
+                read = await page.evaluate(
+                    _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": None}
+                )
+            except Exception as exc:
+                logger.warning(f"  slot                  : read failed — {exc}")
+                return False
+            options = read.get("options") or []
+            if options:
+                break
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
+        if not options:
+            logger.warning(
+                f"  slot                  : no options rendered within "
+                f"{deadline:.0f}s ({read.get('reason')}) — this date has none"
+            )
+            await utils.screenshot(page, "appointment-slot-list-empty")
+            return False
+
+        logger.info(
+            "  slots offered         : "
+            + ", ".join(
+                f"{o['text']}{'*' if o['free'] else '(full)' if o['full'] else ''}"
+                for o in options[:20]
+            )
+            + "   (* = free)"
+        )
+
+        free = [o for o in options if o.get("free")]
+        if not free:
+            # Log the colours once so a wrong threshold is diagnosable rather
+            # than silently reading every slot as taken.
+            logger.warning(
+                "  slot colours          : "
+                + ", ".join(f"{o['text']}={o['colour']}" for o in options[:9])
+            )
+            logger.warning("  slot                  : every option is taken")
+            await utils.screenshot(page, "appointment-no-green-slot")
+            return False
+
+        choice = free[0]
         try:
-            return await page.evaluate(
-                """
-                (dateId) => {
-                  // CONFIRMED: the slot dropdown is decoyed exactly like the
-                  // login fields -- AppointmentSlot1..5, all but one disabled
-                  // (dump 20261013-160050_manage-appointment.html). The real
-                  // one carries the same numeric suffix as the real date
-                  // picker, so pair them rather than taking the first enabled
-                  // widget, which can be a decoy mid-render.
-                  const suffix = (String(dateId || '').match(/([0-9]+)$/) || [])[1];
-                  const all = Array.from(
-                    document.querySelectorAll('input[data-role="dropdownlist"]'))
-                    .filter((i) => /AppointmentSlot/i.test(i.id || ''));
-                  const widget = (i) =>
-                    window.jQuery && jQuery(i).data('kendoDropDownList');
-                  const usable = (i) => {
-                    if (!widget(i)) return false;
-                    const wrap = i.closest('.k-widget') || i.parentElement;
-                    if (wrap && getComputedStyle(wrap).display === 'none') return false;
-                    return true;
-                  };
-
-                  let dd = null, id = null;
-                  const paired = suffix
-                    ? all.find((i) => i.id === 'AppointmentSlot' + suffix)
-                    : null;
-                  if (paired && usable(paired)) { dd = widget(paired); id = paired.id; }
-                  if (!dd) {
-                    for (const i of all) {
-                      if (i.disabled || !usable(i)) continue;
-                      dd = widget(i); id = i.id; break;
-                    }
-                  }
-                  if (!dd) {
-                    return { ok: false, reason: 'no enabled slot dropdown',
-                             seen: all.map((i) => i.id + (i.disabled ? ':off' : ':on')) };
-                  }
-
-                  const data = dd.dataSource.data() || [];
-                  // The list is fetched by AJAX for the chosen date, so an
-                  // empty dataSource means NOT LOADED YET, not "all booked".
-                  // Reporting the latter lost a real opening: run
-                  // 20261013_154625 read the list ~2s after picking the date,
-                  // got zero items, and declared every slot taken.
-                  if (!data.length) return { ok: false, reason: 'not-loaded', id };
-                  const slots = [];
-                  let chosen = null;
-                  for (let i = 0; i < data.length; i++) {
-                    const item = data[i];
-                    const name = String(item.Name || '');
-                    // Mirrors the page's own template: Count < Code means full.
-                    const free = !(Number(item.Count) < Number(item.Code));
-                    slots.push({ name, free });
-                    if (free && !chosen && name && !/^-+\\s*select/i.test(name)) {
-                      chosen = { name, id: item.Id, index: i };
-                    }
-                  }
-                  if (!chosen) {
-                    // Carry one raw row: the free/full rule below is inferred
-                    // from the page template and has never been seen against
-                    // real data, so make the next run able to confirm it.
-                    return { ok: false, reason: 'all slots booked', slots, id,
-                             sample: JSON.stringify(data[0] || {}).slice(0, 300) };
-                  }
-                  dd.value(chosen.id);
-                  dd.trigger('change');
-                  return { ok: true, chosen: chosen.name, slots, id };
-                }
-                """,
-                date_id,
+            picked = await page.evaluate(
+                _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": choice["index"]}
             )
         except Exception as exc:
-            logger.warning(f"monitor: slot selection failed: {exc}")
-            return {"ok": False, "reason": f"read failed: {exc}"}
+            logger.warning(f"  slot                  : click failed — {exc}")
+            return False
+        if not picked.get("ok") or not picked.get("clicked"):
+            logger.warning(
+                f"  slot                  : could not click {choice['text']!r} "
+                f"({picked.get('reason')})"
+            )
+            return False
+
+        logger.success(f"  slot chosen           : {picked['clicked']!r}")
+        await self._settle(page)
         await asyncio.sleep(1.0)
         return True
 
