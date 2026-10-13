@@ -855,7 +855,7 @@ class Monitor:
             )
         return frame
 
-    async def complete_visatype_form(self, page: Any, combo: dict[str, str]) -> bool:
+    async def complete_visatype_form(self, page: Any, combo: dict[str, Any]) -> bool:
         """Fill and submit /Global/bls/visatype.
 
         Order matters and is fixed: Appointment Category -> Appointment For ->
@@ -881,12 +881,18 @@ class Monitor:
         }
 
         self._option_unavailable = None
+        # Fields configured with more than one value; only those are strict.
+        swept: set[str] = combo.get("_swept") or set()
         logger.info("=" * 60)
         logger.info("APPOINTMENT FORM")
 
         # 1. Appointment Category
-        if not await self._set_kendo(page, "Appointment Category",
-                                     wanted["appointment_category"]):
+        if not await self._set_kendo(
+            page,
+            "Appointment Category",
+            wanted["appointment_category"],
+            strict="appointment_category" in swept,
+        ):
             return await self._form_failed(page, "appointment-category")
 
         # 2. Appointment For (radio) — before the cascading dropdowns, because
@@ -922,7 +928,9 @@ class Monitor:
             ("Visa Type", "visa_type"),
             ("Visa Sub Type", "visa_sub_type"),
         ):
-            if not await self._set_kendo(page, label, wanted[key]):
+            if not await self._set_kendo(
+                page, label, wanted[key], strict=key in swept
+            ):
                 return await self._form_failed(page, label.lower().replace(" ", "-"))
 
         if self._option_unavailable:
@@ -1055,11 +1063,20 @@ class Monitor:
         await self._survey_page(page, "after-visatype-submit")
         return True
 
-    async def _set_kendo(self, page: Any, label: str, wanted: str) -> bool:
+    async def _set_kendo(
+        self, page: Any, label: str, wanted: str, *, strict: bool = False
+    ) -> bool:
         """Set one Kendo DropDownList, chosen by visible label.
 
         Waits for the widget's data source to populate first: each list is
         refilled by the previous field's change handler, so it is briefly empty.
+
+        ``strict`` marks a field that is being SWEPT across several configured
+        values. There, an option the portal does not offer means this
+        combination is invalid (a Schengen sub-type under National Visa) and
+        should be skipped. For a single configured value it stays False, so an
+        unavailable option falls back to the portal's first real choice and
+        only warns — skipping would leave the cycle checking nothing at all.
         """
         deadline = 15.0
         waited = 0.0
@@ -1078,15 +1095,26 @@ class Monitor:
                     f"  {label:<22}: {result.get('chosen')!r} "
                     f"(of {len(opts)} options, widget {result.get('id')})"
                 )
-                if wanted and result.get("chosen") and                         wanted.lower() not in str(result["chosen"]).lower():
-                    # The option is not offered for this combination — e.g. a
-                    # Schengen sub-type under National Visa. Falling back would
-                    # silently re-test a combination already covered, so flag it.
+                mismatch = (
+                    wanted
+                    and result.get("chosen")
+                    and wanted.lower() not in str(result["chosen"]).lower()
+                )
+                if mismatch:
                     logger.warning(
                         f"      {wanted!r} is not available here (took "
                         f"{result['chosen']!r}); options: {opts}"
                     )
-                    self._option_unavailable = f"{label}={wanted!r}"
+                    if strict:
+                        # Swept field: this pairing is invalid, so skip it
+                        # rather than re-test a combination already covered.
+                        self._option_unavailable = f"{label}={wanted!r}"
+                    else:
+                        logger.warning(
+                            f"      {label} is a single configured value, so "
+                            "continuing with the portal's choice rather than "
+                            "skipping the only combination there is"
+                        )
                 # Give the dependent list time to be refilled by 'change'.
                 await asyncio.sleep(1.2)
                 return True
@@ -1110,7 +1138,7 @@ class Monitor:
         text = str(value).strip()
         return [text] if text else [""]
 
-    def build_combinations(self) -> list[dict[str, str]]:
+    def build_combinations(self) -> list[dict[str, Any]]:
         """Every booking option to try, in order.
 
         location, visa_type, visa_sub_type, appointment_category and
@@ -1124,7 +1152,25 @@ class Monitor:
         bls = self.config.get("bls", {}) or {}
         labels = bls.get("location_labels", {}) or {}
 
-        combos: list[dict[str, str]] = []
+        # Which fields are genuinely being swept. An unavailable option only
+        # justifies SKIPPING the combination when the field is a list: that
+        # means invalid pairings are expected (a Schengen sub-type under
+        # National Visa). For a single configured value, skipping would leave
+        # the cycle checking nothing at all, so fall back and warn instead.
+        swept = {
+            name
+            for name in (
+                "visa_type",
+                "visa_sub_type",
+                "appointment_category",
+                "appointment_for",
+            )
+            if len(self._as_list(bls.get(name))) > 1
+        }
+        if len(self.locations) > 1:
+            swept.add("location")
+
+        combos: list[dict[str, Any]] = []
         for location in self.locations:
             for visa_type in self._as_list(bls.get("visa_type")):
                 for sub_type in self._as_list(bls.get("visa_sub_type")):
@@ -1138,6 +1184,7 @@ class Monitor:
                                     "visa_sub_type": sub_type,
                                     "appointment_category": category,
                                     "appointment_for": who or "Individual",
+                                    "_swept": swept,
                                 }
                             )
 
@@ -1152,7 +1199,7 @@ class Monitor:
         return combos
 
     @staticmethod
-    def describe_combo(combo: dict[str, str]) -> str:
+    def describe_combo(combo: dict[str, Any]) -> str:
         return (
             f"{combo['location']} / {combo['visa_type']} / "
             f"{combo['visa_sub_type']} / {combo['appointment_category']} / "

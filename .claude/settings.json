@@ -38,7 +38,9 @@
       "Bash(git add *)",
       "Bash(git -c core.pager=cat diff --cached --stat)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(./.venv/Scripts/python.exe -m compileall -q modules)",
+      "Bash(./.venv/Scripts/python.exe -c \"import yaml;yaml.safe_load\\(open\\('config.example.yaml',encoding='utf-8'\\)\\);print\\('example yaml parses'\\)\")"
     ]
   }
 }

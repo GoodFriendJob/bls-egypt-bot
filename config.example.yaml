@@ -21,13 +21,43 @@ bls:
     - cairo
     - alexandria
 
-  # Visa category exactly as it appears in the portal dropdown.
+  # Each of the four fields below may be a single value or a LIST, like
+  # locations. One cycle sweeps every combination of locations x visa_type x
+  # visa_sub_type x appointment_category x appointment_for, location
+  # outermost, capped by max_combinations_per_cycle. Blank takes the portal's
+  # first real option.
+  #
+  #   visa_type:
+  #     - "Schengen visa"
+  #     - "National Visa"
+  #
+  # CONFIRMED labels, read from the form's own Kendo dataset:
+  #   Visa Type            : Schengen visa | National Visa
+  #   Visa Sub Type        : Schengen Visa | Airport Transit Visa (TAP)
+  #                          | Medical Visit | National Visa
+  #   Appointment Category : Normal | Premium | Prime Time
+  #   Appointment For      : Individual | Family (2-5 Members)
+  # Matching is case-insensitive and accepts a substring, so "airport transit"
+  # finds "Airport Transit Visa (TAP)".
+  #
+  # Visa Sub Type CASCADES from Visa Type, so not every pair is valid. Invalid
+  # pairs are skipped with a log line naming the unavailable option. A field
+  # set to a SINGLE value instead falls back to the portal's own first option
+  # and warns, because skipping would leave the cycle checking nothing.
+  #
+  # Mind the multiplication: 2 locations x 2 visa types x 2 sub types x 3
+  # categories = 24, which exceeds the default cap of 12 and would silently
+  # truncate the LAST locations, since location is the outermost loop.
+  #
+  # WARNING: visa_type and visa_sub_type choose WHICH VISA is applied for, not
+  # which slot. Sweeping them can secure an appointment for a visa the
+  # applicant is not applying for.
   visa_type: "Schengen visa"
-
-  # Appointment form fields on /Global/bls/visatype. Leave blank to let the bot
-  # pick the first real option (they are required fields with a "--Select--"
-  # placeholder, so any valid choice beats leaving one unset).
   visa_sub_type: "Schengen Visa"
+  # Same visa, different service tier, each with its own slot pool — the field
+  # to sweep for more chances at the SAME visa. Premium and Prime Time carry
+  # higher fees; nothing is paid without the manager, as the bot pauses at any
+  # payment step (detection.payment_phrases) and waits for /resume.
   appointment_category: "Normal"
   appointment_for: "Individual"      # Individual | Family
   # Only used when appointment_for is Family: the portal then shows a
