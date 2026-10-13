@@ -1,0 +1,47 @@
+BLS appointment bot - run transcript
+started : 2026-10-12T22:29:30
+command : bot.py
+python  : 3.11.9
+======================================================================
+22:29:30 | INFO    | __main__ - ==============================================================
+22:29:30 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+22:29:30 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261012_222930.txt
+22:29:30 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+22:29:30 | INFO    | __main__ - visa_type=Schengen visa poll_interval=90s
+22:29:30 | INFO    | __main__ - ==============================================================
+22:29:30 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+22:29:30 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+22:29:30 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+22:29:31 | INFO    | modules.notifier - notifier: telegram listener started
+22:29:31 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+22:29:32 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+22:29:32 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+22:29:32 | INFO    | modules.auth - auth: http->https upgrade route installed
+22:29:32 | INFO    | modules.auth - auth: browser launched
+22:29:42 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:29:44 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:29:44 | INFO    | modules.monitor - monitor: navigation watch installed (now: verification)
+22:29:44 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:29:47 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+22:29:48 | WARNING | modules.auth - auth: [net] FAILED https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha — net::ERR_ABORTED
+22:29:55 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+22:30:41 | WARNING | modules.monitor - monitor: no frame matching 'generatecaptcha' after 30s; frames seen: ['https://egypt.blsspainglobal.com/Global/bls/visatypeverification', '']
+22:30:41 | ERROR   | modules.monitor - monitor: the verification iframe never appeared — the challenge cannot be read
+22:30:42 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261012-223041_verify-no-frame.png
+22:30:42 | INFO    | modules.utils - DOM dumped: logs\dom\20261012-223042_verify-no-frame.html
+22:30:42 | INFO    | modules.monitor - monitor: probing the captcha endpoint directly — https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+22:31:24 | WARNING | modules.monitor - monitor: captcha endpoint probe failed: Page.goto: net::ERR_CONNECTION_TIMED_OUT at https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha", waiting until "domcontentloaded"
+
+22:31:24 | ERROR   | modules.monitor - monitor: visa-type verification not cleared — skipping cycle
+22:32:27 | INFO    | modules.notifier - notifier: /stop command received
+22:32:28 | INFO    | modules.monitor - monitor: loop ended
+22:32:28 | INFO    | modules.auth - auth: session saved to session\cookies.json
+22:32:28 | INFO    | modules.auth - auth: browser closed
+22:32:31 | INFO    | modules.notifier - notifier: telegram listener stopped
+22:32:31 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-12T22:32:31

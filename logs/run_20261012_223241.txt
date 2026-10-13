@@ -1,0 +1,161 @@
+BLS appointment bot - run transcript
+started : 2026-10-12T22:32:41
+command : bot.py
+python  : 3.11.9
+======================================================================
+22:32:41 | INFO    | __main__ - ==============================================================
+22:32:41 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+22:32:41 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261012_223241.txt
+22:32:41 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+22:32:41 | INFO    | __main__ - visa_type=Schengen visa poll_interval=90s
+22:32:41 | INFO    | __main__ - ==============================================================
+22:32:41 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.pdf
+22:32:41 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+22:32:41 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+22:32:42 | INFO    | modules.notifier - notifier: telegram listener started
+22:32:42 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+22:32:42 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+22:32:43 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+22:32:43 | INFO    | modules.auth - auth: http->https upgrade route installed
+22:32:43 | INFO    | modules.auth - auth: browser launched
+22:32:43 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:33:25 | WARNING | modules.auth - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:33:25 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:33:25 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/account/login was interrupted — retrying once
+22:33:34 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:34:16 | WARNING | modules.auth - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:34:37 | WARNING | modules.auth - auth: login form not ready within 20s
+22:34:37 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+22:34:39 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+22:34:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261012-223439_login-no-email-field.png
+22:34:39 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+22:34:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261012-223439_login-failed-attempt1.png
+22:34:44 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+22:34:51 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:35:33 | WARNING | modules.auth - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:35:54 | WARNING | modules.auth - auth: login form not ready within 20s
+03:06:41 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\Beka\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+03:06:43 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+03:06:43 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-030643_login-no-email-field.png
+03:06:43 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+03:06:43 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-030643_login-failed-attempt2.png
+03:06:43 | INFO    | modules.auth - auth: Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+03:06:43 | ERROR   | modules.monitor - monitor: login failed (1 in a row): Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+03:06:43 | WARNING | modules.monitor - monitor: retrying login in 2 min
+03:06:43 | INFO    | modules.auth - auth: stored session discarded
+03:06:44 | INFO    | modules.auth - auth: browser closed
+03:06:44 | INFO    | modules.monitor - monitor: browser closed — next cycle logs in fresh
+03:08:46 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+03:08:46 | INFO    | modules.auth - auth: http->https upgrade route installed
+03:08:46 | INFO    | modules.auth - auth: browser launched
+03:08:58 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+03:09:40 | WARNING | modules.auth - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+03:09:40 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+03:09:40 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/account/login was interrupted — retrying once
+03:09:49 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+03:10:27 | INFO    | modules.notifier - notifier: /stop command received
+03:10:27 | WARNING | modules.auth - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_ABORTED
+03:10:27 | INFO    | modules.auth - auth: browser closed
+03:10:31 | INFO    | modules.notifier - notifier: telegram listener stopped
+======================================================================
+finished: 2026-10-13T03:10:32
