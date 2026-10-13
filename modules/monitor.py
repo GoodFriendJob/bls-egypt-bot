@@ -367,6 +367,8 @@ class Monitor:
         # accepted, and the time-slot list then stayed empty forever.
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
         self._date_field_id: str = ""
+        self._current_combo_text: str = ""
+        self._last_no_date_signature: str = ""
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
         self.page_error_wait = float(retry.get("page_error_wait", 30))
@@ -989,6 +991,7 @@ class Monitor:
         }
 
         self._option_unavailable = None
+        self._current_combo_text = self.describe_combo(combo)
         # Fields configured with more than one value; only those are strict.
         swept: set[str] = combo.get("_swept") or set()
         logger.info("=" * 60)
@@ -1692,6 +1695,7 @@ class Monitor:
                   const cells = Array.from(
                     document.querySelectorAll('.k-calendar td, .k-calendar .k-link'));
                   const options = [];
+                  const seen = {};
                   for (const cell of cells) {
                     if (cell.classList.contains('k-state-disabled')) continue;
                     if (cell.classList.contains('k-other-month')) continue;
@@ -1703,19 +1707,26 @@ class Monitor:
                     // reliable way to measure lead time across a month edge.
                     const stamp = (cell.getAttribute('data-value') ||
                                    (link && link.getAttribute('data-value')) || '');
-                    let soon = false;
-                    if (stamp) {
-                      // data-value is "YYYY/M/D" with a 0-based month.
-                      const parts = stamp.split('/').map(Number);
-                      if (parts.length === 3) {
-                        const when = new Date(parts[0], parts[1], parts[2]);
-                        soon = when.getTime() < minStamp;
-                      }
-                    }
-                    options.push({ text, green: !!paint, soon });
+                    // No data-value means this is not a day cell at all -- the
+                    // month header matched the selector and used to be listed
+                    // as if it were an offered date ("October 2026").
+                    if (!stamp) continue;
+                    const parts = stamp.split('/').map(Number);
+                    if (parts.length !== 3) continue;
+                    // data-value is "YYYY/M/D" with a 0-based month.
+                    const when = new Date(parts[0], parts[1], parts[2]);
+                    const pad = (n) => String(n).padStart(2, '0');
+                    const iso = when.getFullYear() + '-' +
+                      pad(when.getMonth() + 1) + '-' + pad(when.getDate());
+                    // td and its .k-link both match, so every day appeared
+                    // twice; key on the date instead of the cell.
+                    if (seen[iso]) continue;
+                    seen[iso] = true;
+                    const soon = when.getTime() < minStamp;
+                    options.push({ text, green: !!paint, soon, iso });
                     if (paint && !soon) {
                       (link || cell).click();
-                      return { clicked: text, offered: options };
+                      return { clicked: text, clickedIso: iso, offered: options };
                     }
                   }
                   return { clicked: null, offered: options };
@@ -1737,12 +1748,15 @@ class Monitor:
             + "   (* = available)"
         )
         if not picked.get("clicked"):
-            too_soon = [d["text"] for d in offered if d.get("green") and d.get("soon")]
-            if too_soon:
+            free = [d for d in offered if d.get("green")]
+            if free:
                 logger.warning(
-                    f"  date                  : only {', '.join(too_soon)} free, "
+                    f"  date                  : {len(free)} free date(s) offered but "
                     f"all inside the {self.min_days_ahead}-day lead time — skipping"
                 )
+            else:
+                logger.warning("  date                  : no free date offered at all")
+            await self._report_no_date(free)
             return False
         logger.success(f"  date chosen           : {picked['clicked']}")
         await self._settle(page)
@@ -1872,6 +1886,46 @@ class Monitor:
             return {"ok": False, "reason": f"read failed: {exc}"}
         await asyncio.sleep(1.0)
         return True
+
+    async def _report_no_date(self, free: list[dict[str, Any]]) -> None:
+        """Tell the manager no bookable date exists, naming what WAS offered.
+
+        Sent once per distinct set of dates, not once per cycle: the sweep runs
+        every few minutes and the calendar rarely changes between runs, so
+        repeating it would bury every other alert.
+        """
+        shown: list[str] = []
+        for entry in free:
+            iso = str(entry.get("iso") or "")
+            # Display as MM/DD; fall back to the raw day number.
+            if len(iso) == 10:
+                shown.append(f"{iso[5:7]}/{iso[8:10]}")
+            elif entry.get("text"):
+                shown.append(str(entry["text"]))
+
+        combo = self._current_combo_text or "current selection"
+        signature = f"{combo}|{','.join(shown)}"
+        if signature == self._last_no_date_signature:
+            logger.info("  date                  : same as last report — not re-sending")
+            return
+        self._last_no_date_signature = signature
+
+        if shown:
+            dates = ", ".join(shown)
+            message = (
+                f"there is no possible appointment date, available dates are {dates}"
+            )
+            detail = (
+                f"\n\nThey are all within {self.min_days_ahead} day(s) of today, "
+                "which the portal will not book."
+            )
+        else:
+            message = "there is no possible appointment date, no dates are offered"
+            detail = ""
+
+        logger.info(f"  notified              : {message}")
+        self.state.log_event("bot", message, status="warn")
+        await self.notifier.send(f"📅 {message}\n{combo}{detail}")
 
     async def _dismiss_open_modals(self, page: Any, *, rounds: int = 3) -> list[str]:
         """Close every modal that is actually on screen, confirming it.
