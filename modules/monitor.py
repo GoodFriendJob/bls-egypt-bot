@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta
 import re
 from typing import Any
 
@@ -360,6 +361,12 @@ class Monitor:
         # needs its own browser session (one verification per session), so this
         # is the main throttle on how hard a sweep hits the portal.
         self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
+        # The portal will not take a booking that is too close to today, so a
+        # day inside this window is skipped even when the calendar paints it
+        # green. Confirmed by run 20261013_155949: tomorrow was offered and
+        # accepted, and the time-slot list then stayed empty forever.
+        self.min_days_ahead = int(config.get("min_days_ahead", 2))
+        self._date_field_id: str = ""
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
         self.page_error_wait = float(retry.get("page_error_wait", 30))
@@ -545,6 +552,23 @@ class Monitor:
                 self._needs_reverify = False
                 if not await self.ensure_visa_type_verified(page):
                     logger.error("monitor: could not re-clear the gate — ending cycle")
+                    return
+
+            # Act on what the page ACTUALLY is, not on what the previous step
+            # intended. An expired session is answered with a redirect to the
+            # login page, and that can land at any moment -- mid-sweep, after a
+            # refresh, or on the way back from the booking page. Carrying on
+            # regardless is how the bot ends up filling a form that is not
+            # there.
+            stage = classify_page(page.url or "")
+            if stage in ("login", "login-captcha") or self._restart_requested():
+                logger.warning(
+                    f"monitor: page is at '{stage}' ({page.url}) — the session "
+                    "expired, logging in again before continuing the sweep"
+                )
+                self.state.log_event("bot", "session expired mid-sweep", status="warn")
+                page = await self._relogin_and_clear_gate()
+                if page is None:
                     return
 
             self._last_form_result = None
@@ -1334,7 +1358,7 @@ class Monitor:
             logger.warning("monitor: no selectable (green) date offered")
             return False
 
-        if not await self._pick_green_slot(page):
+        if not await self._pick_green_slot(page, self._date_field_id):
             await utils.screenshot(page, "appointment-no-green-slot")
             logger.warning("monitor: no free (green) time slot for that date")
             return False
@@ -1609,13 +1633,26 @@ class Monitor:
             logger.warning("monitor: no enabled date picker on the page")
             return False
         logger.info(f"  date picker           : opened #{opened}")
+        # The slot dropdown shares this suffix; see _read_slot_dropdown.
+        self._date_field_id = str(opened)
         await asyncio.sleep(1.2)
         await utils.screenshot(page, "appointment-calendar-open")
 
+        # The portal will not honour a booking that is too close to today;
+        # run 20261013_155949 picked tomorrow (14th, with today the 13th) and
+        # the time-slot list then never populated at all.
+        cutoff = datetime.now().date() + timedelta(days=self.min_days_ahead)
+        min_stamp = int(
+            datetime(cutoff.year, cutoff.month, cutoff.day).timestamp() * 1000
+        )
+        logger.info(
+            f"  earliest allowed date : {cutoff.isoformat()} "
+            f"({self.min_days_ahead} day(s) ahead)"
+        )
         try:
             picked = await page.evaluate(
                 """
-                (pickerId) => {
+                ({ pickerId, minStamp }) => {
                   const green = (el) => {
                     const bg = getComputedStyle(el).backgroundColor || '';
                     const m = /rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/.exec(bg);
@@ -1634,8 +1671,21 @@ class Monitor:
                     const paint = green(cell) || (link && green(link));
                     const text = ((link || cell).innerText || '').trim();
                     if (!text) continue;
-                    options.push({ text, green: !!paint });
-                    if (paint) {
+                    // Kendo puts the real date on the cell, which is the only
+                    // reliable way to measure lead time across a month edge.
+                    const stamp = (cell.getAttribute('data-value') ||
+                                   (link && link.getAttribute('data-value')) || '');
+                    let soon = false;
+                    if (stamp) {
+                      // data-value is "YYYY/M/D" with a 0-based month.
+                      const parts = stamp.split('/').map(Number);
+                      if (parts.length === 3) {
+                        const when = new Date(parts[0], parts[1], parts[2]);
+                        soon = when.getTime() < minStamp;
+                      }
+                    }
+                    options.push({ text, green: !!paint, soon });
+                    if (paint && !soon) {
                       (link || cell).click();
                       return { clicked: text, offered: options };
                     }
@@ -1643,7 +1693,7 @@ class Monitor:
                   return { clicked: null, offered: options };
                 }
                 """,
-                opened,
+                {"pickerId": opened, "minStamp": min_stamp},
             )
         except Exception as exc:
             logger.warning(f"monitor: date selection failed: {exc}")
@@ -1652,17 +1702,26 @@ class Monitor:
         offered = picked.get("offered") or []
         logger.info(
             "  days offered          : "
-            + ", ".join(f"{d['text']}{'*' if d['green'] else ''}" for d in offered[:31])
+            + ", ".join(
+                f"{d['text']}{'*' if d['green'] else ''}{'(too soon)' if d.get('soon') else ''}"
+                for d in offered[:31]
+            )
             + "   (* = available)"
         )
         if not picked.get("clicked"):
+            too_soon = [d["text"] for d in offered if d.get("green") and d.get("soon")]
+            if too_soon:
+                logger.warning(
+                    f"  date                  : only {', '.join(too_soon)} free, "
+                    f"all inside the {self.min_days_ahead}-day lead time — skipping"
+                )
             return False
         logger.success(f"  date chosen           : {picked['clicked']}")
         await self._settle(page)
         await asyncio.sleep(1.5)
         return True
 
-    async def _pick_green_slot(self, page: Any) -> bool:
+    async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
         """Choose a free time slot once a date has been picked.
 
         The Kendo template renders each slot with bg-success when free and
@@ -1674,7 +1733,7 @@ class Monitor:
         waited = 0.0
         result: dict[str, Any] = {}
         while waited < deadline:
-            result = await self._read_slot_dropdown(page)
+            result = await self._read_slot_dropdown(page, date_id)
             if result.get("reason") != "not-loaded":
                 break
             await asyncio.sleep(1.0)
@@ -1693,6 +1752,8 @@ class Monitor:
                 + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
                 + "   (* = free)"
             )
+        if result.get("seen"):
+            logger.info(f"  slot widgets seen     : {result['seen']}")
         if result.get("sample"):
             logger.info(f"  slot row sample       : {result['sample']}")
         if not result.get("ok"):
@@ -1702,21 +1763,48 @@ class Monitor:
         await self._settle(page)
         return True
 
-    async def _read_slot_dropdown(self, page: Any) -> dict[str, Any]:
+    async def _read_slot_dropdown(
+        self, page: Any, date_id: str = ""
+    ) -> dict[str, Any]:
         """One read of the Time Slot Kendo dropdown. See _pick_green_slot."""
         try:
             return await page.evaluate(
                 """
-                () => {
+                (dateId) => {
+                  // CONFIRMED: the slot dropdown is decoyed exactly like the
+                  // login fields -- AppointmentSlot1..5, all but one disabled
+                  // (dump 20261013-160050_manage-appointment.html). The real
+                  // one carries the same numeric suffix as the real date
+                  // picker, so pair them rather than taking the first enabled
+                  // widget, which can be a decoy mid-render.
+                  const suffix = (String(dateId || '').match(/([0-9]+)$/) || [])[1];
+                  const all = Array.from(
+                    document.querySelectorAll('input[data-role="dropdownlist"]'))
+                    .filter((i) => /AppointmentSlot/i.test(i.id || ''));
+                  const widget = (i) =>
+                    window.jQuery && jQuery(i).data('kendoDropDownList');
+                  const usable = (i) => {
+                    if (!widget(i)) return false;
+                    const wrap = i.closest('.k-widget') || i.parentElement;
+                    if (wrap && getComputedStyle(wrap).display === 'none') return false;
+                    return true;
+                  };
+
                   let dd = null, id = null;
-                  for (const inp of document.querySelectorAll('input[data-role="dropdownlist"]')) {
-                    if (!/AppointmentSlot/i.test(inp.id || '')) continue;
-                    if (inp.disabled) continue;
-                    const w = window.jQuery && jQuery(inp).data('kendoDropDownList');
-                    if (!w) continue;
-                    dd = w; id = inp.id; break;
+                  const paired = suffix
+                    ? all.find((i) => i.id === 'AppointmentSlot' + suffix)
+                    : null;
+                  if (paired && usable(paired)) { dd = widget(paired); id = paired.id; }
+                  if (!dd) {
+                    for (const i of all) {
+                      if (i.disabled || !usable(i)) continue;
+                      dd = widget(i); id = i.id; break;
+                    }
                   }
-                  if (!dd) return { ok: false, reason: 'no enabled slot dropdown' };
+                  if (!dd) {
+                    return { ok: false, reason: 'no enabled slot dropdown',
+                             seen: all.map((i) => i.id + (i.disabled ? ':off' : ':on')) };
+                  }
 
                   const data = dd.dataSource.data() || [];
                   // The list is fetched by AJAX for the chosen date, so an
@@ -1748,7 +1836,8 @@ class Monitor:
                   dd.trigger('change');
                   return { ok: true, chosen: chosen.name, slots, id };
                 }
-                """
+                """,
+                date_id,
             )
         except Exception as exc:
             logger.warning(f"monitor: slot selection failed: {exc}")
@@ -2594,17 +2683,45 @@ class Monitor:
 
         await utils.interruptible_sleep(wait_minutes * 60, self.state)
 
-    async def _reset_session(self) -> None:
-        """Drop cookies and the browser so the next attempt is a clean login."""
+    async def _relogin_and_clear_gate(self) -> Any | None:
+        """Rebuild the session and clear the verification gate.
+
+        Returns the fresh page, or None when the cycle has to be abandoned.
+        """
+        await self._reset_session()
         try:
-            self.auth._clear_saved_session()
+            page = await self.auth.ensure_logged_in(force=True)
+        except PortalUnreachableError:
+            raise
         except Exception as exc:
-            logger.debug(f"monitor: could not clear the stored session: {exc}")
+            logger.error(f"monitor: could not log in again: {exc}")
+            return None
+        self.install_navigation_watch(page)
+        self._needs_reverify = False
+        if not await self.ensure_visa_type_verified(page):
+            logger.error("monitor: could not clear the gate after re-login")
+            return None
+        return page
+
+    async def _reset_session(self) -> None:
+        """Drop cookies and the browser so the next attempt is a clean login.
+
+        ORDER MATTERS. Closing the browser used to save the session on the way
+        out, which silently rewrote the file that had just been deleted; the
+        next start restored those cookies, landed already authenticated on the
+        verification page where there is no email field, and failed the login
+        twice (run 20261013_155949). Close WITHOUT saving, then delete.
+        """
         try:
-            await self.auth.stop()
-            logger.info("monitor: browser closed — next cycle logs in fresh")
+            await self.auth.stop(save=False)
+            logger.info("monitor: browser closed without saving the session")
         except Exception as exc:
             logger.debug(f"monitor: could not close the browser: {exc}")
+        try:
+            self.auth._clear_saved_session()
+            logger.info("monitor: stored cookies cleared — next login is clean")
+        except Exception as exc:
+            logger.debug(f"monitor: could not clear the stored session: {exc}")
 
     async def _handle_cycle_error(self, exc: Exception) -> None:
         self._consecutive_errors += 1

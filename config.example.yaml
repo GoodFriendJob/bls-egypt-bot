@@ -169,6 +169,11 @@ max_combinations_per_cycle: 12
 # spaced out rather than run back to back.
 session_recycle_wait: 45
 
+# Earliest appointment to accept, in days from today. The portal offers dates
+# it will not actually serve slots for: picking tomorrow left the Time Slot
+# list permanently empty. A green day inside this window is skipped.
+min_days_ahead: 2
+
 # false opens a visible browser window — use while debugging selectors.
 headless: true
 

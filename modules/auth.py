@@ -679,9 +679,26 @@ class BLSAuth:
         except Exception as exc:
             logger.debug(f"auth: could not install network logging: {exc}")
 
-    async def stop(self) -> None:
-        """Close everything, saving the session first on a best-effort basis."""
-        if self._context is not None and self._logged_in:
+    def login_url(self) -> str:
+        """The canonical login entry point, ReturnUrl included."""
+        from urllib.parse import quote
+        dashboard = (self.config.get("bls", {}) or {}).get(
+            "paths", {}
+        ).get("dashboard", "/Global/bls/visatypeverification")
+        return self._path("login") + "?ReturnUrl=" + quote(dashboard, safe="")
+
+    async def stop(self, *, save: bool = True) -> None:
+        """Close everything, saving the session first on a best-effort basis.
+
+        ``save=False`` is required when the caller is deliberately throwing the
+        session away. Saving on the way out silently undid the discard: run
+        20261013_155949 logged "stored session discarded" and then "session
+        saved to the cookies file one second later, so the next start
+        restored the very cookies that had just been cleared, arrived already
+        authenticated at the verification page, found no email field, and
+        failed the login twice.
+        """
+        if save and self._context is not None and self._logged_in:
             await self._save_session()
         for closer, label in ((self._context, "context"), (self._browser, "browser")):
             if closer is None:
@@ -792,7 +809,13 @@ class BLSAuth:
         There is no /account or /dashboard page on this portal — probing for one
         returns 404. Success is therefore judged by the landing URL.
         """
-        await self._goto(page, self._path("login"))
+        # CONFIRMED: the login entry point is always
+        #   /Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+        # Requesting the bare path lets an existing session redirect straight
+        # to the verification page, where there is no email field at all --
+        # which is exactly how run 20261013_155949 failed ("login form not
+        # ready within 20s", "no real email field").
+        await self._goto(page, self.login_url())
         await utils.human_delay(self.config)
         await self._dismiss_cookie_banner(page)
 
@@ -2164,7 +2187,21 @@ class BLSAuth:
                     }
                     return true;
                   };
-                  // The verification modal's div, then a real <button>.
+                  // Never post the LOGIN form from the captcha step. On the
+                  // verification page a generic button[type=submit] is the
+                  // account form, so clicking it fires LoginSubmit instead of
+                  // SubmitCaptcha + the verify-selection post, and the gate is
+                  // left unsolved.
+                  const isLogin = (el) => {
+                    const form = el.closest('form');
+                    const action = ((form && form.getAttribute('action')) || '');
+                    const blob = (action + ' ' + (el.id || '') + ' ' +
+                                  (el.name || '') + ' ' +
+                                  (el.getAttribute('onclick') || '')).toLowerCase();
+                    return /login|signin|account/.test(blob);
+                  };
+                  // The captcha's own handler first; it is the only control
+                  // guaranteed to hit SubmitCaptcha.
                   const order = [
                     'div.img-action-div[onclick*="onSubmit"]',
                     '[onclick*="onSubmit"]',
@@ -2173,13 +2210,14 @@ class BLSAuth:
                   ];
                   for (const sel of order) {
                     for (const el of document.querySelectorAll(sel)) {
-                      if (vis(el)) { el.click(); return sel; }
+                      if (vis(el) && !isLogin(el)) { el.click(); return sel; }
                     }
                   }
                   // Any visible control whose text is exactly Submit.
                   for (const el of document.querySelectorAll('button, input[type=button]')) {
                     const t = ((el.innerText || el.value || '') + '').trim().toLowerCase();
-                    if ((t === 'submit' || t === 'submit selection') && vis(el)) {
+                    if ((t === 'submit' || t === 'submit selection') && vis(el)
+                        && !isLogin(el)) {
                       el.click();
                       return 'text:' + t;
                     }
