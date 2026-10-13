@@ -1,0 +1,141 @@
+BLS appointment bot - run transcript
+started : 2026-10-13T21:54:17
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+21:54:18 | INFO    | __main__ - ==============================================================
+21:54:18 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+21:54:18 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261013_215417.txt
+21:54:18 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+21:54:18 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+21:54:18 | INFO    | __main__ - ==============================================================
+21:54:18 | INFO    | __main__ - dashboard on http://127.0.0.1:5000
+ * Serving Flask app 'dashboard.app'
+ * Debug mode: off
+21:54:19 | INFO    | modules.notifier - notifier: telegram listener started
+21:54:19 | INFO    | __main__ - single-cycle mode (--once)
+21:54:19 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+21:54:20 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+21:54:20 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+21:54:20 | INFO    | modules.auth - auth: browser launched
+21:54:21 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+21:54:32 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+21:54:32 | INFO    | modules.monitor - monitor: navigation watch installed (now: verification)
+21:54:32 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+21:54:35 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+21:54:36 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+21:54:43 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+21:54:46 | INFO    | modules.monitor - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+21:54:47 | INFO    | modules.monitor - monitor: verification attempt 1/5
+21:54:48 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215447_verify-modal-attempt1.png
+21:54:48 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215448_verify-frame-attempt1.html
+21:54:48 | INFO    | modules.monitor - monitor: captcha frame at x=484 y=126 (398x557)
+21:54:48 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=34
+21:54:48 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+21:54:48 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+21:54:48 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215448_captcha-before.png
+21:54:48 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215448_captcha-detected.html
+21:54:49 | INFO    | modules.auth - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+21:54:49 | INFO    | modules.auth - auth: prompt 972 chosen (contrast=14.89, z-index=903, color=rgb(33, 37, 41))
+21:54:49 | INFO    | modules.auth - ------------------------------------------------------------
+21:54:49 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+21:54:49 | INFO    | modules.auth -   target number   : 972
+21:54:49 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+21:54:49 | INFO    | modules.auth -   visible labels  : 34 (of 34 box-labels in the DOM)
+21:54:49 | INFO    | modules.auth - auth: captcha attempt 1: target=972, 9 visible tiles
+21:54:49 | INFO    | modules.auth -   grid order      : 1:fuuqnkyqq, 2:vvgunpl, 3:kzshgiuc, 4:etihlae, 5:polron, 6:wbstfjsp, 7:icbipxmwf, 8:pqrrtvq, 9:frxhek
+21:54:49 | INFO    | modules.auth -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+21:54:50 | INFO    | modules.auth -   grid screenshot : FAILED
+21:54:50 | INFO    | modules.vision - vision: split 700x700 grid into 9 tiles (~233x233 each)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+21:54:50 | INFO    | modules.vision - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+21:54:51 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+21:54:51 | INFO    | modules.vision - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+21:54:51 | INFO    | modules.vision - vision: upscaled grid 214x214 -> 642x642 (x3, LANCZOS)
+21:55:03 | INFO    | modules.vision - vision: per-tile reply '306,915,972,972,884,707,272,972,509'
+21:55:03 | INFO    | modules.auth -   tiles read      : 1:306, 2:915, 3:972, 4:972, 5:884, 6:707, 7:272, 8:972, 9:509
+21:55:03 | INFO    | modules.auth -   matching 972      : positions [3, 4, 8]
+21:55:03 | INFO    | modules.auth -   vision positions: [3, 4, 8]
+21:55:03 | INFO    | modules.auth -   matched tiles   : 3 -> ['kzshgiuc', 'etihlae', 'pqrrtvq']
+21:55:06 | INFO    | modules.auth -   click results   :
+21:55:06 | INFO    | modules.auth -       id=kzshgiuc       number=None   clicked=True  img-selected=True
+21:55:06 | INFO    | modules.auth -       id=etihlae        number=None   clicked=True  img-selected=True
+21:55:06 | INFO    | modules.auth -       id=pqrrtvq        number=None   clicked=True  img-selected=True
+21:55:07 | INFO    | modules.auth -   SelectedImages  : ''
+21:55:07 | INFO    | modules.auth -   expected ids    : ['etihlae', 'kzshgiuc', 'pqrrtvq']
+21:55:07 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+21:55:07 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215507_captcha-attempt1-before-submit.png
+21:55:07 | INFO    | modules.auth -   grid age        : 19.1s (limit 35s)
+21:55:07 | INFO    | modules.auth - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+21:55:07 | INFO    | modules.auth -   submit clicked  : True
+21:55:07 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+21:55:10 | WARNING | modules.auth - auth: captcha detection failed: Frame.evaluate: Frame was detached
+21:55:10 | SUCCESS | modules.auth -   outcome         : SOLVED on attempt 1
+21:55:10 | INFO    | modules.auth - ------------------------------------------------------------
+21:55:10 | INFO    | modules.auth - auth: captcha solved (attempt 1)
+21:55:11 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215510_captcha-solved.png
+21:55:12 | INFO    | modules.monitor -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+21:55:12 | SUCCESS | modules.monitor - monitor: verification captcha passed
+21:55:12 | INFO    | modules.monitor - monitor: clicked #btnSubmit
+21:55:12 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+21:55:12 | INFO    | modules.monitor - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=e5fbdoJNyu4sEReY6wwe2SrVxeqXFK3Ycj2i2WselDUxTWi6LcC%)
+21:55:20 | SUCCESS | modules.monitor - monitor: reached the appointment form — https://egypt.blsspainglobal.com/Global/bls/visatype?data=e5fbdoJNyu4sEReY6wwe2SrVxeqXFK3Ycj2i2WselDUxTWi6LcC%2ftsj6RNgCX1r%2f4BwoxluVlCd3nhMDi%2bmgutvX7AOWmaW0QnpxOkd3otKQz5EC1lON1hzyBDJAwM0f7kjrY7C6896fhm1sVHqHX9604gYIIX6FzPq3p%2fQ3oT4%3d
+21:55:22 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215522_visatype-form.png
+21:55:22 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215522_visatype-form.html
+21:55:22 | INFO    | modules.monitor - monitor: 8 combination(s) configured; trying 1 this cycle, then continuing from there next cycle
+21:55:22 | INFO    | modules.monitor - monitor:   1. Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+21:55:22 | INFO    | modules.monitor - monitor: [1/1] Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+21:55:22 | INFO    | modules.monitor - ============================================================
+21:55:22 | INFO    | modules.monitor - APPOINTMENT FORM
+21:55:22 | INFO    | modules.monitor -   Appointment Category  : 'Normal' (of 3 options, widget AppointmentCategoryId1)
+21:55:23 | INFO    | modules.monitor -   Appointment For       : 'Individual' (name=AppointmentFor2)
+21:55:25 | INFO    | modules.monitor -   Location              : 'Cairo' (of 2 options, widget Location3)
+21:55:26 | INFO    | modules.monitor -   Visa Type             : 'Schengen visa' (of 2 options, widget VisaType3)
+21:55:28 | INFO    | modules.monitor -   Visa Sub Type         : 'Airport Transit Visa (TAP)' (of 2 options, widget VisaSubType3)
+21:55:29 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215529_visatype-form-filled.png
+21:55:30 | INFO    | modules.monitor - monitor: appointment form submitted
+21:55:30 | INFO    | modules.monitor - monitor: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaType
+21:55:31 | INFO    | modules.monitor - monitor: page -> appointment  (https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsN)
+21:55:31 | INFO    | modules.monitor - monitor: URL after submit — https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=e5fbdoJNyu4sEReY6wwe2SrVxeqXFK3Ycj2i2WselDUxTWi6LcC%2ftsj6RNgCX1r%2f4BwoxluVlCd3nhMDi%2bmgutvX7AOWmaW0QnpxOkd3otKQz5EC1lON1hzyBDJAwM0f7kjrY7C6896fhm1sVHqHX9604gYIIX6FzPq3p%2fQ3oT4%3d
+21:55:31 | INFO    | modules.monitor - ============================================================
+21:55:34 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215531_after-visatype-submit.png
+21:55:34 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215534_after-visatype-submit.html
+21:55:34 | SUCCESS | modules.monitor - monitor: appointment page reached — https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=e5fbdoJNyu4sEReY6wwe2SrVxeqXFK3Ycj2i2WselDUxTWi6LcC%2ftsj6RNgCX1r%2f4BwoxluVlCd3nhMDi%2bmgutvX7AOWmaW0QnpxOkd3otKQz5EC1lON1hzyBDJAwM0f7kjrY7C6896fhm1sVHqHX9604gYIIX6FzPq3p%2fQ3oT4%3d
+21:55:35 | INFO    | modules.monitor - ============================================================
+21:55:35 | INFO    | modules.monitor - PAGE SURVEY (manage-appointment)
+21:55:35 | INFO    | modules.monitor -   url      : https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=e5fbdoJNyu4sEReY6wwe2SrVxeqXFK3Ycj2i2WselDUxTWi6LcC%2ftsj6RNgCX1r%2f4BwoxluVlCd3nhMDi%2bmgutvX7AOWmaW0QnpxOkd3otKQz5EC1lON1hzyBDJAwM0f7kjrY7C6896fhm1sVHqHX9604gYIIX6FzPq3p%2fQ3oT4%3d
+21:55:35 | INFO    | modules.monitor -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+21:55:35 | INFO    | modules.monitor -   headings : ['BLS International']
+21:55:35 | INFO    | modules.monitor -   selects  : []
+21:55:35 | INFO    | modules.monitor -   buttons  : ['Get Verification Code']
+21:55:35 | INFO    | modules.monitor -   inputs   : ['AppointmentFor', 'AppointmentFor', 'MissionId', 'LocationId', 'AppointmentCategoryId', 'VisaType', 'VisaSubTypeId', 'AppointmentDate4', 'AppointmentSlot4', 'MobileCountryCode', 'Mobile', 'Email']
+21:55:35 | INFO    | modules.monitor -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', '#', '#', '#', '#', '/Global/bls/visatype', '/']
+21:55:35 | INFO    | modules.monitor - ============================================================
+21:55:35 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215535_manage-appointment.png
+21:55:35 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215535_manage-appointment.html
+21:55:35 | INFO    | modules.monitor - ============================================================
+21:55:35 | INFO    | modules.monitor - APPOINTMENT DETAILS (date / slot / photo)
+21:55:35 | INFO    | modules.utils - DOM dumped: logs\dom\20261013-215535_manage-appointment.html
+21:55:40 | INFO    | modules.monitor -   date picker           : ready after 5s
+21:55:40 | INFO    | modules.monitor -   date picker           : opened #AppointmentDate4
+21:55:42 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215542_appointment-calendar-open.png
+21:55:42 | INFO    | modules.monitor -   earliest allowed date : 2026-10-14 (1 day(s) ahead)
+21:55:42 | INFO    | modules.monitor -   days offered          : 14*   (* = available)
+21:55:42 | SUCCESS | modules.monitor -   date chosen           : 14
+21:56:05 | WARNING | modules.monitor -   slot                  : not-loaded after 20s — treating as no slots (widgets seen: None)
+21:56:05 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261013-215605_appointment-no-green-slot.png
+21:56:05 | WARNING | modules.monitor - monitor: no free (green) time slot for that date
+21:56:05 | WARNING | modules.monitor - monitor: could not complete the appointment details
+21:56:05 | INFO    | modules.monitor - monitor: no slots for Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+21:56:05 | INFO    | modules.monitor - monitor: no slots for any of the 1 combination(s) — cycle complete
+21:56:05 | INFO    | modules.auth - auth: session saved to session\cookies.json
+21:56:06 | INFO    | modules.auth - auth: browser closed
+21:56:06 | INFO    | modules.notifier - notifier: telegram listener stopped
+21:56:06 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-13T21:56:06
