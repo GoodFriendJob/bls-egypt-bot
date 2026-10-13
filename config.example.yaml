@@ -98,6 +98,40 @@ applicant:
   address: ""
   city: ""
 
+
+  # --- Applicant details form (/Global/BLSAppointment/ManageAppointment) ----
+  # Every field the booking form asks for. Required ones are marked REQ: the
+  # portal rejects the form if they are blank, so the bot reports them rather
+  # than submitting something it knows will bounce. All of these are editable
+  # from the dashboard Settings tab.
+  #
+  # Dropdowns are matched against the option TEXT, case-insensitively and by
+  # substring, so "egypt" finds "Egypt" and "ordinary" finds "Ordinary
+  # Passport". Dates are yyyy-mm-dd.
+  first_name: ""                 # REQ  First Name (Given Name)
+  surname: ""                    # REQ  Surname (Family Name)
+  surname_at_birth: ""           # REQ  Surname At Birth
+  last_name: ""                  #      Last Name
+  country_of_birth: "Egypt"      # REQ  dropdown
+  nationality_at_birth: "Egypt"  #      dropdown
+  marital_status: ""             # REQ  dropdown, e.g. Single / Married
+  national_identity_number: ""   #      National Identity Number
+  passport_type: "Ordinary Passport"  # REQ dropdown
+  passport_issue_place: ""       # REQ  Issue Place
+  passport_issue_country: "Egypt"     # REQ dropdown
+  travel_date: ""                # REQ  yyyy-mm-dd, must be in the future
+  address_line2: ""              #      Home Address Line2
+  country: "Egypt"               # REQ  dropdown, home address country
+  postal_code: ""                # REQ  Postal Code
+  contact_number: ""             # REQ  digits only, no + or spaces
+  employer_name: ""              # REQ  employer, or school for students
+  employer_phone: ""             # REQ  digits only
+  employer_address: ""           # REQ
+  occupation: ""                 # REQ  dropdown
+  purpose_of_journey: ""         # REQ  dropdown, e.g. Tourism
+  destination_state: "Spain"     # REQ  dropdown (defaults to ESP on the page)
+  second_destination_state: ""   #      dropdown
+
   documents:
     passport_scan: "docs/passport.jpg"
     photo: "docs/photo.jpg"

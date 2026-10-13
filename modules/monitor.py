@@ -347,6 +347,155 @@ _SLOT_PICK_JS = r"""
 }
 """
 
+# --------------------------------------------------------------------------- #
+# Applicant details form (/Global/BLSAppointment/ManageAppointment, #visaForm)
+#
+# (element id WITHOUT the _<n> applicant suffix, kind, config key, required).
+# The suffix is the applicant index, so the same map drives every applicant on
+# a family booking. Email/Mobile/Mission/Location/VisaType are prefilled and
+# readonly on this page, so they are deliberately absent.
+# --------------------------------------------------------------------------- #
+APPLICANT_FIELDS: tuple[tuple[str, str, str, bool], ...] = (
+    # 1. Personal details
+    ("FirstName",                "text",     "first_name",               True),
+    ("SurName",                  "text",     "surname",                  True),
+    ("SurnameAtBirth",           "text",     "surname_at_birth",         True),
+    ("LastName",                 "text",     "last_name",                False),
+    ("DateOfBirth",              "date",     "dob",                      True),
+    ("PlaceOfBirth",             "text",     "place_of_birth",           True),
+    ("CountryOfBirthId",         "dropdown", "country_of_birth",         True),
+    ("NationalityId",            "dropdown", "nationality",              True),
+    ("NationalityAtBirthId",     "dropdown", "nationality_at_birth",     False),
+    ("GenderId",                 "dropdown", "gender",                   True),
+    ("MaritalStatusId",          "dropdown", "marital_status",           True),
+    # 3. Passport details
+    ("NationalIdentityNumber",   "text",     "national_identity_number", False),
+    ("PassportType",             "dropdown", "passport_type",            True),
+    ("PassportNo",               "text",     "passport_number",          True),
+    ("IssueDate",                "date",     "passport_issue_date",      True),
+    ("ExpiryDate",               "date",     "passport_expiry_date",     True),
+    ("IssuePlace",               "text",     "passport_issue_place",     True),
+    ("IssueCountryId",           "dropdown", "passport_issue_country",   True),
+    ("TravelDate",               "date",     "travel_date",              True),
+    # 4. Address & contact
+    ("HomeAddressLine1",         "text",     "address",                  True),
+    ("HomeAddressLine2",         "text",     "address_line2",            False),
+    ("HomeAddressCountryId",     "dropdown", "country",                  True),
+    ("HomeAddressCity",          "text",     "city",                     True),
+    ("HomeAddressPostalCode",    "text",     "postal_code",              True),
+    ("HomeAddressContactNumber", "text",     "contact_number",           True),
+    # 6. Employer
+    ("EmployerName",             "text",     "employer_name",            True),
+    ("EmployerPhone",            "text",     "employer_phone",           True),
+    ("EmployerAddress",          "text",     "employer_address",         True),
+    ("CurrentOccupationId",      "dropdown", "occupation",               True),
+    # 7. Travel information
+    ("PurposeOfJourneyId",       "dropdown", "purpose_of_journey",       True),
+    ("MemberStateDestinationId", "dropdown", "destination_state",        True),
+    ("MemberStateSecondDestinationId", "dropdown", "second_destination_state", False),
+)
+
+# Fill one field. Kendo owns the date pickers and dropdowns, so their widget
+# API is used and 'change' fired: writing .value directly leaves the widget's
+# own model stale and the form posts the old value.
+_FILL_FIELD_JS = r"""
+(field) => {
+  const el = document.getElementById(field.id);
+  if (!el) return { id: field.id, ok: false, reason: 'missing' };
+  const $ = window.jQuery;
+
+  if (field.kind === 'date') {
+    const dp = $ && $(el).data('kendoDatePicker');
+    if (!dp) return { id: field.id, ok: false, reason: 'no datepicker widget' };
+    // yyyy-mm-dd, parsed as LOCAL time: new Date("2026-10-15") is UTC and can
+    // land on the previous day once the timezone is applied.
+    const p = String(field.value).split('-').map(Number);
+    if (p.length !== 3) return { id: field.id, ok: false, reason: 'bad date' };
+    dp.value(new Date(p[0], p[1] - 1, p[2]));
+    dp.trigger('change');
+    return { id: field.id, ok: true, set: el.value };
+  }
+
+  if (field.kind === 'dropdown') {
+    const dd = $ && $(el).data('kendoDropDownList');
+    if (!dd) return { id: field.id, ok: false, reason: 'no dropdown widget' };
+    const data = dd.dataSource.data() || [];
+    const textField = (dd.options && dd.options.dataTextField) || 'Name';
+    const valueField = (dd.options && dd.options.dataValueField) || 'Id';
+    const norm = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const want = norm(field.value);
+    const texts = data.map((d) => String(d[textField] || ''));
+    let i = texts.findIndex((t) => norm(t) === want);
+    if (i < 0) i = texts.findIndex((t) => norm(t).includes(want));
+    // And the other way round: config says nationality "Egyptian" while the
+    // dropdown offers the country "Egypt", so neither exact nor
+    // option-contains-want matches. Require 4+ chars so this cannot latch
+    // onto something trivial.
+    if (i < 0 && want.length >= 4) {
+      i = texts.findIndex((t) => norm(t).length >= 4 && want.includes(norm(t)));
+    }
+    if (i < 0) {
+      return { id: field.id, ok: false, reason: 'no such option',
+               options: texts.slice(0, 12), count: texts.length };
+    }
+    dd.value(data[i][valueField]);
+    dd.trigger('change');
+    return { id: field.id, ok: true, set: texts[i] };
+  }
+
+  el.value = field.value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  return { id: field.id, ok: true, set: el.value };
+}
+"""
+
+_APPLICANT_READY_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { form: false };
+  const $ = window.jQuery;
+  const first = document.getElementById('FirstName_0');
+  const gender = document.getElementById('GenderId_0');
+  const dob = document.getElementById('DateOfBirth_0');
+  return {
+    form: true,
+    text: !!first,
+    dropdown: !!(gender && $ && $(gender).data('kendoDropDownList')),
+    date: !!(dob && $ && $(dob).data('kendoDatePicker')),
+  };
+}
+"""
+
+_APPLICANT_SUBMIT_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { ok: false, reason: 'no form' };
+  const vis = (el) => {
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  // Never the escape hatches, whatever the markup order happens to be.
+  const bad = /disagree|cancel|back|reset|clear|logout/i;
+  const pool = Array.from(form.querySelectorAll('button, input[type=submit]'))
+    .concat(Array.from(document.querySelectorAll('button, input[type=submit]')));
+  const seen = [];
+  for (const el of pool) {
+    if (!vis(el)) continue;
+    const text = ((el.innerText || el.value || '') + '').trim();
+    if (seen.length < 12) seen.push(text.slice(0, 30));
+    if (bad.test(text)) continue;
+    const isSubmit = el.type === 'submit' || /submit|continue|next|save/i.test(text);
+    if (!isSubmit) continue;
+    el.click();
+    return { ok: true, text };
+  }
+  return { ok: false, reason: 'no submit control', seen };
+}
+"""
+
 _KENDO_SET_JS = r"""
 (args) => {
   const { label, wanted } = args;
@@ -1762,6 +1911,12 @@ class Monitor:
         await self._accept_terms_of_service(page)
         await self._dismiss_open_modals(page)
 
+        # Consent leads to the applicant details form.
+        if await self._applicant_form_present(page):
+            if not await self.complete_applicant_details(page):
+                logger.warning("monitor: applicant details not completed")
+                return False
+
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
         logger.success(f"monitor: appointment submitted — now at {page.url}")
@@ -1773,6 +1928,198 @@ class Monitor:
             "take over."
         )
         await self._survey_page(page, "after-appointment-submit")
+        return True
+
+    @staticmethod
+    def _normalise_date(value: str) -> str:
+        """Accept dd/mm/yyyy as well as yyyy-mm-dd and return yyyy-mm-dd.
+
+        config.yaml documents dob as DD/MM/YYYY and that is what is in it, but
+        the Kendo pickers on this form are configured "{0:yyyy-MM-dd}". Passing
+        the config value through unchanged produced "bad date" and left the
+        field empty.
+        """
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        if "/" in text:
+            parts = [p.strip() for p in text.split("/")]
+            if len(parts) == 3:
+                day, month, year = parts
+                if len(year) == 4:
+                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                # yyyy/mm/dd
+                if len(day) == 4:
+                    return f"{day}-{month.zfill(2)}-{year.zfill(2)}"
+        return text.replace(".", "-")
+
+    async def _applicant_form_present(self, page: Any, timeout: float = 20.0) -> bool:
+        """True once #visaForm shows up after the consent step."""
+        waited = 0.0
+        while waited < timeout:
+            try:
+                if await page.evaluate("() => !!document.getElementById('visaForm')"):
+                    return True
+            except Exception:
+                pass
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.info("  applicant form        : did not appear")
+        return False
+
+    async def complete_applicant_details(self, page: Any, applicants: int = 1) -> bool:
+        """Fill #visaForm -- the applicant details page -- and submit it.
+
+        Values come from the applicant section of config.yaml, which the
+        dashboard Settings tab edits live. Every field the portal marks
+        required is checked BEFORE submitting: a blank one is reported by name
+        rather than posting a form the portal is going to bounce.
+        """
+        logger.info("=" * 60)
+        logger.info("APPLICANT DETAILS")
+        await utils.dump_page_html(page, "applicant-form")
+
+        if not await self._wait_for_applicant_form(page):
+            logger.error("monitor: the applicant form never finished rendering")
+            await utils.screenshot(page, "applicant-form-not-ready")
+            return False
+
+        applicant = self.config.get("applicant", {}) or {}
+        filled = 0
+        missing_required: list[str] = []
+        failures: list[str] = []
+
+        for index in range(max(1, applicants)):
+            if index:
+                logger.info(f"  applicant {index + 1}")
+            for base, kind, key, required in APPLICANT_FIELDS:
+                element_id = f"{base}_{index}"
+                value = str(applicant.get(key, "") or "").strip()
+                if kind == "date":
+                    value = self._normalise_date(value)
+                if not value:
+                    if required:
+                        missing_required.append(f"{key} (-> {element_id})")
+                    continue
+
+                try:
+                    result = await page.evaluate(
+                        _FILL_FIELD_JS,
+                        {"id": element_id, "kind": kind, "value": value},
+                    )
+                except Exception as exc:
+                    failures.append(f"{element_id}: {exc}")
+                    continue
+
+                if result.get("ok"):
+                    filled += 1
+                    logger.info(f"  {base:<28}: {result.get('set')!r}")
+                else:
+                    detail = str(result.get("reason"))
+                    if result.get("options"):
+                        detail += f" (offered: {result['options']})"
+                    failures.append(f"{element_id}: {detail}")
+                    logger.warning(f"  {base:<28}: NOT SET - {detail}")
+                await asyncio.sleep(0.15)
+
+        logger.info(f"  filled                : {filled} field(s)")
+
+        if missing_required:
+            logger.error(
+                "monitor: cannot submit - these required settings are blank "
+                "in config.yaml:"
+            )
+            for name in missing_required:
+                logger.error(f"    - {name}")
+            await utils.screenshot(page, "applicant-form-incomplete")
+            self.state.log_event(
+                "bot",
+                f"applicant details incomplete: {len(missing_required)} blank",
+                status="error",
+            )
+            bullets = "\n".join(f"- {n}" for n in missing_required[:20])
+            await self.notifier.manual_required(
+                "The applicant details form needs values the config does not "
+                f"have:\n{bullets}\n\nFill them in the dashboard Settings "
+                "tab, then send /resume."
+            )
+            return False
+
+        if failures:
+            logger.warning(f"monitor: {len(failures)} field(s) would not set:")
+            for name in failures:
+                logger.warning(f"    - {name}")
+
+        await utils.screenshot(page, "applicant-form-filled")
+        await self._dismiss_open_modals(page)
+
+        if not await self._submit_applicant_form(page):
+            return False
+
+        await self._settle(page)
+        await self._dismiss_open_modals(page)
+        await utils.screenshot(page, "applicant-form-submitted")
+        await utils.dump_page_html(page, "applicant-form-submitted")
+
+        problem = await self._form_validation_error(page)
+        if problem:
+            logger.error(f"monitor: the portal rejected the form - {problem!r}")
+            self.state.log_event(
+                "bot", f"applicant form rejected: {problem}", status="error"
+            )
+            return False
+
+        logger.success(f"monitor: applicant details submitted - now at {page.url}")
+        self.state.log_event("bot", "applicant details submitted", status="ok")
+        logger.info("=" * 60)
+        await self._survey_page(page, "after-applicant-submit")
+        return True
+
+    async def _wait_for_applicant_form(self, page: Any, timeout: float = 30.0) -> bool:
+        """Wait for #visaForm AND its Kendo widgets, not just the markup."""
+        waited = 0.0
+        last: dict[str, Any] = {}
+        while waited < timeout:
+            try:
+                last = await page.evaluate(_APPLICANT_READY_JS)
+            except Exception as exc:
+                logger.debug(f"monitor: applicant form probe failed: {exc}")
+                last = {}
+            if (
+                last.get("form")
+                and last.get("text")
+                and last.get("dropdown")
+                and last.get("date")
+            ):
+                if waited:
+                    logger.info(f"  form ready            : after {waited:.0f}s")
+                return True
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.warning(
+            f"  applicant form        : not ready after {timeout:.0f}s - {last}"
+        )
+        return False
+
+    async def _submit_applicant_form(self, page: Any) -> bool:
+        """Submit #visaForm, never touching a Disagree/Cancel/Back control."""
+        try:
+            result = await page.evaluate(_APPLICANT_SUBMIT_JS)
+        except Exception as exc:
+            logger.error(f"monitor: applicant submit failed: {exc}")
+            return False
+
+        if not result.get("ok"):
+            logger.error(
+                f"monitor: could not submit the applicant form "
+                f"({result.get('reason')}); controls seen: {result.get('seen')}"
+            )
+            await utils.screenshot(page, "applicant-no-submit")
+            await utils.dump_page_html(page, "applicant-no-submit")
+            return False
+
+        logger.success(f"  submitted via         : {result.get('text')!r}")
+        await asyncio.sleep(2.0)
         return True
 
     async def _accept_terms_of_service(self, page: Any, timeout: float = 30.0) -> bool:
