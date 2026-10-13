@@ -1683,50 +1683,79 @@ class Monitor:
             await self.notifier.wait_for_resume()
             self.state.clear_manual_pause()
 
-        for label, fn, button_id in (
-            ("verify appointment", "VerifyAppointment", "btnVerifyAppointment"),
-            ("submit appointment", "OnAppointmentSubmit", "btnSubmit"),
+        # CONFIRMED markup for this step:
+        #   <button id="btnVerifyAppointment"   style="display:none"
+        #           onclick="VerifyAppointment(event,this)">Verify Appointment
+        #   <button id="btnVerifiedAppointment" disabled>Appointment Verified
+        #   <button id="btnSubmit" type="submit"
+        #           onclick="return OnAppointmentSubmit(event)">Submit Appointment
+        #
+        # The flow is: Verify Appointment -> captcha popup -> submit selection
+        # -> popup closes and "Appointment Verified" appears -> Submit
+        # Appointment. Only the FIRST button raises a captcha, so waiting for
+        # one after the submit just stalled for the full frame timeout.
+
+        # --- 1. Verify Appointment ------------------------------------------
+        await self._dismiss_open_modals(page)
+        if not await self._click_when_ready(
+            page, "btnVerifyAppointment", "VerifyAppointment"
         ):
-            # Anything left on screen eats the click.
-            await self._dismiss_open_modals(page)
+            logger.error("  verify appointment    : control never became available")
+            await utils.screenshot(page, "appointment-verify-missing")
+            await utils.dump_page_html(page, "appointment-verify-missing")
+            return False
+        logger.success("  verify appointment    : clicked")
+        await asyncio.sleep(1.5)
 
-            clicked = await self._click_when_ready(page, button_id, fn)
-            if not clicked:
-                logger.error(f"  {label:<22}: control never became available")
-                await utils.screenshot(page, f"appointment-{button_id}-missing")
-                await utils.dump_page_html(page, f"appointment-{button_id}-missing")
-                return False
-            logger.success(f"  {label:<22}: clicked")
-            await asyncio.sleep(1.5)
-
-            # CONFIRMED: "Verify Appointment" raises a THIRD captcha, served
-            # from /Global/CaptchaPublic/GenerateCaptcha. Run 20261013_162707
-            # loaded it at 16:29:10 and never answered it, so 31s later the
-            # portal said "Your session has been expired", returned 403, and
-            # #btnSubmit never appeared. Solve it here, immediately, while its
-            # token is young. solve_captcha returns True when there is none.
-            await self._dismiss_open_modals(page)
-            try:
-                # The grid is inside an IFRAME, exactly like the visa-type
-                # gate: the popup is a Kendo window and its body is
-                # /Global/CaptchaPublic/GenerateCaptcha. Solving against the
-                # PAGE found no captcha at all, so solve_captcha returned
-                # "nothing to do" and the step walked straight past it.
-                # CAPTCHA_FRAME_HINT ("generatecaptcha") matches this URL too.
-                work = await self._wait_for_captcha_frame(page, timeout=20.0)
-                ctx = work if work is not None else page
-                offset = await self._frame_offset(work) if work is not None else (0.0, 0.0)
-                if work is not None:
-                    logger.info(f"  {label:<22}: captcha frame at offset {offset}")
-                if not await self.auth.solve_captcha(page, ctx=ctx, offset=offset):
-                    logger.error(f"  {label:<22}: its captcha was not solved")
-                    await utils.screenshot(page, f"appointment-{button_id}-captcha")
+        # --- 2. its captcha, inside the popup's iframe ----------------------
+        # The popup is a Kendo window whose body is
+        # /Global/CaptchaPublic/GenerateCaptcha. Solving against the PAGE found
+        # no captcha, so solve_captcha returned "nothing to do" and the step
+        # walked straight past the challenge; 31s later the portal said "Your
+        # session has been expired" and #btnSubmit never appeared
+        # (run 20261013_162707). CAPTCHA_FRAME_HINT already matches this URL.
+        try:
+            work = await self._wait_for_captcha_frame(page, timeout=20.0)
+            if work is None:
+                logger.info("  verify appointment    : no captcha popup appeared")
+            else:
+                offset = await self._frame_offset(work)
+                logger.info(f"  verify appointment    : captcha frame at {offset}")
+                if not await self.auth.solve_captcha(page, ctx=work, offset=offset):
+                    logger.error("  verify appointment    : captcha not solved")
+                    await utils.screenshot(page, "appointment-verify-captcha")
                     return False
-            except Exception as exc:
-                logger.warning(f"  {label:<22}: captcha step errored — {exc}")
-            await self._dismiss_open_modals(page)
-            await self._settle(page)
-            await asyncio.sleep(1.5)
+        except Exception as exc:
+            logger.warning(f"  verify appointment    : captcha step errored — {exc}")
+
+        await self._dismiss_open_modals(page)
+
+        # --- 3. wait for the portal to confirm the verification -------------
+        # "Appointment Verified" appearing is the signal that the captcha was
+        # accepted and the popup is gone. Clicking Submit before it shows just
+        # posts an unverified form.
+        verified = await self._wait_for_verified(page)
+        if not verified:
+            logger.error(
+                "  appointment verified  : never confirmed — not submitting an "
+                "unverified appointment"
+            )
+            await utils.screenshot(page, "appointment-not-verified")
+            await utils.dump_page_html(page, "appointment-not-verified")
+            return False
+        logger.success("  appointment verified  : confirmed by the portal")
+
+        # --- 4. Submit Appointment ------------------------------------------
+        await self._dismiss_open_modals(page)
+        if not await self._click_when_ready(page, "btnSubmit", "OnAppointmentSubmit"):
+            logger.error("  submit appointment    : control never became available")
+            await utils.screenshot(page, "appointment-submit-missing")
+            await utils.dump_page_html(page, "appointment-submit-missing")
+            return False
+        logger.success("  submit appointment    : clicked")
+        await self._dismiss_open_modals(page)
+        await self._settle(page)
+        await asyncio.sleep(2.0)
 
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
@@ -1740,6 +1769,51 @@ class Monitor:
         )
         await self._survey_page(page, "after-appointment-submit")
         return True
+
+    async def _wait_for_verified(self, page: Any, timeout: float = 45.0) -> bool:
+        """Wait for "Appointment Verified" to appear after the captcha.
+
+        CONFIRMED: #btnVerifyAppointment is style="display:none" once accepted
+        and #btnVerifiedAppointment becomes visible. Either signal will do, and
+        the state is polled rather than assumed because the portal has to round
+        trip the captcha first.
+        """
+        waited = 0.0
+        last: dict[str, Any] = {}
+        while waited < timeout:
+            try:
+                last = await page.evaluate(
+                    """
+                    () => {
+                      const shown = (id) => {
+                        const el = document.getElementById(id);
+                        if (!el) return null;
+                        const s = getComputedStyle(el);
+                        return s.display !== 'none' && s.visibility !== 'hidden';
+                      };
+                      const flag = document.getElementById('AppointmentVerified');
+                      return {
+                        verify: shown('btnVerifyAppointment'),
+                        verified: shown('btnVerifiedAppointment'),
+                        submit: shown('btnSubmit'),
+                        flag: flag ? flag.value : null,
+                      };
+                    }
+                    """
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: verified check failed: {exc}")
+                last = {}
+            if last.get("verified") or str(last.get("flag")).lower() == "true":
+                return True
+            # The verify button disappearing is the same signal from the other
+            # side, but only once something else is on screen in its place.
+            if last.get("verify") is False and last.get("submit"):
+                return True
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.warning(f"  appointment verified  : state after {timeout:.0f}s — {last}")
+        return False
 
     async def _click_when_ready(
         self, page: Any, button_id: str, fallback_fn: str, timeout: float = 30.0
