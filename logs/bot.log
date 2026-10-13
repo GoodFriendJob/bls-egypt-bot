@@ -6106,3 +6106,163 @@ NameError: name 'location' is not defined
 2026-10-13 15:48:56.660 | INFO     | modules.auth:stop:703 - auth: browser closed
 2026-10-13 15:48:57.235 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
 2026-10-13 15:48:57.236 | INFO     | __main__:_run_with_state:556 - shutdown complete
+2026-10-13 15:59:49.213 | INFO     | __main__:_main_inner:444 - ==============================================================
+2026-10-13 15:59:49.214 | INFO     | __main__:_main_inner:445 - BLS Spain Egypt appointment bot starting
+2026-10-13 15:59:49.214 | INFO     | __main__:_main_inner:446 - run transcript: D:\bls-egypt-bot\logs\run_20261013_155949.txt
+2026-10-13 15:59:49.214 | INFO     | __main__:_main_inner:447 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-13 15:59:49.215 | INFO     | __main__:_main_inner:448 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-13 15:59:49.215 | INFO     | __main__:_main_inner:449 - ==============================================================
+2026-10-13 15:59:49.318 | INFO     | __main__:start_dashboard:375 - dashboard on http://127.0.0.1:5000
+2026-10-13 15:59:50.300 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-13 15:59:50.529 | INFO     | __main__:_run_with_state:524 - single-cycle mode (--once)
+2026-10-13 15:59:51.136 | INFO     | modules.auth:start:532 - auth: restoring session from session\cookies.json
+2026-10-13 15:59:51.199 | INFO     | modules.auth:start:571 - auth: stealth disabled (recommended for this portal)
+2026-10-13 15:59:51.207 | INFO     | modules.auth:_install_https_upgrade:614 - auth: http->https upgrade route installed (regex)
+2026-10-13 15:59:51.594 | INFO     | modules.auth:_log:2555 - auth: browser launched
+2026-10-13 15:59:52.469 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-13 15:59:55.888 | SUCCESS  | modules.auth:_is_logged_in:2346 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-13 15:59:55.889 | INFO     | modules.monitor:install_navigation_watch:1985 - monitor: navigation watch installed (now: verification)
+2026-10-13 15:59:55.896 | INFO     | modules.monitor:ensure_visa_type_verified:640 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-13 15:59:58.704 | INFO     | modules.monitor:_gate_state:2284 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-13 15:59:59.715 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-13 16:00:06.722 | INFO     | modules.monitor:_open_verification_popup:2207 - monitor: clicked 'Verify Selection'
+2026-10-13 16:00:10.383 | INFO     | modules.monitor:_wait_for_captcha_frame:921 - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-13 16:00:11.754 | INFO     | modules.monitor:ensure_visa_type_verified:691 - monitor: verification attempt 1/5
+2026-10-13 16:00:12.083 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160011_verify-modal-attempt1.png
+2026-10-13 16:00:12.117 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160012_verify-frame-attempt1.html
+2026-10-13 16:00:12.136 | INFO     | modules.monitor:_frame_offset:2084 - monitor: captcha frame at x=484 y=126 (398x557)
+2026-10-13 16:00:12.168 | INFO     | modules.auth:solve_captcha:1157 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=31
+2026-10-13 16:00:12.169 | INFO     | modules.auth:solve_captcha:1163 - auth: CAPTCHA detected, attempting to solve
+2026-10-13 16:00:12.169 | INFO     | modules.auth:_log:2555 - auth: CAPTCHA detected — solving
+2026-10-13 16:00:12.486 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160012_captcha-before.png
+2026-10-13 16:00:12.511 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160012_captcha-detected.html
+2026-10-13 16:00:12.847 | INFO     | modules.auth:_captcha_target:1926 - auth: 31 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-13 16:00:12.847 | INFO     | modules.auth:_captcha_target:1947 - auth: prompt 352 chosen (contrast=14.89, z-index=908, color=rgb(33, 37, 41))
+2026-10-13 16:00:12.847 | INFO     | modules.auth:solve_captcha:1232 - ------------------------------------------------------------
+2026-10-13 16:00:12.848 | INFO     | modules.auth:solve_captcha:1233 - CAPTCHA attempt 1 of 4
+2026-10-13 16:00:12.848 | INFO     | modules.auth:solve_captcha:1234 -   target number   : 352
+2026-10-13 16:00:12.848 | INFO     | modules.auth:solve_captcha:1235 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-13 16:00:12.848 | INFO     | modules.auth:solve_captcha:1239 -   visible labels  : 31 (of 31 box-labels in the DOM)
+2026-10-13 16:00:12.848 | INFO     | modules.auth:_log:2555 - auth: captcha attempt 1: target=352, 9 visible tiles
+2026-10-13 16:00:12.849 | INFO     | modules.auth:solve_captcha:1263 -   grid order      : 1:omgfr, 2:ugqczfgh, 3:hfwzez, 4:btirnkgae, 5:dqpyagg, 6:ttmmheqdd, 7:orpjdejm, 8:unsvx, 9:ikoyzrlfn
+2026-10-13 16:00:12.856 | INFO     | modules.auth:_screenshot_grid:1618 -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+2026-10-13 16:00:13.679 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-13 16:00:13.683 | INFO     | modules.vision:save_sample:436 - captcha sample saved: logs\captcha_samples\20261013-160013_target352_attempt1.png
+2026-10-13 16:00:13.684 | INFO     | modules.auth:solve_captcha:1283 -   grid screenshot : logs\captcha_samples\20261013-160013_target352_attempt1.png
+2026-10-13 16:00:13.723 | INFO     | modules.vision:split_grid:355 - vision: split 700x700 grid into 9 tiles (~233x233 each)
+2026-10-13 16:00:13.775 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+2026-10-13 16:00:14.347 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+2026-10-13 16:00:14.400 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+2026-10-13 16:00:14.449 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+2026-10-13 16:00:14.501 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x215 -> 645x645 (x3, LANCZOS)
+2026-10-13 16:00:14.550 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 214x215 -> 642x645 (x3, LANCZOS)
+2026-10-13 16:00:14.598 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+2026-10-13 16:00:14.649 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 215x214 -> 645x642 (x3, LANCZOS)
+2026-10-13 16:00:14.720 | INFO     | modules.vision:upscale_png:417 - vision: upscaled grid 214x214 -> 642x642 (x3, LANCZOS)
+2026-10-13 16:00:26.398 | INFO     | modules.vision:read_tiles_individually:183 - vision: per-tile reply '352,343,352,107,352,352,352,875,890'
+2026-10-13 16:00:26.398 | INFO     | modules.auth:solve_captcha:1313 -   tiles read      : 1:352, 2:343, 3:352, 4:107, 5:352, 6:352, 7:352, 8:875, 9:890
+2026-10-13 16:00:26.399 | INFO     | modules.auth:solve_captcha:1318 -   matching 352      : positions [1, 3, 5, 6, 7]
+2026-10-13 16:00:26.400 | INFO     | modules.auth:solve_captcha:1346 -   vision positions: [1, 3, 5, 6, 7]
+2026-10-13 16:00:26.400 | INFO     | modules.auth:solve_captcha:1360 -   matched tiles   : 5 -> ['omgfr', 'hfwzez', 'dqpyagg', 'ttmmheqdd', 'orpjdejm']
+2026-10-13 16:00:30.640 | INFO     | modules.auth:solve_captcha:1366 -   click results   :
+2026-10-13 16:00:30.641 | INFO     | modules.auth:solve_captcha:1368 -       id=omgfr          number=None   clicked=True  img-selected=True
+2026-10-13 16:00:30.643 | INFO     | modules.auth:solve_captcha:1368 -       id=hfwzez         number=None   clicked=True  img-selected=True
+2026-10-13 16:00:30.644 | INFO     | modules.auth:solve_captcha:1368 -       id=dqpyagg        number=None   clicked=True  img-selected=True
+2026-10-13 16:00:30.645 | INFO     | modules.auth:solve_captcha:1368 -       id=ttmmheqdd      number=None   clicked=True  img-selected=True
+2026-10-13 16:00:30.645 | INFO     | modules.auth:solve_captcha:1368 -       id=orpjdejm       number=None   clicked=True  img-selected=True
+2026-10-13 16:00:31.677 | INFO     | modules.auth:solve_captcha:1378 -   SelectedImages  : ''
+2026-10-13 16:00:31.678 | INFO     | modules.auth:solve_captcha:1386 -   expected ids    : ['dqpyagg', 'hfwzez', 'omgfr', 'orpjdejm', 'ttmmheqdd']
+2026-10-13 16:00:31.678 | INFO     | modules.auth:solve_captcha:1394 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-13 16:00:31.985 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160031_captcha-attempt1-before-submit.png
+2026-10-13 16:00:32.011 | INFO     | modules.auth:solve_captcha:1444 -   grid age        : 19.8s (limit 35s)
+2026-10-13 16:00:32.028 | INFO     | modules.auth:_click_captcha_submit:2192 - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+2026-10-13 16:00:32.029 | INFO     | modules.auth:solve_captcha:1446 -   submit clicked  : True
+2026-10-13 16:00:32.142 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-13 16:00:35.475 | WARNING  | modules.auth:_detect_captcha:1860 - auth: captcha detection failed: Frame.evaluate: Frame was detached
+2026-10-13 16:00:35.475 | SUCCESS  | modules.auth:solve_captcha:1493 -   outcome         : SOLVED on attempt 1
+2026-10-13 16:00:35.476 | INFO     | modules.auth:solve_captcha:1494 - ------------------------------------------------------------
+2026-10-13 16:00:35.476 | INFO     | modules.auth:_log:2555 - auth: captcha solved (attempt 1)
+2026-10-13 16:00:35.720 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160035_captcha-solved.png
+2026-10-13 16:00:36.736 | INFO     | modules.monitor:_gate_state:2284 -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-13 16:00:36.737 | SUCCESS  | modules.monitor:ensure_visa_type_verified:788 - monitor: verification captcha passed
+2026-10-13 16:00:36.806 | INFO     | modules.monitor:_submit_verified_form:2301 - monitor: clicked #btnSubmit
+2026-10-13 16:00:36.908 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-13 16:00:37.062 | INFO     | modules.monitor:_on_nav:1960 - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgy)
+2026-10-13 16:00:38.046 | SUCCESS  | modules.monitor:_submit_verified_form:2318 - monitor: reached the appointment form — https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrAsySwRKS3X2ViOJM3PkdPqKTxHw2pGzWRy0bRW2D5t2C1%2ftQpgZdudG2YmRxZk2NM%3d
+2026-10-13 16:00:40.247 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160039_visatype-form.png
+2026-10-13 16:00:40.277 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160040_visatype-form.html
+2026-10-13 16:00:40.278 | INFO     | modules.monitor:run_once:490 - monitor: sweeping 8 option combination(s) this cycle
+2026-10-13 16:00:40.279 | INFO     | modules.monitor:run_once:495 - monitor: that is 8 session(s), about 16 captcha solves — trim the lists in config.yaml if the portal starts refusing requests
+2026-10-13 16:00:40.280 | INFO     | modules.monitor:run_once:505 - monitor: [1/8] Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+2026-10-13 16:00:40.280 | INFO     | modules.monitor:complete_visatype_form:970 - ============================================================
+2026-10-13 16:00:40.280 | INFO     | modules.monitor:complete_visatype_form:971 - APPOINTMENT FORM
+2026-10-13 16:00:40.301 | INFO     | modules.monitor:_set_kendo:1187 -   Appointment Category  : 'Normal' (of 3 options, widget AppointmentCategoryId3)
+2026-10-13 16:00:41.526 | INFO     | modules.monitor:complete_visatype_form:991 -   Appointment For       : 'Individual' (name=AppointmentFor4)
+2026-10-13 16:00:42.835 | INFO     | modules.monitor:_set_kendo:1187 -   Location              : 'Cairo' (of 2 options, widget Location4)
+2026-10-13 16:00:44.050 | INFO     | modules.monitor:_set_kendo:1187 -   Visa Type             : 'Schengen visa' (of 2 options, widget VisaType4)
+2026-10-13 16:00:45.280 | INFO     | modules.monitor:_set_kendo:1187 -   Visa Sub Type         : 'Airport Transit Visa (TAP)' (of 2 options, widget VisaSubType4)
+2026-10-13 16:00:46.845 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160046_visatype-form-filled.png
+2026-10-13 16:00:47.340 | INFO     | modules.monitor:complete_visatype_form:1060 - monitor: appointment form submitted
+2026-10-13 16:00:47.527 | INFO     | modules.monitor:_on_response:2005 - monitor: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaType
+2026-10-13 16:00:47.855 | INFO     | modules.monitor:complete_visatype_form:1062 - monitor: URL after submit — https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrAsySwRKS3X2ViOJM3PkdPqKTxHw2pGzWRy0bRW2D5t2C1%2ftQpgZdudG2YmRxZk2NM%3d
+2026-10-13 16:00:47.855 | INFO     | modules.monitor:complete_visatype_form:1079 - ============================================================
+2026-10-13 16:00:47.877 | INFO     | modules.monitor:_on_nav:1960 - monitor: page -> appointment  (https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsN)
+2026-10-13 16:00:49.081 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160047_after-visatype-submit.png
+2026-10-13 16:00:49.106 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160049_after-visatype-submit.html
+2026-10-13 16:00:49.109 | SUCCESS  | modules.monitor:complete_visatype_form:1090 - monitor: appointment page reached — https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrAsySwRKS3X2ViOJM3PkdPqKTxHw2pGzWRy0bRW2D5t2C1%2ftQpgZdudG2YmRxZk2NM%3d
+2026-10-13 16:00:49.542 | INFO     | modules.monitor:_survey_page:2378 - ============================================================
+2026-10-13 16:00:49.543 | INFO     | modules.monitor:_survey_page:2379 - PAGE SURVEY (manage-appointment)
+2026-10-13 16:00:49.544 | INFO     | modules.monitor:_survey_page:2380 -   url      : https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgyiVNbl3AXvVzOnmVs1uO6%2fcrHZ8CUtprLaAE9fZXZAc%2bihrZ%2faZ6odQYrAsySwRKS3X2ViOJM3PkdPqKTxHw2pGzWRy0bRW2D5t2C1%2ftQpgZdudG2YmRxZk2NM%3d
+2026-10-13 16:00:49.545 | INFO     | modules.monitor:_survey_page:2381 -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+2026-10-13 16:00:49.546 | INFO     | modules.monitor:_survey_page:2382 -   headings : ['BLS International']
+2026-10-13 16:00:49.547 | INFO     | modules.monitor:_survey_page:2383 -   selects  : []
+2026-10-13 16:00:49.548 | INFO     | modules.monitor:_survey_page:2384 -   buttons  : ['Get Verification Code']
+2026-10-13 16:00:49.549 | INFO     | modules.monitor:_survey_page:2385 -   inputs   : ['AppointmentDate5', 'AppointmentFor', 'AppointmentFor', 'MobileCountryCode', 'Mobile', 'Email']
+2026-10-13 16:00:49.551 | INFO     | modules.monitor:_survey_page:2386 -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', '#', '#', '#', '#', '/Global/bls/visatype', '/']
+2026-10-13 16:00:49.553 | INFO     | modules.monitor:_survey_page:2387 - ============================================================
+2026-10-13 16:00:50.078 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160049_manage-appointment.png
+2026-10-13 16:00:50.096 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160050_manage-appointment.html
+2026-10-13 16:00:50.097 | INFO     | modules.monitor:complete_appointment_details:1328 - ============================================================
+2026-10-13 16:00:50.097 | INFO     | modules.monitor:complete_appointment_details:1329 - APPOINTMENT DETAILS (date / slot / photo)
+2026-10-13 16:00:50.128 | INFO     | modules.utils:dump_page_html:471 - DOM dumped: logs\dom\20261013-160050_manage-appointment.html
+2026-10-13 16:00:50.196 | INFO     | modules.monitor:_pick_green_date:1611 -   date picker           : opened #AppointmentDate5
+2026-10-13 16:00:51.961 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160051_appointment-calendar-open.png
+2026-10-13 16:00:51.992 | INFO     | modules.monitor:_pick_green_date:1653 -   days offered          : October 2026, 14*   (* = available)
+2026-10-13 16:00:51.993 | SUCCESS  | modules.monitor:_pick_green_date:1660 -   date chosen           : 14
+2026-10-13 16:01:14.452 | WARNING  | modules.monitor:_pick_green_slot:1683 -   slot                  : the list never loaded within 20s — treating as no slots
+2026-10-13 16:01:14.905 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160114_appointment-no-green-slot.png
+2026-10-13 16:01:14.905 | WARNING  | modules.monitor:complete_appointment_details:1339 - monitor: no free (green) time slot for that date
+2026-10-13 16:01:14.906 | WARNING  | modules.monitor:complete_visatype_form:1107 - monitor: could not complete the appointment details
+2026-10-13 16:01:14.906 | INFO     | modules.monitor:run_once:573 - monitor: no slots for Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+2026-10-13 16:01:14.907 | INFO     | modules.monitor:run_once:505 - monitor: [2/8] Cairo / Schengen visa / Schengen Visa / Normal / Individual
+2026-10-13 16:01:14.907 | INFO     | modules.monitor:run_once:522 - monitor: recycling the browser session — the portal allows one verification per session
+2026-10-13 16:01:14.908 | INFO     | modules.auth:_clear_saved_session:2392 - auth: stored session discarded
+2026-10-13 16:01:14.920 | INFO     | modules.auth:_save_session:2384 - auth: session saved to session\cookies.json
+2026-10-13 16:01:15.361 | INFO     | modules.auth:stop:703 - auth: browser closed
+2026-10-13 16:01:15.361 | INFO     | modules.monitor:_reset_session:2605 - monitor: browser closed — next cycle logs in fresh
+2026-10-13 16:01:15.362 | INFO     | modules.monitor:run_once:532 - monitor: pausing 45s before the next session
+2026-10-13 16:02:01.393 | INFO     | modules.auth:start:532 - auth: restoring session from session\cookies.json
+2026-10-13 16:02:01.449 | INFO     | modules.auth:start:571 - auth: stealth disabled (recommended for this portal)
+2026-10-13 16:02:01.459 | INFO     | modules.auth:_install_https_upgrade:614 - auth: http->https upgrade route installed (regex)
+2026-10-13 16:02:01.883 | INFO     | modules.auth:_log:2555 - auth: browser launched
+2026-10-13 16:02:01.884 | INFO     | modules.auth:ensure_logged_in:745 - auth: logging in (attempt 1/2)
+2026-10-13 16:02:09.495 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-13 16:02:30.452 | WARNING  | modules.auth:_wait_for_login_form:1055 - auth: login form not ready within 20s
+2026-10-13 16:02:30.475 | WARNING  | modules.auth:_fill_email:948 - auth: no real email field on the first pass — retrying
+2026-10-13 16:02:32.497 | WARNING  | modules.auth:_fill_email:954 - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+2026-10-13 16:02:32.808 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160232_login-no-email-field.png
+2026-10-13 16:02:32.808 | WARNING  | modules.auth:ensure_logged_in:761 - auth: login attempt failed: could not locate the real email field among the honeypots
+2026-10-13 16:02:33.073 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160232_login-failed-attempt1.png
+2026-10-13 16:02:38.074 | INFO     | modules.auth:ensure_logged_in:745 - auth: logging in (attempt 2/2)
+2026-10-13 16:02:45.471 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-13 16:03:06.934 | WARNING  | modules.auth:_wait_for_login_form:1055 - auth: login form not ready within 20s
+2026-10-13 16:03:06.958 | WARNING  | modules.auth:_fill_email:948 - auth: no real email field on the first pass — retrying
+2026-10-13 16:03:08.967 | WARNING  | modules.auth:_fill_email:954 - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+2026-10-13 16:03:09.230 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160308_login-no-email-field.png
+2026-10-13 16:03:09.230 | WARNING  | modules.auth:ensure_logged_in:761 - auth: login attempt failed: could not locate the real email field among the honeypots
+2026-10-13 16:03:09.485 | INFO     | modules.utils:screenshot:563 - screenshot saved: logs\screenshots\20261013-160309_login-failed-attempt2.png
+2026-10-13 16:03:09.486 | INFO     | modules.auth:_log:2555 - auth: Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+2026-10-13 16:03:09.850 | ERROR    | modules.monitor:run_once:541 - monitor: could not log in again: Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+2026-10-13 16:03:10.211 | INFO     | modules.auth:stop:703 - auth: browser closed
+2026-10-13 16:03:10.671 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-13 16:03:10.671 | INFO     | __main__:_run_with_state:556 - shutdown complete
