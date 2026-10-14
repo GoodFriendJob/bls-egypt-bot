@@ -1329,8 +1329,17 @@ class BLSAuth:
             method = "per-tile"
             # Per-tile first: human labels showed the whole-grid read fails by
             # losing track of which tile is which, not by misreading digits.
+            # One real screenshot per tile beats slicing a grid: Playwright
+            # resolves each element's position at capture time, so a stale
+            # iframe offset, a page mid-scroll or a collapsed container cannot
+            # misalign anything. The grid image is still taken, for the sample.
+            tile_shots = await self._screenshot_tiles(ctx, ordered)
+            if tile_shots:
+                logger.info(
+                    f"  tile capture    : {len(tile_shots)} element screenshot(s)"
+                )
             digits = await self.vision.read_tiles_individually(
-                grid_png, count=len(ordered)
+                grid_png, tiles=tile_shots, count=len(ordered)
             )
             if digits is None:
                 method = "whole-grid"
@@ -1597,6 +1606,40 @@ class BLSAuth:
             ordered.extend(sorted(row, key=lambda t: t["rect"]["x"]))
         return ordered
 
+    async def _screenshot_tiles(
+        self, ctx: Any, ordered: list[dict[str, Any]]
+    ) -> list[bytes] | None:
+        """Screenshot every tile element separately, in grid order.
+
+        This is the reading path's natural shape: the model is asked about one
+        tile at a time anyway, so handing it one real screenshot per tile beats
+        capturing a grid and slicing it. Playwright resolves each element's
+        position at capture time, which removes every alignment failure seen so
+        far -- a stale iframe offset, a page still scrolling, and a collapsed
+        container all stop mattering because no coordinates are computed here.
+
+        Returns None if any tile cannot be captured, so the caller can fall
+        back rather than reading a partial grid.
+        """
+        shots: list[bytes] = []
+        for index, tile in enumerate(ordered, 1):
+            tile_id = tile.get("id")
+            if not tile_id:
+                return None
+            try:
+                element = await ctx.query_selector(f"#{tile_id}")
+                if element is None:
+                    logger.debug(f"auth: tile {index} ({tile_id}) vanished")
+                    return None
+                png = await element.screenshot()
+            except Exception as exc:
+                logger.debug(f"auth: tile {index} screenshot failed: {exc}")
+                return None
+            if not png:
+                return None
+            shots.append(png)
+        return shots or None
+
     async def _screenshot_grid_element(
         self, ctx: Any, tile_ids: list[str]
     ) -> bytes | None:
@@ -1652,12 +1695,19 @@ class BLSAuth:
         if not found:
             return None
 
-        # Allow a little chrome (borders, padding) but nothing resembling an
-        # extra row or column of content.
-        if found["growX"] > 1.25 or found["growY"] > 1.25:
+        # The container must be the SAME SIZE as the tiles it holds, within a
+        # little chrome. Too big means it carries something else (a prompt band
+        # where row 1 should be); too SMALL means it has collapsed -- on the
+        # login page the tiles are absolutely positioned, so their common
+        # ancestor measured 670x64 against a 350x350 grid and the capture was a
+        # thin strip of nine slivers ("7,9,7,8,150,..." in run 20261014_131227,
+        # which matched nothing and failed the login twice). The old check only
+        # looked for "too big" and waved that through.
+        if not (0.9 <= found["growX"] <= 1.25 and 0.9 <= found["growY"] <= 1.25):
             logger.info(
                 f"  grid container  : {found['growX']:.2f}x{found['growY']:.2f} "
-                "larger than the tiles — using the measured clip instead"
+                "the size of the tiles — not a clean wrapper, using the "
+                "measured clip instead"
             )
             return None
 

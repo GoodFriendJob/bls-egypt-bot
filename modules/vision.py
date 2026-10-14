@@ -94,8 +94,9 @@ class VisionSolver:
     # ------------------------------------------------------------------ #
     async def read_tiles_individually(
         self,
-        image_bytes: bytes,
+        image_bytes: bytes | None = None,
         *,
+        tiles: list[bytes] | None = None,
         count: int = 9,
         rows: int = 3,
         cols: int = 3,
@@ -117,16 +118,30 @@ class VisionSolver:
         one-image calls return in roughly the time of the slowest single tile,
         and each request still contains exactly one number, which is the
         property that made per-tile reading accurate in the first place.
+
+        ``tiles`` short-circuits the cropping entirely: when the caller already
+        has one screenshot per tile, slicing a grid image is both unnecessary
+        and the only place alignment can go wrong.
         """
-        if not self.enabled or not image_bytes:
+        if not self.enabled:
             return None
 
-        crops = split_grid(image_bytes, rows=rows, cols=cols)
-        if len(crops) != count:
-            logger.warning(
-                f"vision: expected {count} tile crops, produced {len(crops)}"
-            )
-            return None
+        if tiles:
+            crops = list(tiles)
+            if len(crops) != count:
+                logger.warning(
+                    f"vision: given {len(crops)} tile image(s), expected {count}"
+                )
+                return None
+        else:
+            if not image_bytes:
+                return None
+            crops = split_grid(image_bytes, rows=rows, cols=cols)
+            if len(crops) != count:
+                logger.warning(
+                    f"vision: expected {count} tile crops, produced {len(crops)}"
+                )
+                return None
 
         prompt = (
             "This image is one CAPTCHA tile containing a single number.\n"
