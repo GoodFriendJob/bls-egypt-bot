@@ -11773,3 +11773,83 @@ modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an
 2026-10-14 21:24:01.724 | INFO     | __main__:_run_with_state:668 - cancelled — shutting down
 2026-10-14 21:24:01.811 | WARNING  | modules.auth:_save_session:2656 - auth: could not save session: BrowserContext.storage_state: Target page, context or browser has been closed
 2026-10-14 21:24:02.141 | INFO     | __main__:_main_inner:576 - interrupted by user
+2026-10-14 21:31:03.609 | INFO     | __main__:_main_inner:525 - ==============================================================
+2026-10-14 21:31:03.610 | INFO     | __main__:_main_inner:526 - BLS Spain Egypt appointment bot starting
+2026-10-14 21:31:03.610 | INFO     | __main__:_main_inner:527 - run transcript: D:\bls-egypt-bot\logs\run_20261014_213103.txt
+2026-10-14 21:31:03.610 | INFO     | __main__:_main_inner:528 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-14 21:31:03.610 | INFO     | __main__:_main_inner:529 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-14 21:31:03.611 | INFO     | __main__:_main_inner:530 - ==============================================================
+2026-10-14 21:31:04.626 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-14 21:31:04.856 | INFO     | modules.monitor:warn_about_missing_settings:2833 - config: all 54 applicant field(s) the form requires have values
+2026-10-14 21:31:04.858 | INFO     | modules.monitor:run:1390 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-14 21:31:04.860 | INFO     | __main__:dashboard_bridge:391 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-14 21:31:14.322 | INFO     | modules.auth:start:532 - auth: restoring session from session\cookies.json
+2026-10-14 21:31:14.535 | INFO     | modules.auth:start:571 - auth: stealth disabled (recommended for this portal)
+2026-10-14 21:31:14.549 | INFO     | modules.auth:_install_https_upgrade:614 - auth: http->https upgrade route installed (regex)
+2026-10-14 21:31:15.151 | INFO     | modules.auth:_log:2825 - auth: browser launched
+2026-10-14 21:31:27.421 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:32:03.282 | INFO     | __main__:dashboard_bridge:399 - dashboard bridge: 'pause' requested
+2026-10-14 21:32:09.491 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:32:09.498 | WARNING  | modules.auth:_goto:2721 - auth: navigation timed out (the portal's http:// redirect does not answer) — retrying over https
+2026-10-14 21:32:09.499 | WARNING  | modules.auth:_goto:2727 - auth: navigation to https://egypt.blsspainglobal.com/Global/bls/visatypeverification was interrupted — retrying once
+2026-10-14 21:32:11.094 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:32:13.401 | INFO     | __main__:dashboard_bridge:399 - dashboard bridge: 'start' requested
+2026-10-14 21:32:53.177 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:32:53.179 | INFO     | modules.auth:ensure_logged_in:762 - auth: logging in (attempt 1/2)
+2026-10-14 21:32:53.278 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 21:33:03.309 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:33:45.401 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:34:07.129 | WARNING  | modules.auth:_wait_for_login_form:1078 - auth: login form not ready within 20s
+2026-10-14 21:34:07.136 | WARNING  | modules.auth:_fill_email:971 - auth: no real email field on the first pass — retrying
+2026-10-14 21:34:09.146 | WARNING  | modules.auth:_fill_email:977 - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+2026-10-14 21:34:09.512 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-213409_login-no-email-field.png
+2026-10-14 21:34:09.512 | WARNING  | modules.auth:ensure_logged_in:778 - auth: login attempt failed: could not locate the real email field among the honeypots
+2026-10-14 21:34:09.801 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-213409_login-failed-attempt1.png
+2026-10-14 21:34:14.812 | INFO     | modules.auth:ensure_logged_in:762 - auth: logging in (attempt 2/2)
+2026-10-14 21:34:14.922 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 21:34:24.478 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:35:06.609 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:35:28.034 | WARNING  | modules.auth:_wait_for_login_form:1078 - auth: login form not ready within 20s
+2026-10-14 21:35:28.061 | WARNING  | modules.auth:_fill_email:971 - auth: no real email field on the first pass — retrying
+2026-10-14 21:35:30.093 | WARNING  | modules.auth:_fill_email:977 - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+2026-10-14 21:35:30.495 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-213530_login-no-email-field.png
+2026-10-14 21:35:30.496 | WARNING  | modules.auth:ensure_logged_in:778 - auth: login attempt failed: could not locate the real email field among the honeypots
+2026-10-14 21:35:30.893 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-213530_login-failed-attempt2.png
+2026-10-14 21:35:30.893 | INFO     | modules.auth:_log:2825 - auth: Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+2026-10-14 21:35:31.271 | ERROR    | modules.monitor:_handle_login_failure:4832 - monitor: login failed (1 in a row): Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+2026-10-14 21:35:31.272 | WARNING  | modules.monitor:_handle_login_failure:4835 - monitor: retrying login in 2 min
+2026-10-14 21:35:31.382 | INFO     | modules.auth:stop:720 - auth: browser closed
+2026-10-14 21:35:31.383 | INFO     | modules.monitor:_reset_session:4914 - monitor: browser closed without saving the session
+2026-10-14 21:35:31.383 | INFO     | modules.auth:_clear_saved_session:2662 - auth: stored session discarded
+2026-10-14 21:35:31.384 | INFO     | modules.monitor:_reset_session:4919 - monitor: stored cookies cleared — next login is clean
+2026-10-14 21:37:06.889 | WARNING  | modules.notifier:_authorised:270 - notifier: ignoring command from unauthorised chat 7340367798
+2026-10-14 21:37:34.302 | INFO     | modules.auth:start:571 - auth: stealth disabled (recommended for this portal)
+2026-10-14 21:37:34.316 | INFO     | modules.auth:_install_https_upgrade:614 - auth: http->https upgrade route installed (regex)
+2026-10-14 21:37:34.502 | INFO     | modules.auth:_log:2825 - auth: browser launched
+2026-10-14 21:37:34.755 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:38:16.869 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:38:16.870 | WARNING  | modules.auth:_goto:2721 - auth: navigation timed out (the portal's http:// redirect does not answer) — retrying over https
+2026-10-14 21:38:16.870 | WARNING  | modules.auth:_goto:2727 - auth: navigation to https://egypt.blsspainglobal.com/Global/bls/visatypeverification was interrupted — retrying once
+2026-10-14 21:38:17.626 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:38:59.770 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:38:59.781 | INFO     | modules.auth:ensure_logged_in:762 - auth: logging in (attempt 1/2)
+2026-10-14 21:38:59.922 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 21:39:10.167 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:39:52.277 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+2026-10-14 21:40:02.541 | INFO     | __main__:dashboard_bridge:422 - dashboard bridge: config.yaml changed — reloading
+2026-10-14 21:40:02.570 | INFO     | modules.monitor:reload_config:1382 - monitor: config reloaded — locations=['cairo', 'alexandria'] poll=90.0s lead=1d combos<=12
+2026-10-14 21:40:02.571 | INFO     | modules.state:reload_config:230 - state: live config reloaded
+2026-10-14 21:40:13.608 | WARNING  | modules.auth:_wait_for_login_form:1078 - auth: login form not ready within 20s
+2026-10-14 21:40:13.632 | WARNING  | modules.auth:_fill_email:971 - auth: no real email field on the first pass — retrying
+2026-10-14 21:40:15.664 | WARNING  | modules.auth:_fill_email:977 - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+2026-10-14 21:40:15.990 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-214015_login-no-email-field.png
+2026-10-14 21:40:15.991 | WARNING  | modules.auth:ensure_logged_in:778 - auth: login attempt failed: could not locate the real email field among the honeypots
+2026-10-14 21:40:16.280 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-214015_login-failed-attempt1.png
+2026-10-14 21:40:21.282 | INFO     | modules.auth:ensure_logged_in:762 - auth: logging in (attempt 2/2)
+2026-10-14 21:40:21.381 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 21:40:34.015 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 21:40:40.781 | INFO     | __main__:dashboard_bridge:399 - dashboard bridge: 'stop' requested
+2026-10-14 21:40:41.290 | WARNING  | modules.auth:_on_failed:674 - auth: [net] FAILED http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_ABORTED
+2026-10-14 21:40:41.433 | INFO     | modules.auth:stop:720 - auth: browser closed
+2026-10-14 21:40:45.065 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-14 21:40:45.066 | INFO     | __main__:_run_with_state:685 - shutdown complete
