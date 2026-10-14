@@ -235,6 +235,13 @@ combinations_per_cycle: 1
 # list permanently empty. A green day inside this window is skipped.
 min_days_ahead: 2
 
+# Seconds to wait for the Time Slot list after a date is chosen. The options
+# arrive by AJAX, and Kendo builds the dropdown's items from whatever data it
+# holds at the moment it is OPENED -- so the bot re-opens the box once a
+# second until options actually render, rather than opening it once and
+# watching an empty list.
+slot_wait_seconds: 30
+
 # false opens a visible browser window — use while debugging selectors.
 headless: true
 

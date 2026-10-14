@@ -282,8 +282,16 @@ _SLOT_OPEN_JS = r"""
                                  (widget(i) ? ':kendo' : ':raw')) };
   }
 
+  // Re-opened on EVERY poll, not once. The option list is fetched by AJAX
+  // after the date is chosen, and Kendo renders its <li>s from whatever the
+  // dataSource holds AT OPEN TIME -- so a dropdown opened before the response
+  // lands is built empty and stays empty however long it is then watched.
+  // Reopening rebuilds it from the current data.
+  const rows = (dd.dataSource && dd.dataSource.data()) || [];
   dd.open();
-  return { ok: true, id: input.id, opened: true };
+  const rendered = dd.ul ? dd.ul.querySelectorAll('li').length : 0;
+  return { ok: true, id: input.id, opened: true,
+           dataCount: rows.length, rendered };
 }
 """
 
@@ -776,6 +784,9 @@ class Monitor:
         # green. Confirmed by run 20261013_155949: tomorrow was offered and
         # accepted, and the time-slot list then stayed empty forever.
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
+        # How long to wait for the AJAX-loaded time-slot list after a date is
+        # chosen. The box is re-opened every second until the options render.
+        self.slot_wait_seconds = float(config.get("slot_wait_seconds", 30))
         self._date_field_id: str = ""
         self._current_combo_text: str = ""
         self._last_no_date_signature: str = ""
@@ -856,6 +867,7 @@ class Monitor:
         self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
         self.combos_per_cycle = max(1, int(config.get("combinations_per_cycle", 1)))
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
+        self.slot_wait_seconds = float(config.get("slot_wait_seconds", 30))
 
         retry = config.get("retry", {}) or {}
         self.max_attempts = int(retry.get("max_attempts", 3))
@@ -2781,31 +2793,58 @@ class Monitor:
         return {"ok": True, "offered": offered, "clicked": picked["clicked"]}
 
     async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
-        """Open the Time Slot box and click a free (green) option.
+        """Wait for the slot list to arrive, then click a free (green) option.
 
-        Driven the way a person drives it: open the select, look at the
-        options, click the green one. The previous version read the widget's
-        dataSource and assigned the value programmatically, and it kept
-        reporting "not-loaded after 20s" on a control that was populated on
-        screen -- Kendo only builds the list when the dropdown is OPENED, so
-        there was nothing in the DOM to read.
+        CONFIRMED: the options are fetched by AJAX AFTER a date is chosen, and
+        Kendo renders its <li>s from whatever the dataSource holds AT OPEN
+        TIME. Opening the box once, as soon as the widget exists, therefore
+        builds an empty list that never refills however long it is then
+        watched -- which is exactly how a date with slots was being reported as
+        having none.
+
+        So the box is RE-OPENED on every poll. Each attempt rebuilds the list
+        from the current data, and the first one that renders options wins.
+        Availability is a background colour on the item, as on the calendar.
         """
-        deadline = 25.0
+        deadline = float(self.slot_wait_seconds)
         waited = 0.0
+        step = 1.0
+        input_id = ""
+        options: list[dict[str, Any]] = []
         opened: dict[str, Any] = {}
 
-        # The widget is built by the same Kendo pass as the date picker, so a
-        # missing one early on is "not ready", not "not there".
+        # A short settle first: the request only goes out once the date change
+        # has been handled, so polling instantly just burns an attempt.
+        await asyncio.sleep(1.5)
+
         while waited < deadline:
             try:
                 opened = await page.evaluate(_SLOT_OPEN_JS, date_id)
             except Exception as exc:
-                logger.warning(f"  slot                  : open failed — {exc}")
+                logger.warning(f"  slot                  : open failed - {exc}")
                 return False
+
             if opened.get("ok"):
-                break
-            await asyncio.sleep(1.0)
-            waited += 1.0
+                input_id = str(opened.get("id") or "")
+                try:
+                    read = await page.evaluate(
+                        _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": None}
+                    )
+                except Exception as exc:
+                    logger.warning(f"  slot                  : read failed - {exc}")
+                    return False
+                options = read.get("options") or []
+                if options:
+                    break
+                if waited == 0 or waited % 5 == 0:
+                    logger.info(
+                        f"  slot                  : waiting for the list "
+                        f"({waited:.0f}s; dataSource rows="
+                        f"{opened.get('dataCount')}, rendered="
+                        f"{opened.get('rendered')})"
+                    )
+            await asyncio.sleep(step)
+            waited += step
 
         if not opened.get("ok"):
             logger.warning(
@@ -2814,36 +2853,15 @@ class Monitor:
             )
             return False
 
-        input_id = opened.get("id")
-        logger.info(f"  slot dropdown         : opened #{input_id}")
-
-        # The options are fetched for the chosen date, so give them time to
-        # render INTO the open list.
-        options: list[dict[str, Any]] = []
-        waited = 0.0
-        read: dict[str, Any] = {}
-        while waited < deadline:
-            try:
-                read = await page.evaluate(
-                    _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": None}
-                )
-            except Exception as exc:
-                logger.warning(f"  slot                  : read failed — {exc}")
-                return False
-            options = read.get("options") or []
-            if options:
-                break
-            await asyncio.sleep(1.0)
-            waited += 1.0
-
         if not options:
             logger.warning(
-                f"  slot                  : no options rendered within "
-                f"{deadline:.0f}s ({read.get('reason')}) — this date has none"
+                f"  slot                  : no options after {deadline:.0f}s "
+                f"(dataSource rows={opened.get('dataCount')}) - this date has none"
             )
             await utils.screenshot(page, "appointment-slot-list-empty")
             return False
 
+        logger.info(f"  slot dropdown         : #{input_id}, ready after {waited:.0f}s")
         logger.info(
             "  slots offered         : "
             + ", ".join(
@@ -2855,8 +2873,8 @@ class Monitor:
 
         free = [o for o in options if o.get("free")]
         if not free:
-            # Log the colours once so a wrong threshold is diagnosable rather
-            # than silently reading every slot as taken.
+            # Log the colours so a wrong threshold is diagnosable rather than
+            # silently reading every slot as taken.
             logger.warning(
                 "  slot colours          : "
                 + ", ".join(f"{o['text']}={o['colour']}" for o in options[:9])
@@ -2871,7 +2889,7 @@ class Monitor:
                 _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": choice["index"]}
             )
         except Exception as exc:
-            logger.warning(f"  slot                  : click failed — {exc}")
+            logger.warning(f"  slot                  : click failed - {exc}")
             return False
         if not picked.get("ok") or not picked.get("clicked"):
             logger.warning(
