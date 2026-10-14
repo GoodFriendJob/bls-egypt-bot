@@ -1,0 +1,20 @@
+BLS appointment bot - run transcript
+started : 2026-10-14T23:51:10
+command : bot.py
+python  : 3.11.9
+======================================================================
+23:51:10 | INFO    | __main__ - ==============================================================
+23:51:10 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+23:51:10 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261014_235110.txt
+23:51:10 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+23:51:10 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+23:51:10 | INFO    | __main__ - ==============================================================
+23:51:15 | INFO    | modules.notifier - notifier: telegram listener started
+23:51:15 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+23:51:15 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+23:51:15 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+23:51:15 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+23:51:15 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+23:51:15 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+23:51:15 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+23:51:15 | INFO    | modules.auth - auth: browser launched
