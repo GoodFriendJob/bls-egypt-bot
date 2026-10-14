@@ -167,7 +167,8 @@ PAGE_STAGES = (
 
 
 def classify_page(url: str) -> str:
-    """Name the stage a URL belongs to, for navigation tracking."""
+    """Name the stage a URL belongs to. See Monitor.detect_stage for the DOM
+    side, which is needed wherever several steps share one path."""
     low = (url or "").lower()
     if low.startswith("chrome-error") or "chromewebdata" in low:
         return "browser-error"
@@ -660,6 +661,84 @@ _UNFILLED_REQUIRED_JS = r"""
 }
 """
 
+# "You have already initiated an appointment which is not completed. You can
+# create another appointment only after 27 minute(s)" -- the portal holds a
+# half-finished booking open and refuses a new one until it lapses. Retrying
+# before then cannot succeed, and each attempt costs a login and two captchas.
+# What page is this, judged from the DOM rather than the URL alone.
+#
+# The URL is not enough any more: /blsAppointment/ManageAppointment serves the
+# date/slot step, the applicant form and the consent page under the same path,
+# and a refresh or a server redirect can land on any of them. Reading the
+# markers tells the bot where it actually is, so it can resume at the right
+# step instead of running the one it expected.
+_PAGE_STAGE_JS = r"""
+() => {
+  const vis = (el) => {
+    if (!el) return false;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  const anyVis = (sel) =>
+    Array.prototype.some.call(document.querySelectorAll(sel), vis);
+  const text = ((document.body && document.body.innerText) || '')
+    .replace(/\s+/g, ' ').trim();
+
+  // Hard stops first.
+  if (/already initiated an appointment/i.test(text)) {
+    return { stage: 'appointment-cooldown' };
+  }
+  if (anyVis('[onclick*="onAgree"]')) return { stage: 'terms' };
+  if (document.getElementById('visaForm')) return { stage: 'applicant-form' };
+
+  // Payment is a human's job; naming it keeps the bot from wandering in.
+  if (/card number|cvv|amount payable|pay now/i.test(text)) {
+    return { stage: 'payment' };
+  }
+
+  // The captcha grid, wherever it is rendered.
+  if (anyVis('div.col-4 img.captcha-img') ||
+      /please select all boxes with number/i.test(text)) {
+    return { stage: 'captcha' };
+  }
+
+  if (document.querySelector('input[id^="AppointmentDate"]') ||
+      anyVis('#btnVerifyAppointment, #btnVerifiedAppointment')) {
+    return { stage: 'appointment-details' };
+  }
+  if (document.querySelector('input[id^="VisaSubType"]')) {
+    return { stage: 'appointment-form' };
+  }
+  if (anyVis('#btnSubmit') && /verify selection/i.test(text)) {
+    return { stage: 'verification' };
+  }
+  return { stage: '' };
+}
+"""
+
+_APPOINTMENT_COOLDOWN_JS = r"""
+() => {
+  const vis = (el) => {
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  const pool = document.querySelectorAll(
+    '.alert, .alert-danger, .validation-summary, [role="alert"]');
+  for (const el of pool) {
+    if (!vis(el)) continue;
+    const text = (el.innerText || '').replace(/\s+/g, ' ').trim();
+    if (!/already initiated an appointment/i.test(text)) continue;
+    const m = /after\s+(\d+)\s*minute/i.exec(text);
+    return { found: true, minutes: m ? Number(m[1]) : null, text: text.slice(0, 200) };
+  }
+  return { found: false };
+}
+"""
+
 _APPLICANT_READY_JS = r"""
 () => {
   const form = document.getElementById('visaForm');
@@ -1102,6 +1181,8 @@ class Monitor:
         # chosen. The box is re-opened every second until the options render.
         self.slot_wait_seconds = float(config.get("slot_wait_seconds", 30))
         self._date_field_id: str = ""
+        # Minutes the portal asked us to wait before starting another booking.
+        self._appointment_cooldown_minutes: int = 0
         self._current_combo_text: str = ""
         self._last_no_date_signature: str = ""
         retry = config.get("retry", {}) or {}
@@ -1262,6 +1343,14 @@ class Monitor:
                     )
             else:
                 wait = self.poll_interval
+            if self._appointment_cooldown_minutes:
+                wait = max(wait, self._appointment_cooldown_minutes * 60)
+                logger.info(
+                    f"monitor: honouring the portal's "
+                    f"{self._appointment_cooldown_minutes}-minute hold"
+                )
+                self._appointment_cooldown_minutes = 0
+
             self._last_form_result = None
             # Keep the artifact directories from growing without bound on a
             # 24/7 run; retention is logging.retention_days (default 2).
@@ -1397,6 +1486,14 @@ class Monitor:
                     "bot", f"appointment form failed ({location})", status="error"
                 )
                 await self._survey_page(page, f"visatype-incomplete-{location}")
+                return
+
+            if self._last_form_result == "appointment_in_progress":
+                logger.warning(
+                    "monitor: the portal is holding an unfinished appointment — "
+                    f"waiting {self._appointment_cooldown_minutes} min before "
+                    "anything else"
+                )
                 return
 
             if self._last_form_result == "option_unavailable":
@@ -1931,6 +2028,16 @@ class Monitor:
         await utils.screenshot(page, "after-visatype-submit")
         await utils.dump_page_html(page, "after-visatype-submit")
 
+        # The portal keeps an unfinished booking open and refuses a new one
+        # until it lapses. Retrying before then cannot work and costs a login
+        # plus two captchas each time.
+        held = await self._appointment_cooldown(page)
+        if held:
+            self._appointment_cooldown_minutes = held
+            self._last_form_result = "appointment_in_progress"
+            await self._hold_for_debug(page, "an appointment is already in progress")
+            return True
+
         # CONFIRMED: when nothing is free the portal answers with a modal —
         # "No Appointments Available / Currently, no slots are available for the
         # selected category." That is the no-slots signal for this whole flow,
@@ -2015,6 +2122,7 @@ class Monitor:
             await utils.screenshot(page, "visatype-submit-stalled")
             await utils.dump_page_html(page, "visatype-submit-stalled")
             self._last_form_result = "submit_stalled"
+            await self._hold_for_debug(page, "the booking form did not submit")
             return False
 
         self._last_form_result = "slots_possible"
@@ -2458,10 +2566,16 @@ class Monitor:
         await self._accept_terms_of_service(page)
         await self._dismiss_open_modals(page)
 
-        # Consent leads to the applicant details form.
-        if await self._applicant_form_present(page):
-            if not await self.complete_applicant_details(page):
-                logger.warning("monitor: applicant details not completed")
+        # Consent can land on the applicant form, a cooldown notice, a bot
+        # verdict or payment. Read the page instead of assuming.
+        await self._settle(page)
+        stage = await self.resume_from_stage(page)
+        if stage in ("bot-blocked", "appointment-cooldown", "payment"):
+            return False
+        if stage == "applicant-form":
+            # resume_from_stage already ran it; its own guards reported why if
+            # it could not finish.
+            if self._last_form_result == "appointment_in_progress":
                 return False
 
         await utils.screenshot(page, "appointment-submitted")
@@ -2499,6 +2613,137 @@ class Monitor:
                 if len(day) == 4:
                     return f"{day}-{month.zfill(2)}-{year.zfill(2)}"
         return text.replace(".", "-")
+
+    async def detect_stage(self, page: Any) -> str:
+        """Where the browser actually is, URL and DOM together.
+
+        The URL alone stopped being sufficient once three different steps
+        started sharing /blsAppointment/ManageAppointment. A refresh or a
+        server redirect can drop the bot on any of them, so the page is read
+        before deciding what to do next.
+        """
+        url_stage = classify_page(page.url or "")
+        if "/account/bot" in (page.url or "").lower():
+            return "bot-blocked"
+        # These are unambiguous from the URL alone.
+        if url_stage in ("login", "login-captcha", "browser-error"):
+            return url_stage
+
+        try:
+            found = await page.evaluate(_PAGE_STAGE_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: stage probe failed: {exc}")
+            return url_stage
+
+        return str(found.get("stage") or url_stage)
+
+    async def resume_from_stage(self, page: Any) -> str:
+        """Read the page and carry on from whatever step it is really on.
+
+        Returns the stage it acted on. The caller decides what a given outcome
+        means; this only makes sure the right step runs for the page in front
+        of it, which is what a refresh or an unexpected redirect breaks.
+        """
+        stage = await self.detect_stage(page)
+        logger.info(f"monitor: page is at stage {stage!r} ({(page.url or '')[:80]})")
+
+        if stage == "bot-blocked":
+            logger.error(
+                "monitor: the portal sent us to /account/bot — it judged the "
+                "last form to be automated"
+            )
+            self.state.log_event("bot", "portal returned a bot verdict", status="error")
+            await utils.screenshot(page, "bot-verdict")
+            await self._hold_for_debug(page, "the portal returned a bot verdict")
+            return stage
+
+        if stage == "appointment-cooldown":
+            held = await self._appointment_cooldown(page)
+            self._appointment_cooldown_minutes = held
+            self._last_form_result = "appointment_in_progress"
+            return stage
+
+        if stage == "payment":
+            logger.warning("monitor: a payment step — handing over to the manager")
+            await self.notifier.manual_required(
+                "The booking has reached the payment step. The bot stops here "
+                "by design."
+            )
+            self.state.set_manual_pause("payment step reached")
+            return stage
+
+        if stage == "terms":
+            await self._accept_terms_of_service(page)
+            return stage
+
+        if stage == "applicant-form":
+            await self.complete_applicant_details(page)
+            return stage
+
+        if stage == "appointment-details":
+            await self.complete_appointment_details(page)
+            return stage
+
+        return stage
+
+    async def _appointment_cooldown(self, page: Any) -> int:
+        """Minutes the portal says to wait, or 0 when it has not said so.
+
+        The message appears when a previous booking was started and never
+        finished -- which is exactly what happens when the bot gets most of the
+        way through and stops. Until it lapses, every retry is wasted effort
+        and more load on an IP that is already being watched.
+        """
+        try:
+            found = await page.evaluate(_APPOINTMENT_COOLDOWN_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: cooldown probe failed: {exc}")
+            return 0
+        if not found.get("found"):
+            return 0
+
+        minutes = found.get("minutes")
+        logger.warning(f"monitor: portal says — {found.get('text')!r}")
+        if not minutes:
+            # It said so without a number; take the configured default rather
+            # than hammering.
+            minutes = int(self.no_slots_wait_minutes) or 15
+            logger.warning(f"monitor: no figure given — holding {minutes} min")
+        self.state.log_event(
+            "bot", f"appointment already in progress — wait {minutes} min", status="warn"
+        )
+        await self.notifier.error(
+            "The portal still has an unfinished appointment open for this "
+            f"account. It will not accept another for {minutes} minute(s).",
+            retry_info=f"waiting {minutes} minute(s), then retrying",
+        )
+        return int(minutes)
+
+    async def _hold_for_debug(self, page: Any, reason: str) -> None:
+        """Leave the browser open so a human can look at the page.
+
+        Only when debug.keep_browser_open is set. The window stays up and the
+        bot idles instead of tearing the context down, which is the difference
+        between seeing the half-filled form and seeing nothing at all.
+        """
+        debug = (self.config.get("debug", {}) or {})
+        if not debug.get("keep_browser_open"):
+            return
+
+        minutes = float(debug.get("hold_minutes", 30))
+        logger.warning("=" * 60)
+        logger.warning(f"HOLDING THE BROWSER OPEN — {reason}")
+        logger.warning(f"  url: {page.url if page else '?'}")
+        logger.warning(
+            "  The window stays up so the page can be inspected. Close this "
+            f"terminal when finished; the bot idles for {minutes:.0f} min."
+        )
+        logger.warning("=" * 60)
+        self.state.log_event("bot", f"holding browser open: {reason}", status="warn")
+        try:
+            await utils.interruptible_sleep(minutes * 60, self.state)
+        except Exception:
+            pass
 
     async def _applicant_form_present(self, page: Any, timeout: float = 20.0) -> bool:
         """True once #visaForm shows up after the consent step."""
@@ -2607,6 +2852,9 @@ class Monitor:
         unfilled = await self._report_unfilled_required(page)
         if unfilled:
             await utils.dump_page_html(page, "applicant-form-unmapped")
+            await self._hold_for_debug(
+                page, f"{len(unfilled)} required field(s) still empty"
+            )
             names = ", ".join(f"{f['id']} ({f['label']})" for f in unfilled[:12])
             await self.notifier.manual_required(
                 f"The applicant form has {len(unfilled)} required field(s) the "

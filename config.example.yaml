@@ -370,3 +370,15 @@ detection:
     - "select the image"
     - "verify you are human"
     - "i'm not a robot"
+
+# --- Debugging -------------------------------------------------------------
+debug:
+  # Leave the browser window OPEN when a booking step fails, instead of
+  # tearing it down, so the half-filled page can be inspected. Applies to the
+  # booking form not submitting, the applicant form not completing, and
+  # required fields still being empty. Use with start_headful.bat -- there is
+  # nothing to look at in headless mode.
+  keep_browser_open: false
+  # How long to idle while holding it, in minutes. Close the terminal when
+  # finished; the bot does nothing else during this time.
+  hold_minutes: 30
