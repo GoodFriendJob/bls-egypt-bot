@@ -138,6 +138,51 @@ applicant:
   # options: Cash, Credit card, Traveller's cheques, Prepaid accommodation.
   means_of_support: ""         # REQ
 
+  # --- Travel information (CONFIRMED ids) ----------------------------------
+  # These were missing from this template, so the machine that was installed
+  # from it started twenty required settings short -- and only found out after
+  # taking a real slot, which the portal then held for 27 minutes. The bot now
+  # says so at startup, but the template has to carry them in the first place.
+  first_entry_state: ""        # REQ  dropdown, MemberStateFirstEntryId
+  number_of_entries: ""        # REQ  dropdown, e.g. Single / Multiple
+  # A NUMBER of days, not prose: "13 Nights 14 days" is rejected and the field
+  # comes back empty, because the control only takes a count.
+  intended_stay_days: ""       # REQ  e.g. "14"
+  arrival_date: ""             # REQ  yyyy-mm-dd
+  departure_date: ""           # REQ  yyyy-mm-dd
+
+  # Section 11 of the form: WHAT the inviting party is. CONFIRMED radio group
+  # BlsInvitingAuthority_<n>, whose own handler decides which half of the
+  # section the page asks for:
+  #   company - Inviting company/organization      -> hotel details AND a named
+  #             contact person there (the page's own default; 15 fields)
+  #   hotel   - Hotel(s) or temporary accommodation -> hotel details only; the
+  #             eight contact_* fields below are then not asked for at all
+  #   person  - Inviting person(s) in the member state -> contact person only
+  # Left on "company" because the contact_* values below were supplied for it.
+  # Switch to "hotel" to drop them, which is also the plainer description of a
+  # tourist hotel stay.
+  inviting_party: "company"
+
+  # --- The inviting party: for a tourist trip, the hotel --------------------
+  hotel_name: ""               # REQ
+  hotel_country: ""            # REQ  dropdown
+  hotel_city: ""               # REQ
+  hotel_zip: ""                # REQ
+  hotel_address: ""            # REQ
+  hotel_email: ""              # REQ  the hotel's own address
+  hotel_phone: ""              # REQ
+
+  # --- A named contact person at that address ------------------------------
+  contact_first_name: ""       # REQ
+  contact_surname: ""          # REQ
+  contact_country: ""          # REQ  dropdown
+  contact_city: ""             # REQ
+  contact_zip: ""              # REQ
+  contact_address: ""          # REQ
+  contact_phone: ""            # REQ
+  contact_email: ""            # REQ
+
   # Controls matched by their VISIBLE LABEL instead of their element id, for
   # the parts of the form whose markup has not been captured. Read the label
   # off the page and put it here verbatim; matching is case-insensitive and

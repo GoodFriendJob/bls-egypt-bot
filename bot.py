@@ -29,7 +29,7 @@ from loguru import logger
 ROOT = Path(__file__).resolve().parent
 
 from modules.auth import BLSAuth, PortalUnreachableError
-from modules.monitor import Monitor
+from modules.monitor import APPLICANT_FIELDS, Monitor
 from modules.notifier import Notifier
 from modules import ipc
 from modules.state import BotState
@@ -56,7 +56,19 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "appointment": "/Global/bls/appointment",  # TODO: confirm
         },
     },
-    "applicant": {"documents": {}},
+    # Every field the applicant form asks for, blank. Two reasons it is derived
+    # from APPLICANT_FIELDS rather than typed out again: a second list would
+    # drift, and a key absent from the live dict is a key the dashboard cannot
+    # show — so a machine whose config.yaml predates a field had no way to add
+    # it from the Settings tab, only by hand-editing YAML.
+    "applicant": {
+        "documents": {},
+        # Not one of the mapped fields (it is a radio group, not a value), but
+        # it has to be present for the same reason: a key the live dict lacks
+        # is a key the dashboard cannot show.
+        "inviting_party": "company",
+        **{key: "" for _base, _kind, key, _required in APPLICANT_FIELDS},
+    },
     "openai": {"api_key": "", "model": "gpt-4o", "timeout": 45},
     "telegram": {"token": "", "chat_id": "", "heartbeat_hours": 6},
     "otp": {
@@ -593,6 +605,10 @@ async def _run_with_state(
 
     await notifier.start()
     await notifier.startup_notice()
+    # Before any browser work: a blank required applicant setting cannot be
+    # discovered any later than this without costing a real slot and a 27-minute
+    # portal cooldown.
+    await monitor.warn_about_missing_settings()
 
     tasks: list[asyncio.Task[Any]] = []
     exit_code = 0

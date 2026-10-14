@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta
+from pathlib import Path
 import re
 from typing import Any
 
@@ -37,6 +38,11 @@ from modules.state import (
 #   <iframe class="k-content-frame" src="/Global/NewCaptcha/GenerateCaptcha">
 # So the grid is neither in the parent document nor in a window.open() popup —
 # it is a separate frame, and every query and click must target that frame.
+# Named in error messages. config.yaml is gitignored, so every machine keeps
+# its own copy and they drift apart; saying WHICH file is short of a setting is
+# the difference between a one-line fix and a hunt.
+_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.yaml"
+
 CAPTCHA_FRAME_HINT = "generatecaptcha"
 CAPTCHA_FRAME_TIMEOUT = 30.0
 
@@ -493,7 +499,11 @@ _FILL_FIELD_JS = r"""
     const data = dd.dataSource.data() || [];
     const textField = (dd.options && dd.options.dataTextField) || 'Name';
     const valueField = (dd.options && dd.options.dataValueField) || 'Id';
-    const norm = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    // Punctuation is collapsed to a space as well as whitespace: the portal
+    // writes "SELF EMPLOYED" where the config says "Self-employed", and the
+    // hyphen alone was enough to make that an unmatched option.
+    const norm = (t) => String(t || '').replace(/[-_/.,()'"‐-―]+/g, ' ')
+                          .replace(/\s+/g, ' ').trim().toLowerCase();
     const want = norm(field.value);
     const texts = data.map((d) => String(d[textField] || ''));
     let i = texts.findIndex((t) => norm(t) === want);
@@ -506,18 +516,40 @@ _FILL_FIELD_JS = r"""
       i = texts.findIndex((t) => norm(t).length >= 4 && want.includes(norm(t)));
     }
     if (i < 0) {
+      // Every option, not a dozen: the one time this fired, the value the
+      // config asked for ("Self-employed") simply is not on this portal's
+      // list, and the truncated dump did not show what to choose instead.
       return { id: field.id, ok: false, reason: 'no such option',
-               options: texts.slice(0, 12), count: texts.length };
+               options: texts.slice(0, 60), count: texts.length };
     }
     dd.value(data[i][valueField]);
     dd.trigger('change');
     return { id: field.id, ok: true, set: texts[i] };
   }
 
-  el.value = field.value;
+  // CONFIRMED from the form markup: every phone control is
+  // <input type="number"> (EmployerPhone_0, InvitingContactNo_0,
+  // InvitingContactContactNo_0, HomeAddressContactNumber_0). A number input
+  // REFUSES anything that is not a valid floating-point number, and "+" is
+  // not one -- assigning "+201055565536" leaves the field EMPTY with no error
+  // anywhere. So the digits are kept and the rest dropped, and what was
+  // dropped is reported rather than hidden.
+  let want = String(field.value);
+  let cleanedFrom = '';
+  if (el.type === 'number') {
+    const digits = want.replace(/[^\d.]/g, '');
+    if (digits !== want) { cleanedFrom = want; want = digits; }
+  }
+  el.value = want;
   el.dispatchEvent(new Event('input', { bubbles: true }));
   el.dispatchEvent(new Event('change', { bubbles: true }));
-  return { id: field.id, ok: true, set: el.value };
+  // Trust the control, not the assignment: this is the check that would have
+  // caught a "+" being swallowed.
+  if (want && !el.value) {
+    return { id: field.id, ok: false, reason: `the control rejected ${want!==String(field.value) ? want : 'this value'}`,
+             type: el.type };
+  }
+  return { id: field.id, ok: true, set: el.value, cleanedFrom };
 }
 """
 
@@ -538,7 +570,7 @@ _FILL_FIELD_JS = r"""
 _FILL_BY_LABEL_JS = r"""
 ({ label, value, index }) => {
   const form = document.getElementById('visaForm') || document;
-  const norm = (t) => String(t || '').replace(/\*/g, ' ')
+  const norm = (t) => String(t || '').replace(/[*\-_/.,()'"‐-―]+/g, ' ')
                         .replace(/\s+/g, ' ').trim().toLowerCase();
   const want = norm(label);
   const suffix = '_' + (index || 0);
@@ -563,7 +595,7 @@ _FILL_BY_LABEL_JS = r"""
     if (!partial && text.includes(want)) partial = node;
   }
   const target = exact || partial;
-  if (!target) return { ok: false, reason: 'no label match', seen: seen.slice(0, 40) };
+  if (!target) return { ok: false, reason: 'no label match', seen: seen.slice(0, 80) };
 
   const $ = window.jQuery;
   const dd = $ && $(target).data('kendoDropDownList');
@@ -597,10 +629,73 @@ _FILL_BY_LABEL_JS = r"""
     return { ok: true, id: target.id, kind: 'date', set: target.value };
   }
 
-  target.value = value;
+  // Same number-input trap as _FILL_FIELD_JS: "+" is not a valid
+  // floating-point number, so assigning it empties the field silently.
+  let want = String(value);
+  if (target.type === 'number') want = want.replace(/[^\d.]/g, '');
+  target.value = want;
   target.dispatchEvent(new Event('input', { bubbles: true }));
   target.dispatchEvent(new Event('change', { bubbles: true }));
+  if (want && !target.value) {
+    return { ok: false, id: target.id, reason: 'the control rejected this value' };
+  }
   return { ok: true, id: target.id, kind: 'text', set: target.value };
+}
+"""
+
+# Section 11, "Details of the inviting person(s) ... If not applicable,
+# details of hotel(s) or temporary accommodation(s)". CONFIRMED markup: a radio
+# group whose own change handler decides which halves of the section apply.
+#
+#   value 0  Inviting company/organization   -> shows BOTH halves
+#   value 1  Hotel(s) / temporary accommodation -> hotel half only
+#   value 2  Inviting person(s)              -> contact-person half only
+#
+# It defaults to 0, so a hotel booking was declaring Hostal Nova as an
+# "inviting company/organization" AND being asked for a named contact person
+# there — eight fields that only exist because of a default nobody chose.
+INVITING_PARTY_VALUES = {"company": "0", "hotel": "1", "person": "2"}
+
+_PICK_INVITING_PARTY_JS = r"""
+({ index, value }) => {
+  const name = 'BlsInvitingAuthority_' + (index || 0);
+  const radios = Array.from(
+    document.querySelectorAll(`input[type=radio][name="${name}"]`));
+  if (!radios.length) return { ok: false, reason: 'no such radio group' };
+  const want = radios.find((r) => r.value === String(value));
+  if (!want) {
+    return { ok: false, reason: 'no such option',
+             options: radios.map((r) => r.value) };
+  }
+  const already = want.checked;
+  // A real click so the page's own change handler runs and shows/hides the
+  // halves; setting .checked would leave both halves as they were.
+  want.click();
+  return { ok: true, value: want.value, already,
+           label: (want.parentElement && want.parentElement.innerText || '')
+                    .replace(/\s+/g, ' ').trim().slice(0, 70) };
+}
+"""
+
+# Is this control actually in play? Same walk as the required scanner: a field
+# inside a collapsed section is neither required nor worth filling.
+_CONTROL_VISIBLE_JS = r"""
+(ids) => {
+  const out = {};
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (!el) { out[id] = false; continue; }
+    // Kendo hides the original <input> by design, so start at its wrapper.
+    const kendo = el.getAttribute('data-role') || el.closest('span.k-widget');
+    const start = el.closest('span.k-widget') || (kendo ? el.parentElement : el);
+    let shown = true;
+    for (let n = start; n && n.nodeType === 1; n = n.parentElement) {
+      const st = getComputedStyle(n);
+      if (st.display === 'none' || st.visibility === 'hidden') { shown = false; break; }
+    }
+    out[id] = shown;
+  }
+  return out;
 }
 """
 
@@ -694,7 +789,11 @@ _PAGE_STAGE_JS = r"""
   if (document.getElementById('visaForm')) return { stage: 'applicant-form' };
 
   // Payment is a human's job; naming it keeps the bot from wandering in.
-  if (/card number|cvv|amount payable|pay now/i.test(text)) {
+  // Deliberately narrow: a word like "payment" on its own appears in footers
+  // and help links all over this portal, so only phrasing that belongs to an
+  // actual card form counts.
+  if (/card number|\bcvv\b|amount payable|pay now|proceed to pay|payment gateway|card holder/i
+        .test(text)) {
     return { stage: 'payment' };
   }
 
@@ -2569,14 +2668,26 @@ class Monitor:
         # Consent can land on the applicant form, a cooldown notice, a bot
         # verdict or payment. Read the page instead of assuming.
         await self._settle(page)
-        stage = await self.resume_from_stage(page)
-        if stage in ("bot-blocked", "appointment-cooldown", "payment"):
+        stage, ok = await self.resume_from_stage(page)
+        if stage in ("bot-blocked", "appointment-cooldown"):
             return False
-        if stage == "applicant-form":
-            # resume_from_stage already ran it; its own guards reported why if
-            # it could not finish.
-            if self._last_form_result == "appointment_in_progress":
-                return False
+        # Payment means the booking got through and a human took it from there.
+        if stage == "payment":
+            return ok
+        if not ok:
+            # The step that the page was actually on did not finish. Saying
+            # "appointment submitted" here is how a run with twenty blank
+            # required fields still reported success (run 20261014_180450).
+            logger.error(
+                f"monitor: the {stage or 'unknown'} step did not complete — the "
+                "appointment is NOT submitted"
+            )
+            await utils.screenshot(page, "appointment-not-submitted")
+            self.state.log_event(
+                "bot", f"appointment incomplete at stage {stage!r}", status="error"
+            )
+            await self._hold_for_debug(page, f"the {stage or 'unknown'} step failed")
+            return False
 
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
@@ -2585,8 +2696,8 @@ class Monitor:
         await self.notifier.send(
             "✅ Appointment details submitted — the slot is being held.\n"
             f"Page: {page.url[:120]}\n\n"
-            "The next stage is payment. The bot will stop there and ask you to "
-            "take over."
+            "If a payment step follows, the bot stops there, leaves the browser "
+            "open and waits for your /resume."
         )
         await self._survey_page(page, "after-appointment-submit")
         return True
@@ -2637,12 +2748,13 @@ class Monitor:
 
         return str(found.get("stage") or url_stage)
 
-    async def resume_from_stage(self, page: Any) -> str:
+    async def resume_from_stage(self, page: Any) -> tuple[str, bool]:
         """Read the page and carry on from whatever step it is really on.
 
-        Returns the stage it acted on. The caller decides what a given outcome
-        means; this only makes sure the right step runs for the page in front
-        of it, which is what a refresh or an unexpected redirect breaks.
+        Returns (stage, ok): the stage it acted on, and whether that step
+        actually succeeded. The outcome used to be dropped on the floor, so a
+        failed applicant form was still announced to the manager as a submitted
+        appointment — the caller has to be able to tell the difference.
         """
         stage = await self.detect_stage(page)
         logger.info(f"monitor: page is at stage {stage!r} ({(page.url or '')[:80]})")
@@ -2655,36 +2767,146 @@ class Monitor:
             self.state.log_event("bot", "portal returned a bot verdict", status="error")
             await utils.screenshot(page, "bot-verdict")
             await self._hold_for_debug(page, "the portal returned a bot verdict")
-            return stage
+            return stage, False
 
         if stage == "appointment-cooldown":
             held = await self._appointment_cooldown(page)
             self._appointment_cooldown_minutes = held
             self._last_form_result = "appointment_in_progress"
-            return stage
+            return stage, False
 
         if stage == "payment":
-            logger.warning("monitor: a payment step — handing over to the manager")
-            await self.notifier.manual_required(
-                "The booking has reached the payment step. The bot stops here "
-                "by design."
-            )
-            self.state.set_manual_pause("payment step reached")
-            return stage
+            return stage, await self._pause_for_payment(page)
 
         if stage == "terms":
-            await self._accept_terms_of_service(page)
-            return stage
+            return stage, await self._accept_terms_of_service(page)
 
         if stage == "applicant-form":
-            await self.complete_applicant_details(page)
-            return stage
+            return stage, await self.complete_applicant_details(page)
 
         if stage == "appointment-details":
-            await self.complete_appointment_details(page)
-            return stage
+            return stage, await self.complete_appointment_details(page)
 
-        return stage
+        return stage, False
+
+    def missing_applicant_settings(self) -> list[str]:
+        """Config keys the applicant form requires that are blank right now.
+
+        Checked at STARTUP, not when the form finally appears. On
+        2026-10-14 18:04 the bot logged in, solved three captchas, took a
+        09:00 slot, verified the e-mail and consented — and only then found
+        twenty required settings blank, by which point the portal was holding
+        a half-finished booking and refusing another for 27 minutes. All of it
+        was knowable before the browser opened.
+        """
+        applicant = self.config.get("applicant", {}) or {}
+        # Section 11 only asks for the half the inviting party calls for, so
+        # the other half's fields are not missing — they are not asked.
+        # Judged on the ELEMENT id, not the config key: the contact-person
+        # controls are InvitingContact*, the hotel ones are the other Inviting*
+        # — whereas the key prefix "contact_" also matches contact_number,
+        # which is the applicant's OWN phone in section 4 and always required.
+        party = str(applicant.get("inviting_party", "") or "company").strip().lower()
+
+        def asked_for(base: str) -> bool:
+            if party == "hotel":
+                return not base.startswith("InvitingContact")
+            if party == "person":
+                return not (
+                    base.startswith("Inviting")
+                    and not base.startswith("InvitingContact")
+                )
+            return True
+
+        return [
+            key
+            for base, _kind, key, required in APPLICANT_FIELDS
+            if required
+            and asked_for(base)
+            and not str(applicant.get(key, "") or "").strip()
+        ]
+
+    async def warn_about_missing_settings(self) -> list[str]:
+        """Say so, loudly and over Telegram, before a slot is spent on it."""
+        missing = self.missing_applicant_settings()
+        if not missing:
+            logger.info(
+                f"config: all {len(APPLICANT_FIELDS)} applicant field(s) the "
+                "form requires have values"
+            )
+            return []
+
+        logger.warning("=" * 60)
+        logger.warning(
+            f"CONFIG INCOMPLETE — {len(missing)} required applicant setting(s) "
+            "are blank"
+        )
+        logger.warning(f"  file: {_CONFIG_PATH}")
+        logger.warning(
+            "  Monitoring still works, but a booking CANNOT be completed: the "
+            "portal will hold the half-finished appointment and refuse another "
+            "for ~27 minutes."
+        )
+        logger.warning("  Add these under 'applicant:' (or in the dashboard):")
+        for key in missing:
+            logger.warning(f'      {key}: ""')
+        logger.warning("=" * 60)
+        self.state.log_event(
+            "bot",
+            f"config incomplete: {len(missing)} required applicant setting(s) blank",
+            status="warn",
+        )
+        await self.notifier.error(
+            f"⚠️ {len(missing)} required applicant setting(s) are blank in "
+            f"config.yaml on this machine, so a booking cannot be completed:\n"
+            + "\n".join(f"- {k}" for k in missing[:25])
+            + "\n\nFill them in the dashboard Settings tab.",
+            retry_info="monitoring continues; booking will stop short",
+        )
+        return missing
+
+    async def _pause_for_payment(self, page: Any) -> bool:
+        """Stop at the payment step, keep the browser open, wait for /resume.
+
+        Payment is the one step the bot must never complete by itself: it moves
+        real money. The window is left open ON the payment page so the card
+        details can be typed in by hand, and the bot blocks here with no
+        timeout until /resume arrives over Telegram.
+
+        Unlike _hold_for_debug this ignores debug.keep_browser_open — the open
+        browser IS the handover, so there is nothing to opt into.
+        """
+        shot = await utils.screenshot(page, "payment-step")
+        logger.warning("=" * 60)
+        logger.warning("PAYMENT STEP — HANDING OVER")
+        logger.warning(f"  url: {page.url}")
+        logger.warning("  The browser window stays open on this page. Complete the")
+        logger.warning("  payment by hand, then send /resume to the Telegram bot.")
+        logger.warning("=" * 60)
+        self.state.set_manual_pause("payment step reached")
+        await self.notifier.manual_required(
+            "💳 The booking has reached the PAYMENT step.\n\n"
+            "The browser window is still open on the payment page. Pay there "
+            "by hand — the bot will not touch it.\n\n"
+            f"Page: {page.url[:120]}",
+            screenshot=shot,
+        )
+
+        if not await self.notifier.wait_for_resume():
+            # Either there is no Telegram link or /stop came in. Hold the page
+            # regardless: closing the browser under the user's hands mid-payment
+            # is the one outcome worse than waiting.
+            logger.warning(
+                "monitor: no /resume — holding the payment page open anyway"
+            )
+            await utils.interruptible_sleep(6 * 3600, self.state)
+            return False
+
+        logger.success("monitor: /resume received — payment handled by the user")
+        self.state.clear_manual_pause()
+        stage = await self.detect_stage(page)
+        logger.info(f"monitor: after payment the page is at stage {stage!r}")
+        return True
 
     async def _appointment_cooldown(self, page: Any) -> int:
         """Minutes the portal says to wait, or 0 when it has not said so.
@@ -2722,12 +2944,19 @@ class Monitor:
     async def _hold_for_debug(self, page: Any, reason: str) -> None:
         """Leave the browser open so a human can look at the page.
 
-        Only when debug.keep_browser_open is set. The window stays up and the
-        bot idles instead of tearing the context down, which is the difference
-        between seeing the half-filled form and seeing nothing at all.
+        The window stays up and the bot idles instead of tearing the context
+        down, which is the difference between seeing the half-filled form and
+        seeing nothing at all.
+
+        debug.keep_browser_open decides, but its DEFAULT is "yes when headful".
+        A headful run is a debugging run — that is what start_headful.bat is
+        for — and the one run where this mattered most closed the browser
+        anyway, because that machine's config.yaml predated the key and the
+        absent key read as False. Headless 24/7 runs still never hold.
         """
         debug = (self.config.get("debug", {}) or {})
-        if not debug.get("keep_browser_open"):
+        headful = not bool(self.config.get("headless", True))
+        if not debug.get("keep_browser_open", headful):
             return
 
         minutes = float(debug.get("hold_minutes", 30))
@@ -2784,8 +3013,22 @@ class Monitor:
         for index in range(max(1, applicants)):
             if index:
                 logger.info(f"  applicant {index + 1}")
+
+            # First, because it decides which fields exist at all.
+            await self._pick_inviting_party(page, index)
+            visible = await self._controls_in_play(page, index)
+            skipped: list[str] = []
+
             for base, kind, key, required in APPLICANT_FIELDS:
                 element_id = f"{base}_{index}"
+                # A control inside a collapsed section is not in play: the page
+                # hides the contact-person half of section 11 unless the
+                # inviting party is a company or a private person, and filling
+                # it would post a declaration nobody made.
+                if visible and not visible.get(element_id, True):
+                    skipped.append(base)
+                    continue
+
                 value = str(applicant.get(key, "") or "").strip()
                 if kind == "date":
                     value = self._normalise_date(value)
@@ -2805,14 +3048,32 @@ class Monitor:
 
                 if result.get("ok"):
                     filled += 1
-                    logger.info(f"  {base:<28}: {result.get('set')!r}")
+                    note = ""
+                    if result.get("cleanedFrom"):
+                        # The control is <input type="number">; say what was
+                        # dropped so a mangled phone number is visible here and
+                        # not three steps later.
+                        note = (
+                            f"  (config said {result['cleanedFrom']!r} — this "
+                            "control only takes digits)"
+                        )
+                    logger.info(f"  {base:<28}: {result.get('set')!r}{note}")
                 else:
                     detail = str(result.get("reason"))
                     if result.get("options"):
-                        detail += f" (offered: {result['options']})"
+                        detail += (
+                            f" — {key} must be one of these "
+                            f"{result.get('count')}: {result['options']}"
+                        )
                     failures.append(f"{element_id}: {detail}")
                     logger.warning(f"  {base:<28}: NOT SET - {detail}")
                 await asyncio.sleep(0.15)
+
+            if skipped:
+                logger.info(
+                    f"  not in play           : {len(skipped)} field(s) the page "
+                    f"has collapsed — {', '.join(skipped)}"
+                )
 
         # Controls the id-based map cannot name, matched by their label.
         failures.extend(await self._fill_extra_fields(page))
@@ -2820,12 +3081,23 @@ class Monitor:
         logger.info(f"  filled                : {filled} field(s)")
 
         if missing_required:
+            # config.yaml is gitignored, so each machine has its own copy and
+            # they drift: this machine's was missing the whole Travel/hotel/
+            # contact block that the repo's template has (run 20261014_180450,
+            # twenty blank fields). Naming the file and printing a paste-ready
+            # block makes the fix one copy rather than one guess per field.
             logger.error(
-                "monitor: cannot submit - these required settings are blank "
-                "in config.yaml:"
+                "monitor: cannot submit — these required settings are blank in "
+                f"{_CONFIG_PATH} (this machine's own copy; it is not in git):"
             )
             for name in missing_required:
                 logger.error(f"    - {name}")
+            logger.error(
+                "    Add them under 'applicant:' — or paste the block below and "
+                "fill in the values — then restart:"
+            )
+            for name in missing_required:
+                logger.error(f'      {name.split(" ")[0]}: ""')
             await utils.screenshot(page, "applicant-form-incomplete")
             self.state.log_event(
                 "bot",
@@ -2885,7 +3157,66 @@ class Monitor:
         self.state.log_event("bot", "applicant details submitted", status="ok")
         logger.info("=" * 60)
         await self._survey_page(page, "after-applicant-submit")
+
+        # Payment is what follows this form. Stop there rather than letting the
+        # next step run against a page asking for card details.
+        if await self.detect_stage(page) == "payment":
+            return await self._pause_for_payment(page)
         return True
+
+    async def _pick_inviting_party(self, page: Any, index: int = 0) -> bool:
+        """Say what the inviting party IS, instead of taking the page's default.
+
+        Section 11 defaults to "Inviting company/organization", which for a
+        tourist booking at a hotel is both untrue and expensive: that option
+        also opens the contact-person half of the section, eight more required
+        fields naming a person at the hotel. Choosing "Hotel(s) or temporary
+        accommodation(s)" is the honest answer and closes them.
+
+        Configured as applicant.inviting_party: hotel | company | person.
+        """
+        applicant = self.config.get("applicant", {}) or {}
+        choice = str(applicant.get("inviting_party", "") or "hotel").strip().lower()
+        value = INVITING_PARTY_VALUES.get(choice)
+        if value is None:
+            logger.warning(
+                f"  inviting party        : {choice!r} is not one of "
+                f"{sorted(INVITING_PARTY_VALUES)} — leaving the page's default"
+            )
+            return False
+
+        try:
+            result = await page.evaluate(
+                _PICK_INVITING_PARTY_JS, {"index": index, "value": value}
+            )
+        except Exception as exc:
+            logger.warning(f"  inviting party        : could not select — {exc}")
+            return False
+
+        if not result.get("ok"):
+            logger.warning(
+                f"  inviting party        : {result.get('reason')} "
+                f"{result.get('options') or ''}"
+            )
+            return False
+
+        logger.info(
+            f"  inviting party        : {choice} — {result.get('label')!r}"
+            + (" (already selected)" if result.get("already") else "")
+        )
+        # The handler animates with show('slow')/hide('slow'); reading
+        # visibility before it settles would mark the wrong half as in play.
+        await asyncio.sleep(1.2)
+        return True
+
+    async def _controls_in_play(self, page: Any, index: int = 0) -> dict[str, bool]:
+        """Which mapped controls are actually visible on this form right now."""
+        ids = [f"{base}_{index}" for base, _kind, _key, _req in APPLICANT_FIELDS]
+        try:
+            return await page.evaluate(_CONTROL_VISIBLE_JS, ids)
+        except Exception as exc:
+            logger.debug(f"monitor: visibility probe failed: {exc}")
+            return {}
 
     async def _fill_extra_fields(self, page: Any, index: int = 0) -> list[str]:
         """Fill applicant.extra_fields, which are keyed by visible label.
@@ -2898,6 +3229,7 @@ class Monitor:
             return []
 
         failures: list[str] = []
+        dumped_labels = False
         for label, value in extras.items():
             text = str(value or "").strip()
             if not text:
@@ -2920,10 +3252,22 @@ class Monitor:
                 detail = str(result.get("reason"))
                 if result.get("options"):
                     detail += f" (offered: {result['options']})"
-                elif result.get("seen"):
-                    detail += f" (labels on the page: {result['seen']})"
                 failures.append(f"{label}: {detail}")
                 logger.warning(f"  {str(label)[:26]:<28}: NOT SET - {detail}")
+                if result.get("seen") and not dumped_labels:
+                    # Once per form, not once per entry: five misses printed
+                    # forty labels each and buried the actual error.
+                    dumped_labels = True
+                    logger.warning(
+                        "  extra_fields are matched by visible LABEL. Every "
+                        f"label on this page: {result['seen']}"
+                    )
+                    logger.warning(
+                        "  If the control already has a mapped id in "
+                        "APPLICANT_FIELDS, this entry is a leftover from the "
+                        "old label-matching approach — delete it from "
+                        "applicant.extra_fields."
+                    )
             await asyncio.sleep(0.15)
         return failures
 
