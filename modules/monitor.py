@@ -259,6 +259,24 @@ _DATEPICKER_OPEN_JS = r"""
 # read the rendered <li>s, and click the green one. Availability is a
 # BACKGROUND COLOUR on the item, exactly like the calendar.
 _SLOT_OPEN_JS = r"""
+// Kendo's dd.ul is a jQuery OBJECT, not a DOM element, so dd.ul.querySelectorAll
+// does not exist -- it threw "querySelectorAll is not a function" against the
+// live portal and the slot step gave up instantly (runs 20261014_042703 and
+// _043702). A hand-written mock that returned a raw <ul> hid this in testing.
+// dd.items() is Kendo's own accessor and returns the real <li> elements;
+// unwrapping dd.ul[0] is the fallback.
+function kendoItems(dd) {
+  try {
+    if (dd && typeof dd.items === 'function') {
+      const got = dd.items();
+      if (got && got.length) return Array.prototype.slice.call(got);
+    }
+  } catch (e) { /* fall through to the ul */ }
+  const ul = dd && dd.ul ? (dd.ul[0] || dd.ul) : null;
+  if (!ul || typeof ul.querySelectorAll !== 'function') return [];
+  return Array.prototype.slice.call(ul.querySelectorAll('li'));
+}
+
 (dateId) => {
   // The slot widget is decoyed like everything else (AppointmentSlot1..5) and
   // the real one carries the same numeric suffix as the real date picker.
@@ -289,7 +307,7 @@ _SLOT_OPEN_JS = r"""
   // Reopening rebuilds it from the current data.
   const rows = (dd.dataSource && dd.dataSource.data()) || [];
   dd.open();
-  const rendered = dd.ul ? dd.ul.querySelectorAll('li').length : 0;
+  const rendered = kendoItems(dd).length;
   return { ok: true, id: input.id, opened: true,
            dataCount: rows.length, rendered };
 }
@@ -297,14 +315,30 @@ _SLOT_OPEN_JS = r"""
 
 # Read the options the open dropdown is showing, and click one by index.
 _SLOT_PICK_JS = r"""
+// Kendo's dd.ul is a jQuery OBJECT, not a DOM element, so dd.ul.querySelectorAll
+// does not exist -- it threw "querySelectorAll is not a function" against the
+// live portal and the slot step gave up instantly (runs 20261014_042703 and
+// _043702). A hand-written mock that returned a raw <ul> hid this in testing.
+// dd.items() is Kendo's own accessor and returns the real <li> elements;
+// unwrapping dd.ul[0] is the fallback.
+function kendoItems(dd) {
+  try {
+    if (dd && typeof dd.items === 'function') {
+      const got = dd.items();
+      if (got && got.length) return Array.prototype.slice.call(got);
+    }
+  } catch (e) { /* fall through to the ul */ }
+  const ul = dd && dd.ul ? (dd.ul[0] || dd.ul) : null;
+  if (!ul || typeof ul.querySelectorAll !== 'function') return [];
+  return Array.prototype.slice.call(ul.querySelectorAll('li'));
+}
+
 ({ inputId, wantIndex }) => {
   const input = document.getElementById(inputId);
   const dd = input && window.jQuery && jQuery(input).data('kendoDropDownList');
   if (!dd) return { ok: false, reason: 'widget vanished' };
 
-  const list = dd.ul;                       // the rendered <ul> of <li> items
-  if (!list) return { ok: false, reason: 'no list element' };
-  const items = Array.from(list.querySelectorAll('li'));
+  const items = kendoItems(dd);
   if (!items.length) return { ok: false, reason: 'not-loaded' };
 
   const colourOf = (el) => {
