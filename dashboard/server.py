@@ -18,7 +18,9 @@ from __future__ import annotations
 
 import argparse
 import logging
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -43,8 +45,102 @@ class RemoteState:
     directly, because the bot lives in another process.
     """
 
-    def __init__(self, config: dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any], config_path: Path | None = None) -> None:
         self._config = config
+        self._config_path = Path(config_path or ROOT / "config.yaml")
+        # The bot process this dashboard launched, if it launched one.
+        self._child: Any = None
+
+    # --- is there a bot to talk to at all? ------------------------------- #
+    def bot_online(self) -> bool:
+        _status, _log, age = ipc.read_state()
+        return age <= ipc.STALE_AFTER
+
+    def _python(self) -> str:
+        """The interpreter the bot is installed under, not whatever runs this.
+
+        The dashboard may be started by a different python (or by a service),
+        and bot.py needs the venv that has playwright in it.
+        """
+        for candidate in (
+            ROOT / ".venv" / "Scripts" / "python.exe",   # Windows
+            ROOT / ".venv" / "bin" / "python",           # POSIX
+        ):
+            if candidate.exists():
+                return str(candidate)
+        return sys.executable
+
+    def launch_bot(self) -> str:
+        """Start bot.py as its own process. Returns a line for the UI.
+
+        Start used to only write a command file for a running bot to pick up,
+        which does nothing at all when no bot is running -- and that is exactly
+        when someone presses Start. The dashboard is a separate process by
+        design, so starting the bot means launching it.
+        """
+        if self._child is not None and self._child.poll() is None:
+            return "the bot is already starting up"
+
+        python = self._python()
+        command = [python, str(ROOT / "bot.py"), "--config", str(self._config_path)]
+
+        # Anything the bot prints before loguru is configured -- a config error,
+        # a missing dependency -- would otherwise go nowhere, and the symptom
+        # would be "Start does nothing" all over again.
+        log_path = ROOT / "logs" / "dashboard-launch.log"
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            sink = log_path.open("a", encoding="utf-8")
+        except OSError:
+            sink = None
+
+        # Detached, so the bot keeps running when the dashboard is closed.
+        extra: dict[str, Any] = {}
+        if sys.platform == "win32":
+            extra["creationflags"] = (
+                subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore[attr-defined]
+                | getattr(subprocess, "DETACHED_PROCESS", 0)
+            )
+        else:
+            extra["start_new_session"] = True
+
+        try:
+            self._child = subprocess.Popen(
+                command,
+                cwd=str(ROOT),
+                stdout=sink or subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL,
+                **extra,
+            )
+        except Exception as exc:
+            logger.error(f"dashboard: could not launch the bot — {exc}")
+            return f"could not launch the bot: {exc}"
+
+        logger.info(
+            f"dashboard: launched the bot (pid {self._child.pid}) with {python}"
+        )
+
+        # It may fail immediately -- a bad config, a missing package. Saying so
+        # now beats a panel that sits at "offline" with no explanation.
+        time.sleep(1.5)
+        if self._child.poll() is not None:
+            tail = ""
+            try:
+                lines = log_path.read_text(encoding="utf-8", errors="replace")
+                tail = lines.strip().splitlines()[-1][:200] if lines.strip() else ""
+            except OSError:
+                pass
+            logger.error(
+                f"dashboard: the bot exited immediately (code "
+                f"{self._child.returncode}) — {tail}"
+            )
+            return (
+                f"the bot exited immediately (code {self._child.returncode}). "
+                f"See logs/dashboard-launch.log. {tail}"
+            )
+
+        return f"bot started (pid {self._child.pid}); it reports in within ~15s"
 
     # --- reads ---------------------------------------------------------- #
     def snapshot(self) -> dict[str, Any]:
@@ -81,8 +177,12 @@ class RemoteState:
         return log[:limit]
 
     # --- writes become commands ----------------------------------------- #
-    def request_start(self) -> None:
-        ipc.send_command("start")
+    def request_start(self) -> str:
+        """Resume a running bot, or launch one when none is running."""
+        if self.bot_online():
+            ipc.send_command("start")
+            return "start sent to the running bot"
+        return self.launch_bot()
 
     def request_pause(self) -> None:
         ipc.send_command("pause")
@@ -142,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
-    state = RemoteState(config)
+    state = RemoteState(config, config_path)
     app = create_app(config, state, str(config_path))
 
     where = "this machine only" if host in LOOPBACK else "ANY machine that can reach this host"

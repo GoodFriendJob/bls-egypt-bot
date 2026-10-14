@@ -1327,6 +1327,10 @@ class Monitor:
         self._appointment_cooldown_minutes: int = 0
         # Whatever the portal said when it last refused the applicant form.
         self._submit_refusals: list[str] = []
+        # What is being booked: the combination, and the date and slot taken.
+        # Collected as the booking proceeds so the confirmation can describe
+        # the appointment rather than just announcing that one happened.
+        self._booked: dict[str, Any] = {}
         self._current_combo_text: str = ""
         self._last_no_date_signature: str = ""
         retry = config.get("retry", {}) or {}
@@ -2050,6 +2054,9 @@ class Monitor:
 
         self._option_unavailable = None
         self._current_combo_text = self.describe_combo(combo)
+        # Start a fresh record for this attempt; the date and slot are added
+        # as they are taken.
+        self._booked = {"combo": dict(combo)}
         # Fields configured with more than one value; only those are strict.
         swept: set[str] = combo.get("_swept") or set()
         logger.info("=" * 60)
@@ -2198,8 +2205,7 @@ class Monitor:
             # "Cairo" alone does not say which visa type opened up.
             await self.notifier.slot_found(
                 combo.get("location_key", combo.get("location", "")),
-                "booking page reached",
-                selection=combo_text,
+                combo=combo,
             )
             await self._survey_page(page, "manage-appointment")
 
@@ -2562,6 +2568,7 @@ class Monitor:
 
             if await self._pick_green_slot(page, self._date_field_id):
                 chosen_slot = True
+                self._booked["date"] = iso
                 break
             logger.info(
                 f"  date                  : {iso} has no free slot — trying the next"
@@ -2874,10 +2881,23 @@ class Monitor:
         return [
             key
             for base, _kind, key, required in APPLICANT_FIELDS
-            if required
+            if self._is_required(base, required)
             and asked_for(base)
             and not str(applicant.get(key, "") or "").strip()
         ]
+
+    def _is_required(self, base: str, required: bool) -> bool:
+        """Whether the form asks for this control, given the radio answers.
+
+        Section 9's date is required exactly when the answer is "prints were
+        taken" -- the page shows it then and hides it otherwise -- so a static
+        flag on the field cannot express it.
+        """
+        if base == "PreviousFingerPrintDate":
+            applicant = self.config.get("applicant", {}) or {}
+            choice = str(applicant.get("fingerprints", "") or "none").strip().lower()
+            return choice == "taken"
+        return required
 
     async def warn_about_missing_settings(self) -> list[str]:
         """Say so, loudly and over Telegram, before a slot is spent on it."""
@@ -3237,7 +3257,7 @@ class Monitor:
                 if kind == "date":
                     value = self._normalise_date(value)
                 if not value:
-                    if required:
+                    if self._is_required(base, required):
                         missing_required.append(f"{key} (-> {element_id})")
                     continue
 
@@ -3365,6 +3385,24 @@ class Monitor:
 
         logger.success(f"monitor: applicant details submitted - now at {page.url}")
         self.state.log_event("bot", "applicant details submitted", status="ok")
+        self.state.mark_booked(
+            {
+                "selection": self.describe_combo(self._booked["combo"])
+                if self._booked.get("combo")
+                else self._current_combo_text,
+                "date": self._booked.get("date", ""),
+                "slot": self._booked.get("slot", ""),
+                "submitted_at": datetime.now().isoformat(timespec="seconds"),
+            }
+        )
+        await self.notifier.application_submitted(
+            self._booked,
+            next_step=(
+                "live video verification — the applicant has to do this one in "
+                "person. The browser is open and waiting; send /resume when it "
+                "is done."
+            ),
+        )
         logger.info("=" * 60)
         await self._survey_page(page, "after-applicant-submit")
 
@@ -4243,6 +4281,7 @@ class Monitor:
             return False
 
         logger.success(f"  slot chosen           : {picked['clicked']!r}")
+        self._booked["slot"] = str(picked["clicked"])
         await self._settle(page)
         await asyncio.sleep(1.0)
         return True

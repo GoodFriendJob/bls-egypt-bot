@@ -146,18 +146,38 @@ class Notifier:
         time: str = "",
         *,
         selection: str = "",
+        combo: dict[str, Any] | None = None,
     ) -> bool:
-        """Announce an opening.
+        """Announce an opening, naming the combination field by field.
 
-        ``selection`` names the swept combination (location / visa type / sub
-        type / category / applicant). With several combinations in play, the
-        city alone does not say which one actually opened up.
+        ``combo`` is the swept combination as build_combinations makes it, and
+        each of its fields gets its own line: with a sweep running, a single
+        slash-separated string is hard to read at a glance on a phone, and the
+        city alone does not say which visa type actually opened up.
+
+        ``selection`` is the same thing pre-formatted, kept for the caller that
+        has only the text.
         """
-        detail = " ".join(part for part in (date, time) if part) or "details on the page"
-        lines = ["🟢 SLOT FOUND", f"Location: {location.title()}"]
-        if selection:
+        lines = ["🟢 Slot Found", f"Location: {(combo or {}).get('location') or location.title()}"]
+        if combo:
+            for label, key in (
+                ("Category", "appointment_category"),
+                ("Appointment For", "appointment_for"),
+                ("Visa type", "visa_type"),
+                ("Visa sub type", "visa_sub_type"),
+            ):
+                value = str(combo.get(key, "") or "").strip()
+                if value:
+                    lines.append(f"{label}: {value}")
+        elif selection:
             lines.append(f"Selection: {selection}")
-        lines.append(f"When: {detail}")
+
+        # Only when it is actually known. On detection it usually is not: the
+        # date and slot are chosen on the page that follows.
+        when = " ".join(part for part in (date, time) if part).strip()
+        if when:
+            lines.append(f"When: {when}")
+
         return await self.send("\n".join(lines) + "\n\nBooking now…")
 
     async def manual_required(self, reason: str, *, screenshot: str | None = None) -> bool:
@@ -168,6 +188,88 @@ class Notifier:
         if screenshot:
             return await self.send_photo(screenshot, text)
         return await self.send(text)
+
+    async def application_submitted(
+        self,
+        booked: dict[str, Any] | None = None,
+        *,
+        next_step: str = "",
+    ) -> bool:
+        """Confirm the applicant form went through, and summarise what went in.
+
+        This is the message that matters most: it is the record of what was
+        actually submitted on the applicant's behalf, so it reads back the
+        appointment and the details that were filled rather than just saying
+        "submitted". ``next_step`` names what the booking is waiting on.
+        """
+        applicant = self.config.get("applicant", {}) or {}
+        combo = (booked or {}).get("combo") or {}
+
+        def get(*keys: str) -> str:
+            for key in keys:
+                value = str(applicant.get(key, "") or "").strip()
+                if value:
+                    return value
+            return ""
+
+        lines = [
+            "✅ Application submitted",
+            "",
+            "The applicant form was accepted and the appointment is held.",
+        ]
+
+        name = " ".join(p for p in (get("first_name"), get("surname")) if p)
+        who = [
+            ("Name", name or get("full_name")),
+            ("Date of birth", get("dob")),
+            ("Nationality", get("nationality")),
+            ("Passport", " · ".join(
+                p for p in (get("passport_number"), get("passport_type")) if p
+            )),
+        ]
+        lines += ["", "👤 APPLICANT"] + [
+            f"{label}: {value}" for label, value in who if value
+        ]
+
+        when = " at ".join(
+            p for p in ((booked or {}).get("date"), (booked or {}).get("slot")) if p
+        )
+        visa = " · ".join(
+            p for p in (combo.get("visa_type"), combo.get("visa_sub_type")) if p
+        )
+        appointment = [
+            ("Centre", str(combo.get("location", "") or "")),
+            ("Date & time", when),
+            ("Visa", visa),
+            ("Category", str(combo.get("appointment_category", "") or "")),
+            ("Booked for", str(combo.get("appointment_for", "") or "")),
+        ]
+        lines += ["", "📅 APPOINTMENT"] + [
+            f"{label}: {value}" for label, value in appointment if value
+        ]
+
+        stay = get("intended_stay_days")
+        trip = [
+            ("Purpose", get("purpose_of_journey")),
+            ("Destination", get("destination_state")),
+            ("Travel date", get("travel_date")),
+            ("Arrival → departure", " → ".join(
+                p for p in (get("arrival_date"), get("departure_date")) if p
+            )),
+            ("Length of stay", f"{stay} day(s)" if stay else ""),
+            ("Entries", get("number_of_entries")),
+            ("Staying at", " · ".join(
+                p for p in (get("hotel_name"), get("hotel_city")) if p
+            )),
+        ]
+        lines += ["", "✈️ TRIP"] + [
+            f"{label}: {value}" for label, value in trip if value
+        ]
+
+        if next_step:
+            lines += ["", f"➡️ NEXT: {next_step}"]
+
+        return await self.send("\n".join(lines))
 
     async def appointment_confirmed(self, details: dict[str, Any]) -> bool:
         lines = "\n".join(f"{key}: {value}" for key, value in details.items() if value)

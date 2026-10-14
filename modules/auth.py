@@ -473,6 +473,9 @@ class BLSAuth:
         self._last_captcha_submit_status: int | None = None
         self._captcha_issued_at: float = 0.0
         self._last_captcha_generate_status: int | None = None
+        # The last plain-http URL whose request died, so a navigation that was
+        # redirected to port 80 can be retried where it was actually going.
+        self._last_insecure_url: str = ""
 
         self.session_file = Path(SESSION_FILE)
 
@@ -668,10 +671,25 @@ class BLSAuth:
                         )
 
         def _on_failed(request: Any) -> None:
-            url = (request.url or "").lower()
-            if any(hint in url for hint in interesting):
-                failure = getattr(request, "failure", None)
-                logger.warning(f"auth: [net] FAILED {request.url[:130]} — {failure}")
+            url = request.url or ""
+            failure = getattr(request, "failure", None)
+            # Remember ANY plain-http hop that dies, whatever it is for. The
+            # portal answers https://.../visatypeverification with a 302 to
+            # http://.../Account/LogIn, and port 80 does not answer on this
+            # host -- so the navigation that fails is not the URL that was
+            # asked for, and retrying that URL just redirects to http again.
+            # Keeping the real one is what lets _goto go straight to its https
+            # form. Route interception does not cover a redirect hop: the
+            # upgrade route never logged a single rewrite while these failures
+            # piled up (run 20261014_213103).
+            if url.lower().startswith("http://"):
+                self._last_insecure_url = url
+                logger.warning(
+                    f"auth: [net] plain-http hop failed {url[:130]} — {failure}"
+                )
+                return
+            if any(hint in url.lower() for hint in interesting):
+                logger.warning(f"auth: [net] FAILED {url[:130]} — {failure}")
 
         try:
             page.on("response", _on_response)
@@ -2682,6 +2700,18 @@ class BLSAuth:
         rel = ((bls.get("paths") or {}).get(key) or "/").lstrip("/")
         return f"{base}/{rel}" if rel else f"{base}/"
 
+    def _secure_retry_url(self) -> str:
+        """The https form of the plain-http hop that just failed, if there was one.
+
+        Consumed on read: it describes one specific failure, and reusing it for
+        a later, unrelated timeout would send the browser somewhere arbitrary.
+        """
+        url = self._last_insecure_url
+        self._last_insecure_url = ""
+        if not url.lower().startswith("http://"):
+            return ""
+        return "https://" + url[len("http://"):]
+
     async def _goto(self, page: Page, url: str) -> None:
         """Navigate, and fail loudly if the portal served an error page.
 
@@ -2718,10 +2748,25 @@ class BLSAuth:
                     or timed_out
                 )
                 if timed_out and nav_attempt == 1:
-                    logger.warning(
-                        "auth: navigation timed out (the portal's http:// "
-                        "redirect does not answer) — retrying over https"
-                    )
+                    secure = self._secure_retry_url()
+                    if secure:
+                        # Go to the page that actually failed, over https.
+                        # Re-requesting the original just earns the same 302
+                        # to http and another 42-second timeout, which is how
+                        # a cold start failed both attempts and reported
+                        # "could not locate the real email field" for a page
+                        # that had never loaded.
+                        logger.warning(
+                            "auth: the portal's redirect pointed at http:// and "
+                            "port 80 does not answer — going straight to "
+                            f"{secure[:120]}"
+                        )
+                        url = secure
+                    else:
+                        logger.warning(
+                            "auth: navigation timed out (the portal's http:// "
+                            "redirect does not answer) — retrying over https"
+                        )
                 if not transient or nav_attempt == 2:
                     raise
                 logger.warning(

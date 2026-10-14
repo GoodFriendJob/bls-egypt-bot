@@ -52,6 +52,9 @@
       </div>
       <p id="pause-banner" class="banner hidden"></p>
       <p id="error-banner" class="banner err hidden"></p>
+      <!-- What a Start/Pause/Stop press actually did. Pressing Start with no
+           bot running used to look identical to pressing it with one. -->
+      <p id="control-banner" class="banner hidden"></p>
     </section>
 
     <!-- Locations -------------------------------------------------------- -->
@@ -542,14 +545,40 @@ function animateBar() {
 }
 
 async function control(action) {
+  const banner = $("control-banner");
   try {
-    await fetch("/api/control", {
+    const res = await fetch("/api/control", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({action})
     });
+    const data = await res.json().catch(() => ({}));
+    // Say what happened. Start with no bot running launches one, which takes
+    // a few seconds to report in -- without this the panel just sat at
+    // "offline" and the press looked ignored.
+    const text = data.note || data.error || "";
+    if (text) {
+      banner.textContent = text;
+      banner.className = data.ok === false || /could not|exited/.test(text)
+        ? "banner err" : "banner";
+      banner.classList.remove("hidden");
+    } else banner.classList.add("hidden");
     refresh();
-  } catch (e) { console.error("control failed", e); }
+    // The bot publishes its first state within ~15s of launching; keep
+    // looking so the panel flips to online on its own.
+    if (action === "start") {
+      let tries = 0;
+      const poll = setInterval(() => {
+        refresh();
+        if (++tries >= 10) clearInterval(poll);
+      }, 2000);
+    }
+  } catch (e) {
+    console.error("control failed", e);
+    banner.textContent = String(e);
+    banner.className = "banner err";
+    banner.classList.remove("hidden");
+  }
 }
 
 /* --- wiring --------------------------------------------------------------- */

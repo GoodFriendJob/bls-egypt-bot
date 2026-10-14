@@ -178,8 +178,12 @@ def create_app(
         payload = request.get_json(silent=True) or {}
         action = str(payload.get("action", "")).lower()
 
+        # The standalone dashboard returns a line describing what it did --
+        # whether it resumed a running bot or launched one, and why that
+        # failed. In-process BotState returns None, so there is simply no note.
+        note = ""
         if action == "start":
-            state.request_start()
+            note = state.request_start() or ""
         elif action == "pause":
             state.request_pause()
         elif action == "stop":
@@ -187,8 +191,10 @@ def create_app(
         else:
             return jsonify({"ok": False, "error": f"unknown action {action!r}"}), 400
 
-        logger.info(f"dashboard: control action {action!r}")
-        return jsonify({"ok": True, "action": action, "status": state.snapshot()})
+        logger.info(f"dashboard: control action {action!r} {note}".rstrip())
+        return jsonify(
+            {"ok": True, "action": action, "note": note, "status": state.snapshot()}
+        )
 
     @app.errorhandler(500)
     def handle_500(exc: Any) -> Any:  # pragma: no cover - defensive
