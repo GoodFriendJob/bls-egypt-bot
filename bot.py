@@ -393,6 +393,11 @@ async def dashboard_bridge(
                     state.request_stop()
                 else:
                     logger.warning(f"dashboard bridge: unknown action {action!r}")
+                # Publish straight away so the panel reflects the button press
+                # now, instead of up to one poll later.
+                ipc.publish_state(
+                    state.snapshot(), state.recent_log(limit=log_limit)
+                )
 
             # The dashboard writes config.yaml directly; reload when it changes
             # so an edit reaches the running bot without a restart.
@@ -594,6 +599,15 @@ async def _run_with_state(
     try:
         if args.once:
             logger.info("single-cycle mode (--once)")
+            # Publish during a single cycle too. Without this the dashboard
+            # showed nothing at all while a --once run (start_headful.bat) was
+            # in progress, because the bridge only existed on the 24/7 path.
+            bridge: asyncio.Task[Any] | None = None
+            if (config.get("dashboard", {}) or {}).get("enabled", True):
+                bridge = asyncio.create_task(
+                    dashboard_bridge(config, state, Path(args.config)),
+                    name="dashboard-bridge",
+                )
             try:
                 await monitor.run_once()
             except PortalUnreachableError as exc:
@@ -606,6 +620,15 @@ async def _run_with_state(
                     "and carry on by itself"
                 )
                 exit_code = 2
+            finally:
+                if bridge is not None:
+                    # One last publish so the panel shows how the cycle ended,
+                    # then stop.
+                    try:
+                        ipc.publish_state(state.snapshot(), state.recent_log(limit=300))
+                    except Exception:
+                        pass
+                    bridge.cancel()
         else:
             tasks.append(asyncio.create_task(monitor.run(), name="monitor"))
             tasks.append(

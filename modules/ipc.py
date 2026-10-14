@@ -24,8 +24,14 @@ from typing import Any
 
 from loguru import logger
 
-STATE_FILE = Path("logs/state.json")
-COMMAND_FILE = Path("logs/command.json")
+# Anchored to the project root, NOT the working directory. The bot and the
+# dashboard are separate processes now and need not share a cwd; a relative
+# path would have them writing and reading different files without any error
+# to show for it.
+_ROOT = Path(__file__).resolve().parent.parent
+
+STATE_FILE = _ROOT / "logs" / "state.json"
+COMMAND_FILE = _ROOT / "logs" / "command.json"
 
 # How stale a state file may be before the dashboard calls the bot offline.
 # The publisher writes every 2s, so this tolerates a few missed beats without
