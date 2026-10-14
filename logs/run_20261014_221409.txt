@@ -1,0 +1,100 @@
+BLS appointment bot - run transcript
+started : 2026-10-14T22:14:09
+command : bot.py
+python  : 3.11.9
+======================================================================
+22:14:09 | INFO    | __main__ - ==============================================================
+22:14:09 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+22:14:09 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261014_221409.txt
+22:14:09 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+22:14:09 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+22:14:09 | INFO    | __main__ - ==============================================================
+22:14:11 | INFO    | modules.notifier - notifier: telegram listener started
+22:14:11 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+22:14:11 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+22:14:11 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+22:14:12 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+22:14:12 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+22:14:12 | INFO    | modules.auth - auth: browser launched
+22:14:13 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:14:55 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:14:55 | WARNING | modules.auth - auth: the portal's redirect pointed at http:// and port 80 does not answer — going straight to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:14:55 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification was interrupted — retrying once
+22:14:56 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:14:59 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+22:14:59 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:14:59 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:15:09 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:15:51 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:16:12 | WARNING | modules.auth - auth: login form not ready within 20s
+22:16:12 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+22:16:14 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+22:16:14 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-221614_login-no-email-field.png
+22:16:14 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+22:16:15 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-221614_login-failed-attempt1.png
+22:16:20 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+22:16:20 | INFO    | modules.auth - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:16:20 | ERROR   | modules.auth - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+22:16:20 | WARNING | modules.utils - block recorded in logs\cooldown.json
+22:16:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-221620_http-403.png
+22:16:20 | ERROR   | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+22:16:20 | INFO    | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+22:16:21 | ERROR   | modules.monitor - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+22:16:21 | WARNING | modules.monitor - monitor: sleeping 5 min, then logging in from scratch
+22:16:21 | INFO    | modules.auth - auth: browser closed
+22:16:21 | INFO    | modules.monitor - monitor: browser closed without saving the session
+22:16:21 | INFO    | modules.monitor - monitor: stored cookies cleared — next login is clean
+22:21:24 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+22:21:24 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+22:21:25 | INFO    | modules.auth - auth: browser launched
+22:21:25 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:22:07 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:22:07 | WARNING | modules.auth - auth: the portal's redirect pointed at http:// and port 80 does not answer — going straight to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:22:07 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification was interrupted — retrying once
+22:22:08 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:22:29 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+22:22:29 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:22:29 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:22:49 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:23:31 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:23:52 | WARNING | modules.auth - auth: login form not ready within 20s
+22:23:52 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+22:23:54 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+22:23:54 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-222354_login-no-email-field.png
+22:23:54 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+22:23:54 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-222354_login-failed-attempt1.png
+22:23:59 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+22:23:59 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:24:22 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:25:04 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:25:25 | WARNING | modules.auth - auth: login form not ready within 20s
+22:25:25 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+22:25:27 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+22:25:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-222527_login-no-email-field.png
+22:25:28 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+22:25:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-222528_login-failed-attempt2.png
+22:25:28 | INFO    | modules.auth - auth: Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+22:25:28 | ERROR   | modules.monitor - monitor: login failed (1 in a row): Login failed after 2 attempt(s): could not locate the real email field among the honeypots
+22:25:28 | WARNING | modules.monitor - monitor: retrying login in 2 min
+22:25:28 | INFO    | modules.auth - auth: browser closed
+22:25:28 | INFO    | modules.monitor - monitor: browser closed without saving the session
+22:25:28 | INFO    | modules.monitor - monitor: stored cookies cleared — next login is clean
+22:27:30 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+22:27:30 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+22:27:30 | INFO    | modules.auth - auth: browser launched
+22:27:30 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:28:12 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:28:12 | WARNING | modules.auth - auth: the portal's redirect pointed at http:// and port 80 does not answer — going straight to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:28:12 | WARNING | modules.auth - auth: navigation to https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification was interrupted — retrying once
+22:28:14 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:28:33 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+22:28:33 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+22:28:34 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+22:28:56 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+22:29:38 | WARNING | modules.auth - auth: [net] plain-http hop failed http://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_CONNECTION_TIMED_OUT
+22:29:59 | WARNING | modules.auth - auth: login form not ready within 20s
+22:29:59 | WARNING | modules.auth - auth: no real email field on the first pass — retrying
+22:30:01 | WARNING | modules.auth - auth: div.mb-3 discriminator found nothing — falling back to the visibility scan; the login markup may have changed
+22:30:01 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-223001_login-no-email-field.png
+22:30:01 | WARNING | modules.auth - auth: login attempt failed: could not locate the real email field among the honeypots
+22:30:02 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261014-223001_login-failed-attempt1.png
