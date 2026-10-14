@@ -1597,6 +1597,97 @@ class BLSAuth:
             ordered.extend(sorted(row, key=lambda t: t["rect"]["x"]))
         return ordered
 
+    async def _screenshot_grid_element(
+        self, ctx: Any, tile_ids: list[str]
+    ) -> bytes | None:
+        """Screenshot the element that encloses the tiles.
+
+        Returns None when no suitable element is found, or when it is much
+        bigger than the tiles themselves — a container that also holds the
+        prompt would put a band of text where row 1 should be and shift every
+        crop, which is the failure this is meant to avoid.
+        """
+        if not tile_ids:
+            return None
+        try:
+            found = await ctx.evaluate(
+                """
+                (ids) => {
+                  const els = ids.map((id) => document.getElementById(id))
+                                 .filter(Boolean);
+                  if (els.length < 2) return null;
+
+                  // Lowest common ancestor of every tile.
+                  let node = els[0];
+                  while (node && !els.every((el) => node.contains(el))) {
+                    node = node.parentElement;
+                  }
+                  if (!node) return null;
+
+                  // How much bigger is it than the tiles it holds?
+                  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+                  for (const el of els) {
+                    const q = el.getBoundingClientRect();
+                    l = Math.min(l, q.left); t = Math.min(t, q.top);
+                    r = Math.max(r, q.right); b = Math.max(b, q.bottom);
+                  }
+                  const box = node.getBoundingClientRect();
+                  const tilesW = r - l, tilesH = b - t;
+                  if (tilesW < 10 || tilesH < 10) return null;
+
+                  node.setAttribute('data-bot-grid', '1');
+                  return {
+                    growX: box.width / tilesW,
+                    growY: box.height / tilesH,
+                    tiles: els.length,
+                  };
+                }
+                """,
+                tile_ids,
+            )
+        except Exception as exc:
+            logger.debug(f"auth: could not locate the grid container: {exc}")
+            return None
+
+        if not found:
+            return None
+
+        # Allow a little chrome (borders, padding) but nothing resembling an
+        # extra row or column of content.
+        if found["growX"] > 1.25 or found["growY"] > 1.25:
+            logger.info(
+                f"  grid container  : {found['growX']:.2f}x{found['growY']:.2f} "
+                "larger than the tiles — using the measured clip instead"
+            )
+            return None
+
+        try:
+            element = await ctx.query_selector("[data-bot-grid]")
+            if element is None:
+                return None
+            png = await element.screenshot()
+        except Exception as exc:
+            logger.info(f"  grid container  : element shot failed ({exc}) — "
+                        "falling back to the measured clip")
+            return None
+        finally:
+            try:
+                await ctx.evaluate(
+                    """() => {
+                        const el = document.querySelector('[data-bot-grid]');
+                        if (el) el.removeAttribute('data-bot-grid');
+                    }"""
+                )
+            except Exception:
+                pass
+
+        if png:
+            logger.info(
+                f"  grid capture    : element screenshot, {len(png)} bytes "
+                f"({found['tiles']} tiles, no page coordinates involved)"
+            )
+        return png or None
+
     async def _screenshot_grid(
         self,
         ctx: Any,
@@ -1614,6 +1705,22 @@ class BLSAuth:
         folder that gets committed to git.
         """
         tile_ids = [t.get("id") for t in ordered if t.get("id")]
+
+        # FIRST CHOICE: let Playwright screenshot the grid ELEMENT. It scrolls
+        # the element into view and resolves its position itself, at capture
+        # time, so there is no window in which the page can move between
+        # measuring and shooting.
+        #
+        # The manual clip below has lost that race twice now. Re-measuring the
+        # iframe offset late fixed one half of it, but the page was STILL
+        # drifting between the measurement and the screenshot -- the offset
+        # moved 126 -> 171 -> 193 across attempts in run 20261014_063703 -- and
+        # the crops came back holding cut digits ("050", a bare "7") that no
+        # amount of model accuracy can rescue.
+        shot = await self._screenshot_grid_element(ctx, tile_ids)
+        if shot:
+            return shot
+
         if tile_ids:
             # Rects must be re-read in VIEWPORT space here. The scan stores
             # document coordinates (rect + scrollX/scrollY), but a non-fullPage
