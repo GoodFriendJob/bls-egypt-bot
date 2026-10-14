@@ -131,6 +131,23 @@ applicant:
   purpose_of_journey: ""         # REQ  dropdown, e.g. Tourism
   destination_state: "Spain"     # REQ  dropdown (defaults to ESP on the page)
   second_destination_state: ""   #      dropdown
+  # CONFIRMED controls: #CostCoveredById_0 and #MeansOfSupportId_0, both Kendo
+  # dropdowns. Matched on option text like every other dropdown.
+  cost_covered_by: ""          # REQ  who pays for the trip
+  # Means Of Support is a declaration of HOW the trip is funded. Typical
+  # options: Cash, Credit card, Traveller's cheques, Prepaid accommodation.
+  means_of_support: ""         # REQ
+
+  # Controls matched by their VISIBLE LABEL instead of their element id, for
+  # the parts of the form whose markup has not been captured. Read the label
+  # off the page and put it here verbatim; matching is case-insensitive and
+  # tolerates the required asterisk and extra words either way round. The bot
+  # detects what the control is (text / dropdown / date) and fills it
+  # accordingly. On a miss the log lists every label on the page, or every
+  # option the dropdown offered, so one run says exactly what to write here.
+  extra_fields: {}
+    # "Number of Entries": "1"
+    # "Intended Stay": "other"
 
   documents:
     passport_scan: "docs/passport.jpg"

@@ -393,6 +393,10 @@ APPLICANT_FIELDS: tuple[tuple[str, str, str, bool], ...] = (
     ("PurposeOfJourneyId",       "dropdown", "purpose_of_journey",       True),
     ("MemberStateDestinationId", "dropdown", "destination_state",        True),
     ("MemberStateSecondDestinationId", "dropdown", "second_destination_state", False),
+    # CONFIRMED ids; both are Kendo dropdowns fed by costCoveredData /
+    # meansOfSupportData.
+    ("CostCoveredById",          "dropdown", "cost_covered_by",          True),
+    ("MeansOfSupportId",         "dropdown", "means_of_support",         True),
 )
 
 # Fill one field. Kendo owns the date pickers and dropdowns, so their widget
@@ -456,6 +460,78 @@ _FILL_FIELD_JS = r"""
 # entries/stay/previous-visa/expenses controls whose ids were never seen. This
 # reports them by id and label so they can be added to APPLICANT_FIELDS without
 # another round of guessing.
+# Fill a control located by its visible LABEL rather than its element id.
+#
+# APPLICANT_FIELDS keys off ids, which only works for markup that has been
+# captured. The form carries more required controls than that -- Number of
+# Entries, Intended Stay, Cost Covered By, Means Of Support -- and their ids
+# were never seen. Labels ARE visible on the page, so config can name them
+# directly and no id has to be invented. The kind is detected from whatever
+# widget the control turns out to be.
+_FILL_BY_LABEL_JS = r"""
+({ label, value, index }) => {
+  const form = document.getElementById('visaForm') || document;
+  const norm = (t) => String(t || '').replace(/\*/g, ' ')
+                        .replace(/\s+/g, ' ').trim().toLowerCase();
+  const want = norm(label);
+  const suffix = '_' + (index || 0);
+
+  const seen = [];
+  let target = null;
+  for (const el of form.querySelectorAll('label')) {
+    const id = el.getAttribute('for');
+    if (!id) continue;
+    // Only this applicant's controls, so a family booking cannot cross-fill.
+    if (/_\d+$/.test(id) && !id.endsWith(suffix)) continue;
+    const text = norm(el.innerText);
+    if (!text) continue;
+    seen.push(text);
+    if (text === want || text.includes(want) || want.includes(text)) {
+      const node = document.getElementById(id);
+      if (node) { target = node; break; }
+    }
+  }
+  if (!target) return { ok: false, reason: 'no label match', seen: seen.slice(0, 40) };
+
+  const $ = window.jQuery;
+  const dd = $ && $(target).data('kendoDropDownList');
+  const dp = $ && $(target).data('kendoDatePicker');
+
+  if (dd) {
+    const data = dd.dataSource.data() || [];
+    const textField = (dd.options && dd.options.dataTextField) || 'Name';
+    const valueField = (dd.options && dd.options.dataValueField) || 'Id';
+    const texts = data.map((d) => String(d[textField] || ''));
+    const w = norm(value);
+    let i = texts.findIndex((t) => norm(t) === w);
+    if (i < 0) i = texts.findIndex((t) => norm(t).includes(w));
+    if (i < 0 && w.length >= 4) {
+      i = texts.findIndex((t) => norm(t).length >= 4 && w.includes(norm(t)));
+    }
+    if (i < 0) {
+      return { ok: false, id: target.id, reason: 'no such option',
+               options: texts.slice(0, 15), count: texts.length };
+    }
+    dd.value(data[i][valueField]);
+    dd.trigger('change');
+    return { ok: true, id: target.id, kind: 'dropdown', set: texts[i] };
+  }
+
+  if (dp) {
+    const parts = String(value).split('-').map(Number);
+    if (parts.length !== 3) return { ok: false, id: target.id, reason: 'bad date' };
+    dp.value(new Date(parts[0], parts[1] - 1, parts[2]));
+    dp.trigger('change');
+    return { ok: true, id: target.id, kind: 'date', set: target.value };
+  }
+
+  target.value = value;
+  target.dispatchEvent(new Event('input', { bubbles: true }));
+  target.dispatchEvent(new Event('change', { bubbles: true }));
+  return { ok: true, id: target.id, kind: 'text', set: target.value };
+}
+"""
+
 _UNFILLED_REQUIRED_JS = r"""
 () => {
   const form = document.getElementById('visaForm');
@@ -2073,6 +2149,9 @@ class Monitor:
                     logger.warning(f"  {base:<28}: NOT SET - {detail}")
                 await asyncio.sleep(0.15)
 
+        # Controls the id-based map cannot name, matched by their label.
+        failures.extend(await self._fill_extra_fields(page))
+
         logger.info(f"  filled                : {filled} field(s)")
 
         if missing_required:
@@ -2139,6 +2218,46 @@ class Monitor:
         logger.info("=" * 60)
         await self._survey_page(page, "after-applicant-submit")
         return True
+
+    async def _fill_extra_fields(self, page: Any, index: int = 0) -> list[str]:
+        """Fill applicant.extra_fields, which are keyed by visible label.
+
+        For controls APPLICANT_FIELDS cannot name because their ids were never
+        captured. Returns the labels that could not be set.
+        """
+        extras = (self.config.get("applicant", {}) or {}).get("extra_fields") or {}
+        if not isinstance(extras, dict) or not extras:
+            return []
+
+        failures: list[str] = []
+        for label, value in extras.items():
+            text = str(value or "").strip()
+            if not text:
+                continue
+            try:
+                result = await page.evaluate(
+                    _FILL_BY_LABEL_JS,
+                    {"label": str(label), "value": text, "index": index},
+                )
+            except Exception as exc:
+                failures.append(f"{label}: {exc}")
+                continue
+
+            if result.get("ok"):
+                logger.info(
+                    f"  {str(label)[:26]:<28}: {result.get('set')!r} "
+                    f"(#{result.get('id')}, {result.get('kind')})"
+                )
+            else:
+                detail = str(result.get("reason"))
+                if result.get("options"):
+                    detail += f" (offered: {result['options']})"
+                elif result.get("seen"):
+                    detail += f" (labels on the page: {result['seen']})"
+                failures.append(f"{label}: {detail}")
+                logger.warning(f"  {str(label)[:26]:<28}: NOT SET - {detail}")
+            await asyncio.sleep(0.15)
+        return failures
 
     async def _report_unfilled_required(self, page: Any) -> list[dict[str, Any]]:
         """Name any required control the page still shows as empty.
