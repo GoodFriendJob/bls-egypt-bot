@@ -435,6 +435,30 @@ APPLICANT_FIELDS: tuple[tuple[str, str, str, bool], ...] = (
     ("PurposeOfJourneyId",       "dropdown", "purpose_of_journey",       True),
     ("MemberStateDestinationId", "dropdown", "destination_state",        True),
     ("MemberStateSecondDestinationId", "dropdown", "second_destination_state", False),
+    ("MemberStateFirstEntryId",   "dropdown", "first_entry_state",        True),
+    ("NumberOfEntriesRequested",  "dropdown", "number_of_entries",        True),
+    # CONFIRMED: this one is numeric. "13 Nights 14 days" went in and came
+    # back as "" because the control only accepts a number of days.
+    ("IntendedStayDuration",      "text",     "intended_stay_days",       True),
+    ("IntendedDateOfArrival",     "date",     "arrival_date",             True),
+    ("IntendedDateOfDeparture",   "date",     "departure_date",           True),
+    # 8. The inviting party -- for a tourist booking, the hotel.
+    ("InvitingAuthorityName",     "text",     "hotel_name",               True),
+    ("InvitingCountryId",         "dropdown", "hotel_country",            True),
+    ("InvitingCity",              "text",     "hotel_city",               True),
+    ("InvitingZipCode",           "text",     "hotel_zip",                True),
+    ("InvitingAddress",           "text",     "hotel_address",            True),
+    ("InvitingEmail",             "text",     "hotel_email",              True),
+    ("InvitingContactNo",         "text",     "hotel_phone",              True),
+    # 9. A contact person at that address.
+    ("InvitingContactName",       "text",     "contact_first_name",       True),
+    ("InvitingContactSurname",    "text",     "contact_surname",          True),
+    ("InvitingContactCountryId",  "dropdown", "contact_country",          True),
+    ("InvitingContactCity",       "text",     "contact_city",             True),
+    ("InvitingContactZipCode",    "text",     "contact_zip",              True),
+    ("InvitingContactAddress",    "text",     "contact_address",          True),
+    ("InvitingContactContactNo",  "text",     "contact_phone",            True),
+    ("InvitingContactEmail",      "text",     "contact_email",            True),
     # CONFIRMED ids; both are Kendo dropdowns fed by costCoveredData /
     # meansOfSupportData.
     ("CostCoveredById",          "dropdown", "cost_covered_by",          True),
@@ -519,7 +543,7 @@ _FILL_BY_LABEL_JS = r"""
   const suffix = '_' + (index || 0);
 
   const seen = [];
-  let target = null;
+  let exact = null, partial = null;
   for (const el of form.querySelectorAll('label')) {
     const id = el.getAttribute('for');
     if (!id) continue;
@@ -528,11 +552,16 @@ _FILL_BY_LABEL_JS = r"""
     const text = norm(el.innerText);
     if (!text) continue;
     seen.push(text);
-    if (text === want || text.includes(want) || want.includes(text)) {
-      const node = document.getElementById(id);
-      if (node) { target = node; break; }
-    }
+    const node = document.getElementById(id);
+    if (!node) continue;
+    if (text === want) { exact = node; break; }
+    // The LABEL may carry extra words ("contact number" for "number"), but
+    // never the other way round: "Hotel Name" previously matched the plain
+    // label "name" and overwrote EmployerName_0 with the hotel, silently
+    // replacing a value that had already been filled correctly.
+    if (!partial && text.includes(want)) partial = node;
   }
+  const target = exact || partial;
   if (!target) return { ok: false, reason: 'no label match', seen: seen.slice(0, 40) };
 
   const $ = window.jQuery;
@@ -588,10 +617,22 @@ _UNFILLED_REQUIRED_JS = r"""
     const el = document.getElementById(id);
     if (!el) continue;
 
-    // Hidden sections (minor / other residence) are not in play unless their
-    // checkbox was ticked, and the bot never ticks them.
-    const box = el.closest('div[id^="minor_div"], div[id^="residence_div"]');
-    if (box && getComputedStyle(box).display === 'none') continue;
+    // Anything inside a collapsed section is not in play. The page gates
+    // several blocks behind a checkbox the bot never ticks -- minor details,
+    // other residence, and previous_visa_div_0 behind IsVisaIssuedBefore_0 --
+    // and naming them individually missed the last one, which reported five
+    // phantom "required" fields for a visa the applicant has never held.
+    // Start from the Kendo wrapper, never the input: Kendo hides the original
+    // <input> by design, so walking from it marks EVERY dropdown as hidden and
+    // the scan stops reporting the very fields it exists to find.
+    let hidden = false;
+    const kendo = el.getAttribute('data-role') || el.closest('span.k-widget');
+    const start = el.closest('span.k-widget') || (kendo ? el.parentElement : el);
+    for (let n = start; n && n.nodeType === 1; n = n.parentElement) {
+      const st = getComputedStyle(n);
+      if (st.display === 'none' || st.visibility === 'hidden') { hidden = true; break; }
+    }
+    if (hidden) continue;
 
     let value = (el.value || '').trim();
     let kind = 'text';
