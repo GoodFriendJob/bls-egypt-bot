@@ -67,6 +67,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         # it has to be present for the same reason: a key the live dict lacks
         # is a key the dashboard cannot show.
         "inviting_party": "company",
+        "fingerprints": "none",
         **{key: "" for _base, _kind, key, _required in APPLICANT_FIELDS},
     },
     "openai": {"api_key": "", "model": "gpt-4o", "timeout": 45},

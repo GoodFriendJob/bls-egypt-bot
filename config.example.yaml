@@ -151,6 +151,17 @@ applicant:
   arrival_date: ""             # REQ  yyyy-mm-dd
   departure_date: ""           # REQ  yyyy-mm-dd
 
+  # Section 9, "Fingerprints collected previously for ... a schengen visa".
+  # CONFIRMED radio group PreviousFingerPrintStatus_<n>. The page defaults to
+  # "taken", which ASSERTS prints were already given and then demands the date
+  # -- the one field that stopped the 20:55 run with everything else filled.
+  #   none   - No reason for exemption: prints will be taken at the appointment
+  #   taken  - Prints taken in the last 59 months (then set the date below)
+  #   exempt - For legal reasons (under 12 years old)
+  fingerprints: "none"
+  # Only used when fingerprints is "taken". yyyy-mm-dd.
+  previous_fingerprint_date: ""
+
   # Section 11 of the form: WHAT the inviting party is. CONFIRMED radio group
   # BlsInvitingAuthority_<n>, whose own handler decides which half of the
   # section the page asks for:

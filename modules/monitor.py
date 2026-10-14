@@ -449,6 +449,10 @@ APPLICANT_FIELDS: tuple[tuple[str, str, str, bool], ...] = (
     ("IntendedStayDuration",      "text",     "intended_stay_days",       True),
     ("IntendedDateOfArrival",     "date",     "arrival_date",             True),
     ("IntendedDateOfDeparture",   "date",     "departure_date",           True),
+    # Section 9. Only in play when applicant.fingerprints is "taken"; the page
+    # hides this control for the other two answers, and a hidden control is
+    # neither filled nor counted as missing.
+    ("PreviousFingerPrintDate",   "date",     "previous_fingerprint_date", False),
     # 8. The inviting party -- for a tourist booking, the hotel.
     ("InvitingAuthorityName",     "text",     "hotel_name",               True),
     ("InvitingCountryId",         "dropdown", "hotel_country",            True),
@@ -656,9 +660,21 @@ _FILL_BY_LABEL_JS = r"""
 # there — eight fields that only exist because of a default nobody chose.
 INVITING_PARTY_VALUES = {"company": "0", "hotel": "1", "person": "2"}
 
-_PICK_INVITING_PARTY_JS = r"""
-({ index, value }) => {
-  const name = 'BlsInvitingAuthority_' + (index || 0);
+# Section 9, "Fingerprints collected previously ... for a schengen visa".
+# CONFIRMED markup: the same shape as section 11, and the same trap — it
+# defaults to value 0, which ASSERTS prints were already taken and then shows
+# a required date field for them. That is what stopped run 20261014_205534
+# with one phantom required field (PreviousFingerPrintDate_0) on a form where
+# everything else was filled.
+#
+#   value 0  Prints taken in last 59 months -> shows the date (required)
+#   value 1  For legal reasons (under 12 years old)
+#   value 2  No reason for exemption        -> prints will be taken at the visit
+FINGERPRINT_VALUES = {"taken": "0", "exempt": "1", "none": "2"}
+
+_PICK_RADIO_JS = r"""
+({ group, index, value }) => {
+  const name = group + '_' + (index || 0);
   const radios = Array.from(
     document.querySelectorAll(`input[type=radio][name="${name}"]`));
   if (!radios.length) return { ok: false, reason: 'no such radio group' };
@@ -669,11 +685,16 @@ _PICK_INVITING_PARTY_JS = r"""
   }
   const already = want.checked;
   // A real click so the page's own change handler runs and shows/hides the
-  // halves; setting .checked would leave both halves as they were.
+  // dependent fields; setting .checked would leave them as they were.
   want.click();
+  // Its OWN label, via for=. All three radios in a group share one parent
+  // <div> on this form, so the parent's text is the whole question and every
+  // choice logged itself as "Prints taken in last 59 months...".
+  const own = document.querySelector(`label[for="${want.id}"]`);
+  const text = own ? own.innerText
+                   : (want.parentElement && want.parentElement.innerText || '');
   return { ok: true, value: want.value, already,
-           label: (want.parentElement && want.parentElement.innerText || '')
-                    .replace(/\s+/g, ' ').trim().slice(0, 70) };
+           label: String(text).replace(/\s+/g, ' ').trim().slice(0, 70) };
 }
 """
 
@@ -812,6 +833,28 @@ _PAGE_STAGE_JS = r"""
   }
   if (anyVis('#btnSubmit') && /verify selection/i.test(text)) {
     return { stage: 'verification' };
+  }
+
+  // A live video / webcam identity check. Judged on the MEDIA, not on words:
+  // a <video> element or a camera permission prompt is what makes this page
+  // what it is, and the bot has no business driving it either way.
+  const media = anyVis('video') || !!document.querySelector('video[autoplay]');
+  if (media || /live video|video call|webcam|turn on your camera|allow camera/i
+                 .test(text)) {
+    return { stage: 'liveness' };
+  }
+
+  // Last, because almost every other step also has a primary button: a page
+  // whose only real action is one affirmative button.
+  const buttons = Array.prototype.filter.call(
+    document.querySelectorAll('button, a.btn, input[type=button]'), vis);
+  const affirm = buttons.filter((b) =>
+    /^(ok|yes|confirm|continue|proceed|next|done|finish)\b/i
+      .test(((b.innerText || b.value || '')).trim()));
+  if (affirm.length && buttons.length <= 6 &&
+      !document.querySelector('input[id^="AppointmentDate"]')) {
+    return { stage: 'confirm',
+             button: (affirm[0].innerText || affirm[0].value || '').trim() };
   }
   return { stage: '' };
 }
@@ -1282,6 +1325,8 @@ class Monitor:
         self._date_field_id: str = ""
         # Minutes the portal asked us to wait before starting another booking.
         self._appointment_cooldown_minutes: int = 0
+        # Whatever the portal said when it last refused the applicant form.
+        self._submit_refusals: list[str] = []
         self._current_combo_text: str = ""
         self._last_no_date_signature: str = ""
         retry = config.get("retry", {}) or {}
@@ -2778,6 +2823,14 @@ class Monitor:
         if stage == "payment":
             return stage, await self._pause_for_payment(page)
 
+        if stage == "liveness":
+            return stage, await self._pause_for_liveness(page)
+
+        if stage == "confirm":
+            if not await self._click_confirm(page):
+                return stage, False
+            return stage, await self._advance_remaining_stages(page)
+
         if stage == "terms":
             return stage, await self._accept_terms_of_service(page)
 
@@ -2864,6 +2917,157 @@ class Monitor:
             retry_info="monitoring continues; booking will stop short",
         )
         return missing
+
+    # Press the affirmative button on a confirmation page, and nothing else.
+    # Matched positively on its own text: a negative match ("whichever one is
+    # not Cancel") would press Back or Edit the moment the markup changed, and
+    # on this portal that throws the booking away.
+    _CLICK_CONFIRM_JS = r"""
+    () => {
+      const vis = (el) => {
+        const s = getComputedStyle(el);
+        if (s.display === 'none' || s.visibility === 'hidden') return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 2 && r.height > 2;
+      };
+      const no = /cancel|back|close|edit|disagree|reject|no\b|logout|exit/i;
+      const yes = /^(ok|yes|confirm|continue|proceed|next|done|finish)\b/i;
+      const pool = Array.from(
+        document.querySelectorAll('button, a.btn, input[type=button], input[type=submit]'));
+      const seen = [];
+      // Prefer a green/primary one, but only among those that already say yes.
+      const candidates = [];
+      for (const el of pool) {
+        if (!vis(el)) continue;
+        const text = ((el.innerText || el.value || '') + '').trim();
+        if (seen.length < 12) seen.push(text.slice(0, 30));
+        if (no.test(text)) continue;
+        if (!yes.test(text)) continue;
+        const cls = el.className || '';
+        candidates.push({ el, text, primary: /btn-(primary|success)/.test(cls) });
+      }
+      if (!candidates.length) return { ok: false, reason: 'no affirmative button', seen };
+      const pick = candidates.find((c) => c.primary) || candidates[0];
+      pick.el.click();
+      return { ok: true, text: pick.text, primary: pick.primary };
+    }
+    """
+
+    async def _click_confirm(self, page: Any) -> bool:
+        """Continue past a confirmation page."""
+        await utils.dump_page_html(page, "confirm-page")
+        try:
+            result = await page.evaluate(self._CLICK_CONFIRM_JS)
+        except Exception as exc:
+            logger.warning(f"  confirm page          : could not continue — {exc}")
+            return False
+
+        if not result.get("ok"):
+            logger.warning(
+                f"  confirm page          : {result.get('reason')}; "
+                f"controls seen: {result.get('seen')}"
+            )
+            await utils.screenshot(page, "confirm-no-button")
+            return False
+
+        logger.success(
+            f"  confirm page          : pressed {result.get('text')!r}"
+            + ("" if result.get("primary") else " (not a primary button)")
+        )
+        await self._settle(page)
+        await self._dismiss_open_modals(page)
+        return True
+
+    async def _pause_for_liveness(self, page: Any) -> bool:
+        """Hand the live video check to the applicant. Not automatable by design.
+
+        This is an identity check: it exists to confirm the applicant is
+        personally present. Feeding it a recording would defeat the one thing
+        it is for, on a real visa application, so the bot does not drive it --
+        it gets the applicant in front of it as fast as possible instead, with
+        the browser still open and the session still alive.
+        """
+        shot = await utils.screenshot(page, "liveness-step")
+        await utils.dump_page_html(page, "liveness-step")
+        logger.warning("=" * 60)
+        logger.warning("LIVE VIDEO VERIFICATION — HANDING OVER")
+        logger.warning(f"  url: {page.url}")
+        logger.warning("  The applicant has to do this one in person. The window")
+        logger.warning("  stays open; send /resume when it is done.")
+        logger.warning("=" * 60)
+        self.state.set_manual_pause("live video verification")
+        await self.notifier.manual_required(
+            "🎥 The booking has reached the LIVE VIDEO verification step.\n\n"
+            "This one confirms the applicant is personally present, so it has "
+            "to be done by them, on this machine — the browser is open and "
+            "waiting.\n\n"
+            f"Page: {page.url[:120]}",
+            screenshot=shot,
+        )
+
+        if not await self.notifier.wait_for_resume():
+            logger.warning("monitor: no /resume — holding the video page open")
+            await utils.interruptible_sleep(6 * 3600, self.state)
+            return False
+
+        self.state.clear_manual_pause()
+        logger.success("monitor: /resume received after the video step")
+        return True
+
+    async def _advance_remaining_stages(self, page: Any, limit: int = 6) -> bool:
+        """Keep reading the page and running the right step until it stops moving.
+
+        After the applicant form the portal walks through steps whose markup
+        has not been captured yet -- a confirmation page, then the video check,
+        then payment. Rather than assuming an order, each page is identified
+        and handled, and anything unrecognised stops the walk with the page
+        dumped so the next run can name it.
+        """
+        for step in range(limit):
+            await self._settle(page)
+            stage = await self.detect_stage(page)
+            logger.info(
+                f"monitor: step {step + 1}/{limit} — page is at stage {stage!r}"
+            )
+
+            if stage == "confirm":
+                if not await self._click_confirm(page):
+                    await self._hold_for_debug(
+                        page, "a confirmation page the bot could not continue past"
+                    )
+                    return False
+                continue
+
+            if stage == "liveness":
+                if not await self._pause_for_liveness(page):
+                    return False
+                continue
+
+            if stage == "payment":
+                return await self._pause_for_payment(page)
+
+            if stage == "terms":
+                await self._accept_terms_of_service(page)
+                continue
+
+            if stage == "applicant-form":
+                # Another applicant, or the same form served again.
+                return await self.complete_applicant_details(page)
+
+            if stage in ("bot-blocked", "appointment-cooldown"):
+                await self.resume_from_stage(page)
+                return False
+
+            logger.info(
+                f"monitor: stage {stage!r} needs no action here — the walk stops"
+            )
+            await utils.screenshot(page, "after-applicant-walk")
+            await utils.dump_page_html(page, "after-applicant-walk")
+            return True
+
+        logger.warning(f"monitor: still moving after {limit} steps — stopping here")
+        await self._hold_for_debug(page, f"more than {limit} steps after the form")
+        return False
 
     async def _pause_for_payment(self, page: Any) -> bool:
         """Stop at the payment step, keep the browser open, wait for /resume.
@@ -3014,8 +3218,8 @@ class Monitor:
             if index:
                 logger.info(f"  applicant {index + 1}")
 
-            # First, because it decides which fields exist at all.
-            await self._pick_inviting_party(page, index)
+            # First, because they decide which fields exist at all.
+            await self._answer_form_radios(page, index)
             visible = await self._controls_in_play(page, index)
             skipped: list[str] = []
 
@@ -3124,21 +3328,27 @@ class Monitor:
         unfilled = await self._report_unfilled_required(page)
         if unfilled:
             await utils.dump_page_html(page, "applicant-form-unmapped")
-            await self._hold_for_debug(
-                page, f"{len(unfilled)} required field(s) still empty"
+            # Hand over rather than idle: these can be typed into the open
+            # browser and the form submitted by hand, which is a finished
+            # booking instead of a lost slot.
+            return await self._hand_over_form(
+                page,
+                [
+                    f"{f['id']} — {f['label']!r} is required and still empty"
+                    for f in unfilled[:12]
+                ],
+                headline=(
+                    f"{len(unfilled)} required field(s) on the applicant form "
+                    "are empty and the bot has no value for them"
+                ),
             )
-            names = ", ".join(f"{f['id']} ({f['label']})" for f in unfilled[:12])
-            await self.notifier.manual_required(
-                f"The applicant form has {len(unfilled)} required field(s) the "
-                f"bot does not know about yet:\n{names}\n\nThey need adding to "
-                "the config before it can submit."
-            )
-            return False
 
         await self._dismiss_open_modals(page)
 
         if not await self._submit_applicant_form(page):
-            return False
+            return await self._hand_over_form(
+                page, self._submit_refusals or ["the Submit control could not be used"]
+            )
 
         await self._settle(page)
         await self._dismiss_open_modals(page)
@@ -3151,63 +3361,86 @@ class Monitor:
             self.state.log_event(
                 "bot", f"applicant form rejected: {problem}", status="error"
             )
-            return False
+            return await self._hand_over_form(page, [problem])
 
         logger.success(f"monitor: applicant details submitted - now at {page.url}")
         self.state.log_event("bot", "applicant details submitted", status="ok")
         logger.info("=" * 60)
         await self._survey_page(page, "after-applicant-submit")
 
-        # Payment is what follows this form. Stop there rather than letting the
-        # next step run against a page asking for card details.
-        if await self.detect_stage(page) == "payment":
-            return await self._pause_for_payment(page)
-        return True
+        # What follows is a confirmation page, then the live video check, then
+        # payment. Walk them by reading each page rather than assuming the
+        # order, and stop at the two a human has to do.
+        return await self._advance_remaining_stages(page)
 
-    async def _pick_inviting_party(self, page: Any, index: int = 0) -> bool:
-        """Say what the inviting party IS, instead of taking the page's default.
+    async def _pick_radio(
+        self,
+        page: Any,
+        *,
+        group: str,
+        choice: str,
+        values: dict[str, str],
+        label: str,
+        index: int = 0,
+    ) -> bool:
+        """Answer one of the form's radio questions instead of taking its default.
 
-        Section 11 defaults to "Inviting company/organization", which for a
-        tourist booking at a hotel is both untrue and expensive: that option
-        also opens the contact-person half of the section, eight more required
-        fields naming a person at the hotel. Choosing "Hotel(s) or temporary
-        accommodation(s)" is the honest answer and closes them.
-
-        Configured as applicant.inviting_party: hotel | company | person.
+        Both groups that matter here default to the answer that ADDS required
+        fields — section 11 to "inviting company", which also demands a contact
+        person, and section 9 to "prints already taken", which demands a date
+        for them. Choosing explicitly is both more truthful and the thing that
+        lets the form submit.
         """
-        applicant = self.config.get("applicant", {}) or {}
-        choice = str(applicant.get("inviting_party", "") or "hotel").strip().lower()
-        value = INVITING_PARTY_VALUES.get(choice)
-        if value is None:
+        wanted = values.get(choice)
+        if wanted is None:
             logger.warning(
-                f"  inviting party        : {choice!r} is not one of "
-                f"{sorted(INVITING_PARTY_VALUES)} — leaving the page's default"
+                f"  {label:<21}: {choice!r} is not one of {sorted(values)} — "
+                "leaving the page's own default"
             )
             return False
 
         try:
             result = await page.evaluate(
-                _PICK_INVITING_PARTY_JS, {"index": index, "value": value}
+                _PICK_RADIO_JS, {"group": group, "index": index, "value": wanted}
             )
         except Exception as exc:
-            logger.warning(f"  inviting party        : could not select — {exc}")
+            logger.warning(f"  {label:<21}: could not select — {exc}")
             return False
 
         if not result.get("ok"):
             logger.warning(
-                f"  inviting party        : {result.get('reason')} "
-                f"{result.get('options') or ''}"
+                f"  {label:<21}: {result.get('reason')} {result.get('options') or ''}"
             )
             return False
 
         logger.info(
-            f"  inviting party        : {choice} — {result.get('label')!r}"
+            f"  {label:<21}: {choice} — {result.get('label')!r}"
             + (" (already selected)" if result.get("already") else "")
         )
-        # The handler animates with show('slow')/hide('slow'); reading
-        # visibility before it settles would mark the wrong half as in play.
+        # The page's handlers animate with show('slow')/hide('slow'); reading
+        # visibility before they settle would mark the wrong fields as in play.
         await asyncio.sleep(1.2)
         return True
+
+    async def _answer_form_radios(self, page: Any, index: int = 0) -> None:
+        """The two radio questions that decide which fields the form asks for."""
+        applicant = self.config.get("applicant", {}) or {}
+        await self._pick_radio(
+            page,
+            group="BlsInvitingAuthority",
+            choice=str(applicant.get("inviting_party", "") or "company").strip().lower(),
+            values=INVITING_PARTY_VALUES,
+            label="inviting party",
+            index=index,
+        )
+        await self._pick_radio(
+            page,
+            group="PreviousFingerPrintStatus",
+            choice=str(applicant.get("fingerprints", "") or "none").strip().lower(),
+            values=FINGERPRINT_VALUES,
+            label="fingerprints",
+            index=index,
+        )
 
     async def _controls_in_play(self, page: Any, index: int = 0) -> dict[str, bool]:
         """Which mapped controls are actually visible on this form right now."""
@@ -3271,6 +3504,96 @@ class Monitor:
             await asyncio.sleep(0.15)
         return failures
 
+    # The alert names the CONTROL ("... in EmployerAddress of Applicant
+    # Applicant 1"), which is no use to someone who edits config.yaml. This
+    # turns it back into the setting they actually have to change.
+    _FIELD_BY_ELEMENT: dict[str, str] = {
+        base.lower(): key for base, _kind, key, _req in APPLICANT_FIELDS
+    }
+
+    def _settings_named_in(self, messages: list[str]) -> list[str]:
+        """Config keys whose control is named in a portal refusal."""
+        blob = " ".join(messages).lower()
+        applicant = self.config.get("applicant", {}) or {}
+        found: list[str] = []
+        for base, key in self._FIELD_BY_ELEMENT.items():
+            if base in blob and key not in found:
+                value = str(applicant.get(key, "") or "")
+                found.append(f"{key} = {value!r}")
+        return found
+
+    async def _hand_over_form(
+        self,
+        page: Any,
+        messages: list[str],
+        *,
+        headline: str = "The portal refused the applicant form",
+    ) -> bool:
+        """The form did not go through: show why, then let the user finish it.
+
+        Whatever the portal says is passed on verbatim -- it is the only thing
+        that explains the refusal, and it has rules the bot cannot know in
+        advance ("Special Characters and Numbers are not allowed in
+        EmployerAddress"). The browser is left open on the filled form so the
+        offending field can be corrected and Submit pressed by hand, and the
+        bot waits for /resume rather than retrying a form the portal has
+        already rejected.
+
+        Returns True if the user resumed and the page moved on.
+        """
+        shot = await utils.screenshot(page, "applicant-form-refused")
+        await utils.dump_page_html(page, "applicant-form-refused")
+
+        logger.error("=" * 60)
+        logger.error(headline.upper())
+        for message in messages:
+            logger.error(f"  portal says: {message}")
+        settings = self._settings_named_in(messages)
+        for setting in settings:
+            logger.error(f"  the setting it means: {setting}")
+        logger.error("  The browser stays open on the filled form. Correct the")
+        logger.error("  field, press Submit by hand, then send /resume.")
+        logger.error("=" * 60)
+
+        self.state.log_event(
+            "bot", f"form not submitted: {'; '.join(messages)[:120]}", status="error"
+        )
+        self.state.set_manual_pause(headline)
+
+        detail = "\n".join(f"• {m}" for m in messages)
+        if settings:
+            detail += "\n\nThe setting(s) this refers to:\n" + "\n".join(
+                f"• {s}" for s in settings
+            )
+        await self.notifier.manual_required(
+            f"{headline}:\n\n"
+            f"{detail}\n\n"
+            "The browser window is still open on the filled form. Fix the "
+            "field there, press Submit yourself, then send /resume.",
+            screenshot=shot,
+        )
+
+        if not await self.notifier.wait_for_resume():
+            logger.warning(
+                "monitor: no /resume — holding the form open anyway so it is "
+                "not torn down mid-edit"
+            )
+            await utils.interruptible_sleep(6 * 3600, self.state)
+            return False
+
+        self.state.clear_manual_pause()
+        logger.success("monitor: /resume received — reading the page again")
+        await self._settle(page)
+        stage = await self.detect_stage(page)
+        if stage == "applicant-form":
+            logger.error(
+                "monitor: still on the applicant form — it was not submitted, "
+                "so there is nothing to carry on from"
+            )
+            return False
+        logger.info(f"monitor: the form went through; page is now {stage!r}")
+        return await self._advance_remaining_stages(page)
+
     async def _report_unfilled_required(self, page: Any) -> list[dict[str, Any]]:
         """Name any required control the page still shows as empty.
 
@@ -3333,11 +3656,23 @@ class Monitor:
         return False
 
     async def _submit_applicant_form(self, page: Any) -> bool:
-        """Submit #visaForm, never touching a Disagree/Cancel/Back control."""
+        """Submit #visaForm, never touching a Disagree/Cancel/Back control.
+
+        The page validates in its own onclick handler and refuses through a
+        native alert -- "Special Characters and Numbers are not allowed in
+        EmployerAddress of Applicant Applicant 1" -- which Playwright would
+        dismiss without trace if nothing were listening. Anything the portal
+        says is kept in _submit_refusals for the caller to pass on.
+        """
+        self._submit_refusals = []
+        self._install_dialog_handler(page)
+        self._dialogs.clear()
+
         try:
             result = await page.evaluate(_APPLICANT_SUBMIT_JS)
         except Exception as exc:
             logger.error(f"monitor: applicant submit failed: {exc}")
+            self._submit_refusals = [str(exc)]
             return False
 
         if not result.get("ok"):
@@ -3347,10 +3682,19 @@ class Monitor:
             )
             await utils.screenshot(page, "applicant-no-submit")
             await utils.dump_page_html(page, "applicant-no-submit")
+            self._submit_refusals = [str(result.get("reason") or "no submit control")]
             return False
 
         logger.success(f"  submitted via         : {result.get('text')!r}")
         await asyncio.sleep(2.0)
+
+        # An alert here means the page's own validation refused: the form was
+        # never posted, so it has not been submitted whatever the click said.
+        if self._dialogs:
+            self._submit_refusals = [m for m in self._dialogs if m.strip()]
+            for message in self._submit_refusals:
+                logger.error(f"  portal refused        : {message}")
+            return False
         return True
 
     async def _accept_terms_of_service(self, page: Any, timeout: float = 30.0) -> bool:
