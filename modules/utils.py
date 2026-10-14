@@ -426,6 +426,11 @@ def contains_any(haystack: str, phrases: Iterable[str]) -> str | None:
 COOLDOWN_FILE = Path("logs/cooldown.json")
 
 
+# A burst of refusals is one event; only the first is worth writing down.
+BLOCK_LOG_WINDOW = 20.0
+_last_block_at = 0.0
+
+
 def record_block(reason: str) -> None:
     """Remember that the portal just blocked us, so the next run can hold off.
 
@@ -433,6 +438,17 @@ def record_block(reason: str) -> None:
     block that hit on the very first request. Persisting the timestamp lets the
     bot refuse to run during the cooldown instead of digging the hole deeper.
     """
+    # One refusal usually arrives as a burst: the page retries the POST, and
+    # run 20261014_160348 recorded the same block twenty-odd times in 30
+    # seconds, burying everything else in the log. The first one is the only
+    # one that carries information.
+    global _last_block_at
+    now = time.time()
+    if now - _last_block_at < BLOCK_LOG_WINDOW:
+        logger.debug(f"block already recorded moments ago — {reason[:80]}")
+        return
+    _last_block_at = now
+
     try:
         COOLDOWN_FILE.parent.mkdir(parents=True, exist_ok=True)
         import json

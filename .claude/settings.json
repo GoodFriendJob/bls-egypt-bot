@@ -109,7 +109,11 @@
       "Bash(./.venv/Scripts/python.exe -W error::SyntaxWarning -m compileall -q bot.py modules dashboard)",
       "Bash(./.venv/Scripts/python.exe -m pyflakes bot.py modules/ipc.py)",
       "Bash(timeout 60 ./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/bridgetest.py\")",
-      "Bash(./.venv/Scripts/python.exe -W error::SyntaxWarning -m compileall -q bot.py)"
+      "Bash(./.venv/Scripts/python.exe -W error::SyntaxWarning -m compileall -q bot.py)",
+      "Bash(cd /e/Work/bls-egypt-bot *)"
+    ],
+    "additionalDirectories": [
+      "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"
     ]
   }
 }

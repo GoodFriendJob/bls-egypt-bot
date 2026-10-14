@@ -59,6 +59,11 @@ test-results/
 # had grown to). The grading workflow they fed lives in tools/grade_captcha.py
 # and still works if the switch is turned back on.
 logs/captcha_samples/*.png
+# ...except a REJECTED grid. Those are saved on purpose whenever the portal
+# refuses an answer, and they are the only way to see what the model was
+# actually shown. One was produced in run 20261014_160348 and then ignored
+# straight out of the push, which is exactly when it was needed.
+!logs/captcha_samples/*_REJECTED_*.png
 
 # Block cooldown marker, written when the portal 403s. Machine-local.
 logs/cooldown.json

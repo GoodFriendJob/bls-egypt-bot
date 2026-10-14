@@ -1570,6 +1570,15 @@ class BLSAuth:
             # grid instead of scanning the half-built page on the next pass.
             await utils.human_delay(self.config)
             await self._wait_for_captcha_tiles(ctx)
+            # The PORTAL just issued that new grid, so the age clock has to
+            # start again here. Without this it still pointed at the original
+            # detection and the next answer was discarded as stale before it
+            # was ever sent: run 20261014_160348 read the replacement grid
+            # perfectly (207/283/283, 283/283/283, 944/530/283 -> 2,3,4,5,6,9)
+            # and then threw it away at "grid is 50s old", when the grid in
+            # front of it was 24 seconds old.
+            self._captcha_issued_at = time.monotonic()
+            self._last_captcha_generate_status = None
 
         logger.error(f"auth: captcha not solved after {CAPTCHA_MAX_ATTEMPTS} attempts")
         self._log(f"captcha unsolved after {CAPTCHA_MAX_ATTEMPTS} attempts", status="error")
