@@ -29,7 +29,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from loguru import logger
 from playwright.async_api import (
@@ -581,6 +581,59 @@ class BLSAuth:
         self._install_network_logging(self._page)
         self._log("browser launched", status="ok")
 
+    async def _serve_captcha_frame(self, route: Any, request: Any) -> None:
+        """Fetch the captcha frame one redirect at a time, upgrading as we go.
+
+        A route cannot touch a REDIRECT hop: the browser follows it inside the
+        network stack. For a top-level navigation _goto recovers by retrying
+        the https form, but this endpoint is loaded as an IFRAME, where there
+        is nothing to retry — the frame simply stays blank and the Kendo
+        window spins.
+
+        Which is what happened in run 20261014_231305: the frame's request died
+        with ERR_ABORTED, and probing the same https url directly took exactly
+        43 seconds to fail — the port-80 timeout, reached through a 302 the
+        portal had issued on an https request.
+
+        So the redirects are followed here instead, in Python, rewriting any
+        http:// Location to https:// before asking for it. The frame is then
+        fulfilled with the real response body.
+        """
+        url = request.url or ""
+        response = None
+        try:
+            for _ in range(5):
+                if url.lower().startswith("http://"):
+                    url = "https://" + url[len("http://"):]
+                response = await route.fetch(url=url, max_redirects=0)
+                if response.status not in (301, 302, 303, 307, 308):
+                    await route.fulfill(response=response)
+                    return
+                location = (response.headers or {}).get("location", "")
+                if not location:
+                    await route.fulfill(response=response)
+                    return
+                nxt = urljoin(url, location)
+                if nxt.lower().startswith("http://"):
+                    logger.warning(
+                        "auth: the captcha frame was redirected to http:// — "
+                        "following it over https instead"
+                    )
+                url = nxt
+            logger.warning("auth: captcha frame redirected too many times")
+            if response is not None:
+                await route.fulfill(response=response)
+        except Exception as exc:
+            # Never leave the request hanging: a failure here has to look
+            # exactly like no route at all.
+            logger.warning(
+                f"auth: captcha frame fetch failed ({exc}) — passing it through"
+            )
+            try:
+                await route.continue_()
+            except Exception:
+                pass
+
     async def _install_https_upgrade(self, context: BrowserContext) -> None:
         """Rewrite the portal's plain-HTTP redirects to HTTPS.
 
@@ -615,6 +668,14 @@ class BLSAuth:
             # answer on this host.
             await context.route(re.compile(r"^http://", re.IGNORECASE), _upgrade)
             logger.info("auth: http->https upgrade route installed (regex)")
+            # Registered second, so it wins for these URLs: Playwright runs the
+            # most recently added matching handler first. Both captcha
+            # endpoints — the login/verification one and the appointment one.
+            await context.route(
+                re.compile(r"/(newcaptcha|captchapublic)/generatecaptcha", re.IGNORECASE),
+                self._serve_captcha_frame,
+            )
+            logger.info("auth: captcha frame route installed (redirects followed here)")
         except Exception as exc:
             logger.warning(f"auth: could not install the https upgrade route: {exc}")
 
