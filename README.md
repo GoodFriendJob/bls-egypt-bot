@@ -93,7 +93,7 @@ flowchart TD
     B6 --> T[Terms of Service<br/>give consent]
     T --> A1[Applicant details<br/>about 50 fields]
     A1 --> A2[Submit]
-    A2 --> C1[Confirmation page]
+    A2 --> C1[Welcome page<br/>press Accept]
     C1 --> P1[Live video check]
     P1 --> P2[Payment]
 
