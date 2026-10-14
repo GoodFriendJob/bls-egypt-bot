@@ -22,10 +22,13 @@
               data-i18n="tabSettings">الإعدادات</button>
     </nav>
     <div class="actions">
+      <button id="btn-start" class="btn btn-ok" data-i18n="start">تشغيل</button>
       <button id="btn-resume" class="btn btn-ok hidden" data-i18n="resume">استئناف</button>
+      <button id="btn-pause" class="btn" data-i18n="pause">إيقاف مؤقت</button>
       <button id="btn-stop" class="btn btn-danger" data-i18n="stop">إيقاف</button>
       <button id="btn-theme" class="btn btn-icon" title="Theme">◐</button>
       <button id="btn-lang" class="btn btn-icon">EN</button>
+      <a id="btn-logout" class="btn btn-icon" href="/logout" title="Sign out">⎋</a>
     </div>
   </header>
 
@@ -138,6 +141,8 @@
 const I18N = {
   ar: {
     title: "لوحة متابعة مواعيد BLS", stop: "إيقاف", resume: "استئناف",
+    start: "تشغيل", pause: "إيقاف مؤقت",
+    offline: "البوت غير متصل — شغّله عبر start.bat", online: "متصل",
     tabOverview: "نظرة عامة", tabSettings: "الإعدادات",
     botState: "حالة البوت", uptime: "التشغيل", interval: "الفحص",
     cycles: "الدورات", slots: "مواعيد", bookings: "حجوزات", errors: "أخطاء",
@@ -163,6 +168,8 @@ const I18N = {
   },
   en: {
     title: "BLS Appointment Bot", stop: "Stop", resume: "Resume",
+    start: "Start", pause: "Pause",
+    offline: "Bot offline — start it with start.bat", online: "online",
     tabOverview: "Overview", tabSettings: "Settings",
     botState: "Bot state", uptime: "Uptime", interval: "Interval",
     cycles: "Cycles", slots: "Slots", bookings: "Bookings", errors: "Errors",
@@ -279,7 +286,22 @@ function render() {
   $("bookings").textContent = c.bookings || 0;
   $("errors").textContent   = c.errors || 0;
 
-  $("btn-resume").classList.toggle("hidden", !snapshot.paused);
+  // The bot is a separate process. When it is not running, Pause/Stop/Resume
+  // have nothing to act on, so only Start is offered -- and it says plainly
+  // that Start cannot revive a process that has exited.
+  const online = snapshot.bot_online !== false;
+  const paused = !!snapshot.paused;
+  $("btn-resume").classList.toggle("hidden", !(online && paused));
+  $("btn-start").classList.toggle("hidden", online && paused);
+  $("btn-start").disabled = online && snapshot.running;
+  $("btn-pause").disabled = !online || paused;
+  $("btn-stop").disabled  = !online;
+  if (!online) {
+    stateEl.textContent = t("st_idle");
+    stateEl.className = "hero-value";
+    $("live-dot").className = "dot off";
+    $("bot-detail").textContent = t("offline");
+  }
 
   const pause = $("pause-banner");
   if (snapshot.paused) {
@@ -497,6 +519,7 @@ async function refresh() {
     const [s, l] = await Promise.all([
       fetch("/api/status"), fetch("/api/log?limit=200")
     ]);
+    if (s.status === 401 || l.status === 401) { location.href = "/login"; return; }
     snapshot = await s.json();
     logEntries = (await l.json()).entries || [];
     render();
@@ -537,10 +560,13 @@ function showTab(which) {
 $("tab-overview").onclick = () => showTab("overview");
 $("tab-settings").onclick = () => showTab("settings");
 
-// Stop is the only destructive control the manager has; Resume appears only
-// while the bot is paused for a manual step. Starting is automatic by design.
-$("btn-stop").onclick   = () => { if (confirm(t("confirmStop"))) control("stop"); };
+// Full control: start, pause, resume, stop. Resume and Start are the same
+// request to the bot (it clears a pause); only the label differs, so the
+// button shown matches what the bot is actually doing.
+$("btn-start").onclick  = () => control("start");
 $("btn-resume").onclick = () => control("start");
+$("btn-pause").onclick  = () => control("pause");
+$("btn-stop").onclick   = () => { if (confirm(t("confirmStop"))) control("stop"); };
 
 $("btn-lang").onclick = () => { lang = lang === "ar" ? "en" : "ar"; applyLanguage(); };
 $("btn-theme").onclick = () => {

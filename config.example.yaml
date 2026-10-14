@@ -266,6 +266,17 @@ browser:
 
 dashboard:
   enabled: true
+  # Password for the dashboard. The page shows the applicant's personal data
+  # and edits this file, which holds the portal password, the Telegram token
+  # and the OpenAI key -- so the dashboard REFUSES to start on a non-loopback
+  # host while this is empty.
+  #
+  # Traffic is plain HTTP. On anything beyond a trusted LAN, put it behind a
+  # TLS reverse proxy or a VPN, or the password and the data it protects cross
+  # the network in the clear.
+  password: ""
+  # 127.0.0.1 = this machine only. Use 0.0.0.0 to accept connections from the
+  # network (a password is then mandatory). Changing this needs a restart.
   host: "127.0.0.1"
   port: 5000
   # Start monitoring immediately, or wait for the dashboard "Start" button.

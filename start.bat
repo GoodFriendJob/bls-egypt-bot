@@ -34,7 +34,7 @@ if %BOTCOUNT% GTR 0 (
     echo Number of bot processes found: %BOTCOUNT%
     echo.
     echo You do not need to start it again.
-    echo   - To see what it is doing:  http://127.0.0.1:5000
+    echo   - To see what it is doing:  run dashboard.bat
     echo   - To stop it:               run stop.bat
     goto :end
 )
@@ -42,8 +42,8 @@ if %BOTCOUNT% GTR 0 (
 REM --- Start ---------------------------------------------------
 echo Starting the bot ...
 echo.
-echo   Dashboard:  http://127.0.0.1:5000
-echo   To stop:    press Ctrl+C here, or run stop.bat
+echo   To watch it:  run dashboard.bat (separate window)
+echo   To stop:      press Ctrl+C here, or run stop.bat
 echo.
 echo -----------------------------------------------------------
 echo.

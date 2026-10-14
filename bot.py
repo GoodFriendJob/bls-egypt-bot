@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parent
 from modules.auth import BLSAuth, PortalUnreachableError
 from modules.monitor import Monitor
 from modules.notifier import Notifier
+from modules import ipc
 from modules.state import BotState
 from modules.utils import block_cooldown_remaining as utils_block_cooldown
 from modules.utils import prune_logs as utils_prune_logs
@@ -358,6 +359,66 @@ def ensure_dirs() -> None:
 # --------------------------------------------------------------------------- #
 # Background tasks
 # --------------------------------------------------------------------------- #
+async def dashboard_bridge(
+    config: dict[str, Any], state: BotState, config_path: Path
+) -> None:
+    """Keep the standalone dashboard fed, and act on what it sends back.
+
+    The dashboard is its own process now, so it cannot touch BotState directly.
+    This publishes the status for it to read, applies any control it issued,
+    and reloads config.yaml when the dashboard has written to it. Polls at 2s,
+    which is what the UI refreshes at.
+    """
+    log_limit = int((config.get("dashboard", {}) or {}).get("log_limit", 300))
+    try:
+        last_config_mtime = config_path.stat().st_mtime
+    except OSError:
+        last_config_mtime = 0.0
+
+    ipc.clear()
+    logger.info(f"dashboard bridge: publishing status to {ipc.STATE_FILE}")
+
+    while not state.stop_requested:
+        try:
+            ipc.publish_state(state.snapshot(), state.recent_log(limit=log_limit))
+
+            action = ipc.take_command()
+            if action:
+                logger.info(f"dashboard bridge: {action!r} requested")
+                if action == "start":
+                    state.request_start()
+                elif action == "pause":
+                    state.request_pause()
+                elif action == "stop":
+                    state.request_stop()
+                else:
+                    logger.warning(f"dashboard bridge: unknown action {action!r}")
+
+            # The dashboard writes config.yaml directly; reload when it changes
+            # so an edit reaches the running bot without a restart.
+            try:
+                mtime = config_path.stat().st_mtime
+            except OSError:
+                mtime = last_config_mtime
+            if mtime > last_config_mtime:
+                last_config_mtime = mtime
+                logger.info("dashboard bridge: config.yaml changed — reloading")
+                try:
+                    fresh = load_config(config_path)
+                    config.clear()
+                    config.update(fresh)
+                    state.reload_config()
+                except Exception as exc:
+                    logger.error(f"dashboard bridge: reload failed: {exc}")
+        except Exception as exc:  # never let the bridge kill the run
+            logger.debug(f"dashboard bridge: {exc}")
+
+        await asyncio.sleep(2.0)
+
+    ipc.publish_state(state.snapshot(), state.recent_log(limit=log_limit))
+    logger.info("dashboard bridge: stopped")
+
+
 def start_dashboard(
     config: dict[str, Any], state: BotState, config_path: str = "config.yaml"
 ) -> threading.Thread | None:
@@ -483,7 +544,8 @@ def _main_inner(args: argparse.Namespace, run_log: Path) -> int:
         state = BotState(config)
         state_holder["state"] = state
         # Dashboard shares the same BotState instance as the bot.
-        start_dashboard(config, state, str(args.config))
+        # The dashboard is a SEPARATE process now (dashboard.bat); the bot
+        # only publishes status for it and applies what it sends back.
         # Housekeeping before anything writes new artifacts.
         utils_prune_logs(config)
         return await _run_with_state(config, args, state)
@@ -549,6 +611,13 @@ async def _run_with_state(
             tasks.append(
                 asyncio.create_task(heartbeat_task(config, state, notifier), name="heartbeat")
             )
+            if (config.get("dashboard", {}) or {}).get("enabled", True):
+                tasks.append(
+                    asyncio.create_task(
+                        dashboard_bridge(config, state, Path(args.config)),
+                        name="dashboard-bridge",
+                    )
+                )
             done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             for task in pending:
                 task.cancel()
