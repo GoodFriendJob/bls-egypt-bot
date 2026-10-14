@@ -10685,3 +10685,371 @@ modules.auth.LoginError: Login failed after 2 attempt(s): login did not reach an
 2026-10-14 16:31:51.671 | INFO     | modules.auth:stop:720 - auth: browser closed
 2026-10-14 16:31:55.292 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
 2026-10-14 16:31:55.292 | INFO     | __main__:_run_with_state:669 - shutdown complete
+2026-10-14 17:02:38.668 | INFO     | __main__:_main_inner:513 - ==============================================================
+2026-10-14 17:02:38.669 | INFO     | __main__:_main_inner:514 - BLS Spain Egypt appointment bot starting
+2026-10-14 17:02:38.669 | INFO     | __main__:_main_inner:515 - run transcript: D:\bls-egypt-bot\logs\run_20261014_170238.txt
+2026-10-14 17:02:38.669 | INFO     | __main__:_main_inner:516 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-14 17:02:38.669 | INFO     | __main__:_main_inner:517 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-14 17:02:38.670 | INFO     | __main__:_main_inner:518 - ==============================================================
+2026-10-14 17:02:39.621 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-14 17:02:39.872 | INFO     | __main__:_run_with_state:601 - single-cycle mode (--once)
+2026-10-14 17:02:39.874 | INFO     | __main__:dashboard_bridge:379 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-14 17:02:40.704 | INFO     | modules.auth:start:532 - auth: restoring session from session\cookies.json
+2026-10-14 17:02:40.752 | INFO     | modules.auth:start:571 - auth: stealth disabled (recommended for this portal)
+2026-10-14 17:02:40.762 | INFO     | modules.auth:_install_https_upgrade:614 - auth: http->https upgrade route installed (regex)
+2026-10-14 17:02:41.114 | INFO     | modules.auth:_log:2825 - auth: browser launched
+2026-10-14 17:02:41.992 | INFO     | modules.auth:_on_response:629 - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:02:42.088 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 17:02:44.934 | INFO     | modules.auth:_is_logged_in:2605 - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+2026-10-14 17:02:44.934 | INFO     | modules.auth:ensure_logged_in:762 - auth: logging in (attempt 1/2)
+2026-10-14 17:02:45.025 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 17:02:52.442 | INFO     | modules.auth:_on_response:629 - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:02:52.520 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-14 17:02:53.383 | INFO     | modules.auth:_wait_for_login_form:1071 - auth: login form ready after 0.5s (10 inputs, 1 real)
+2026-10-14 17:02:53.481 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'text' field is index 5 of 10 (parent div.mb-3 display:block)
+2026-10-14 17:02:56.566 | INFO     | modules.auth:_fill_email:991 - auth: email filled
+2026-10-14 17:02:56.568 | INFO     | modules.auth:_log:2825 - auth: email submitted
+2026-10-14 17:02:58.406 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-14 17:02:58.426 | INFO     | modules.auth:_click_verify:1092 - auth: clicked Verify via #btnVerify
+2026-10-14 17:02:59.944 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 7 of 10 (parent div.mb-3 display:block)
+2026-10-14 17:03:01.893 | INFO     | modules.auth:_fill_password:1027 - auth: password filled (real input[type='password'])
+2026-10-14 17:03:01.894 | INFO     | modules.auth:_log:2825 - auth: password filled
+2026-10-14 17:03:01.894 | INFO     | modules.auth:_perform_login:847 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZsAELVUIMlJZ%2FMXr%2BL5khiACMP9Lx8fSmgO7GhoCjPgDN9xFn45%2FeNY3aH%2BGfWAyoKM6Nwrs670oGddjnq%2FLnmXj340D8N9r6Q2kpOZecyvA8ofPRvJ51%2FX%2B27pekGGNj8%3D
+2026-10-14 17:03:02.223 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170301_password-page-filled.png
+2026-10-14 17:03:02.257 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170302_password-page-filled.html
+2026-10-14 17:03:02.257 | INFO     | modules.auth:_perform_login:855 - auth: checking for a CAPTCHA on the password page
+2026-10-14 17:03:02.285 | INFO     | modules.auth:solve_captcha:1180 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=34
+2026-10-14 17:03:02.285 | INFO     | modules.auth:solve_captcha:1186 - auth: CAPTCHA detected, attempting to solve
+2026-10-14 17:03:02.285 | INFO     | modules.auth:_log:2825 - auth: CAPTCHA detected — solving
+2026-10-14 17:03:02.597 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170302_captcha-before.png
+2026-10-14 17:03:02.628 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170302_captcha-detected.html
+2026-10-14 17:03:02.963 | INFO     | modules.auth:_captcha_target:2158 - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-14 17:03:02.963 | INFO     | modules.auth:_captcha_target:2179 - auth: prompt 686 chosen (contrast=15.02, z-index=970, color=rgb(33, 37, 41))
+2026-10-14 17:03:02.963 | INFO     | modules.auth:solve_captcha:1255 - ------------------------------------------------------------
+2026-10-14 17:03:02.964 | INFO     | modules.auth:solve_captcha:1256 - CAPTCHA attempt 1 of 4
+2026-10-14 17:03:02.964 | INFO     | modules.auth:solve_captcha:1257 -   target number   : 686
+2026-10-14 17:03:02.964 | INFO     | modules.auth:solve_captcha:1258 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-14 17:03:02.964 | INFO     | modules.auth:solve_captcha:1262 -   visible labels  : 34 (of 34 box-labels in the DOM)
+2026-10-14 17:03:02.965 | INFO     | modules.auth:_log:2825 - auth: captcha attempt 1: target=686, 9 visible tiles
+2026-10-14 17:03:02.965 | INFO     | modules.auth:solve_captcha:1286 -   grid order      : 1:eiopygomw, 2:mmeik, 3:ixfutc, 4:ezgcnwmlp, 5:jdrpqfz, 6:wlpmiwlqu, 7:xawkzu, 8:idnpzg, 9:xheznlnmg
+2026-10-14 17:03:02.973 | INFO     | modules.auth:_screenshot_grid_element:1716 -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-14 17:03:02.979 | INFO     | modules.auth:_screenshot_grid:1850 -   grid clip       : x=273.31 y=273.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-14 17:03:03.845 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+2026-10-14 17:03:03.847 | INFO     | modules.auth:solve_captcha:1311 -   grid screenshot : FAILED
+2026-10-14 17:03:04.963 | INFO     | modules.auth:solve_captcha:1338 -   tile capture    : 9 element screenshot(s)
+2026-10-14 17:03:05.017 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:05.833 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:05.901 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:05.970 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:06.045 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:06.106 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:06.160 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:06.222 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:06.367 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-14 17:03:22.388 | INFO     | modules.vision:read_tiles_individually:198 - vision: per-tile reply '974,529,109,686,338,686,354,686,686'
+2026-10-14 17:03:22.389 | INFO     | modules.auth:solve_captcha:1350 -   tiles read      : 1:974, 2:529, 3:109, 4:686, 5:338, 6:686, 7:354, 8:686, 9:686
+2026-10-14 17:03:22.389 | INFO     | modules.auth:solve_captcha:1355 -   matching 686      : positions [4, 6, 8, 9]
+2026-10-14 17:03:22.390 | INFO     | modules.auth:solve_captcha:1383 -   vision positions: [4, 6, 8, 9]
+2026-10-14 17:03:22.391 | INFO     | modules.auth:solve_captcha:1397 -   matched tiles   : 4 -> ['ezgcnwmlp', 'wlpmiwlqu', 'idnpzg', 'xheznlnmg']
+2026-10-14 17:03:25.699 | INFO     | modules.auth:solve_captcha:1403 -   click results   :
+2026-10-14 17:03:25.700 | INFO     | modules.auth:solve_captcha:1405 -       id=ezgcnwmlp      number=None   clicked=True  img-selected=True
+2026-10-14 17:03:25.702 | INFO     | modules.auth:solve_captcha:1405 -       id=wlpmiwlqu      number=None   clicked=True  img-selected=True
+2026-10-14 17:03:25.703 | INFO     | modules.auth:solve_captcha:1405 -       id=idnpzg         number=None   clicked=True  img-selected=True
+2026-10-14 17:03:25.704 | INFO     | modules.auth:solve_captcha:1405 -       id=xheznlnmg      number=None   clicked=True  img-selected=True
+2026-10-14 17:03:26.723 | INFO     | modules.auth:solve_captcha:1415 -   SelectedImages  : ''
+2026-10-14 17:03:26.723 | INFO     | modules.auth:solve_captcha:1423 -   expected ids    : ['ezgcnwmlp', 'idnpzg', 'wlpmiwlqu', 'xheznlnmg']
+2026-10-14 17:03:26.723 | INFO     | modules.auth:solve_captcha:1431 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-14 17:03:27.057 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170326_captcha-attempt1-before-submit.png
+2026-10-14 17:03:27.142 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 7 of 10 (parent div.mb-3 display:block)
+2026-10-14 17:03:27.148 | INFO     | modules.auth:solve_captcha:1481 -   grid age        : 24.9s (limit 35s)
+2026-10-14 17:03:27.156 | INFO     | modules.auth:_click_captcha_submit:2462 - auth: captcha submitted immediately via [onclick*="onSubmit"]
+2026-10-14 17:03:27.157 | INFO     | modules.auth:solve_captcha:1490 -   submit clicked  : True
+2026-10-14 17:03:27.440 | INFO     | modules.auth:_on_response:629 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-14 17:03:27.535 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:03:27.928 | SUCCESS  | modules.auth:solve_captcha:1537 -   outcome         : SOLVED on attempt 1
+2026-10-14 17:03:27.929 | INFO     | modules.auth:solve_captcha:1538 - ------------------------------------------------------------
+2026-10-14 17:03:27.930 | INFO     | modules.auth:_log:2825 - auth: captcha solved (attempt 1)
+2026-10-14 17:03:28.492 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170327_captcha-solved.png
+2026-10-14 17:03:29.641 | INFO     | modules.auth:_perform_login:865 - auth: already authenticated after the captcha — skipping resubmit
+2026-10-14 17:03:29.642 | INFO     | modules.auth:_log:2825 - auth: password submitted
+2026-10-14 17:03:29.643 | INFO     | modules.auth:_perform_login:873 - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:03:29.905 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170329_after-password-submit.png
+2026-10-14 17:03:29.913 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170329_after-password-submit.html
+2026-10-14 17:03:29.914 | SUCCESS  | modules.auth:_perform_login:884 - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:03:29.930 | SUCCESS  | modules.auth:_is_logged_in:2616 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:03:29.942 | INFO     | modules.auth:_save_session:2654 - auth: session saved to session\cookies.json
+2026-10-14 17:03:29.942 | INFO     | modules.auth:_log:2825 - auth: login successful
+2026-10-14 17:03:29.943 | INFO     | modules.monitor:install_navigation_watch:3638 - monitor: navigation watch installed (now: verification)
+2026-10-14 17:03:29.948 | INFO     | modules.monitor:ensure_visa_type_verified:1442 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-14 17:03:33.018 | INFO     | modules.monitor:_gate_state:3937 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-14 17:03:34.297 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-14 17:03:41.041 | INFO     | modules.monitor:_open_verification_popup:3860 - monitor: clicked 'Verify Selection'
+2026-10-14 17:03:45.057 | INFO     | modules.monitor:_wait_for_captcha_frame:1723 - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-14 17:03:45.891 | INFO     | modules.monitor:ensure_visa_type_verified:1493 - monitor: verification attempt 1/5
+2026-10-14 17:03:46.216 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170345_verify-modal-attempt1.png
+2026-10-14 17:03:46.239 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170346_verify-frame-attempt1.html
+2026-10-14 17:03:46.253 | INFO     | modules.monitor:_frame_offset:3737 - monitor: captcha frame at x=484 y=126 (398x557)
+2026-10-14 17:03:46.275 | INFO     | modules.auth:solve_captcha:1180 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=23
+2026-10-14 17:03:46.275 | INFO     | modules.auth:solve_captcha:1186 - auth: CAPTCHA detected, attempting to solve
+2026-10-14 17:03:46.275 | INFO     | modules.auth:_log:2825 - auth: CAPTCHA detected — solving
+2026-10-14 17:03:46.601 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170346_captcha-before.png
+2026-10-14 17:03:46.622 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170346_captcha-detected.html
+2026-10-14 17:03:46.967 | INFO     | modules.auth:_captcha_target:2158 - auth: 23 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-14 17:03:46.967 | INFO     | modules.auth:_captcha_target:2179 - auth: prompt 907 chosen (contrast=14.89, z-index=962, color=rgb(33, 37, 41))
+2026-10-14 17:03:46.968 | INFO     | modules.auth:solve_captcha:1255 - ------------------------------------------------------------
+2026-10-14 17:03:46.968 | INFO     | modules.auth:solve_captcha:1256 - CAPTCHA attempt 1 of 4
+2026-10-14 17:03:46.969 | INFO     | modules.auth:solve_captcha:1257 -   target number   : 907
+2026-10-14 17:03:46.970 | INFO     | modules.auth:solve_captcha:1258 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-14 17:03:46.970 | INFO     | modules.auth:solve_captcha:1262 -   visible labels  : 23 (of 23 box-labels in the DOM)
+2026-10-14 17:03:46.970 | INFO     | modules.auth:_log:2825 - auth: captcha attempt 1: target=907, 9 visible tiles
+2026-10-14 17:03:46.971 | INFO     | modules.auth:solve_captcha:1286 -   grid order      : 1:zqfaxpdq, 2:eujvyfht, 3:qqvbfu, 4:keezezz, 5:gupfr, 6:lfkhmle, 7:smhep, 8:eahahg, 9:sxiqilh
+2026-10-14 17:03:46.980 | INFO     | modules.auth:_screenshot_grid_element:1716 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-14 17:03:47.007 | INFO     | modules.auth:_screenshot_grid:1850 -   grid clip       : x=508.0 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+2026-10-14 17:03:47.905 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-14 17:03:47.907 | INFO     | modules.auth:solve_captcha:1311 -   grid screenshot : FAILED
+2026-10-14 17:03:49.110 | INFO     | modules.auth:solve_captcha:1338 -   tile capture    : 9 element screenshot(s)
+2026-10-14 17:03:49.166 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.226 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.280 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.334 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.387 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.445 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.503 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.562 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:03:49.618 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 220x220 -> 660x660 (x3, LANCZOS)
+2026-10-14 17:04:01.621 | INFO     | modules.vision:read_tiles_individually:198 - vision: per-tile reply '907,907,907,122,907,248,907,907,251'
+2026-10-14 17:04:01.621 | INFO     | modules.auth:solve_captcha:1350 -   tiles read      : 1:907, 2:907, 3:907, 4:122, 5:907, 6:248, 7:907, 8:907, 9:251
+2026-10-14 17:04:01.622 | INFO     | modules.auth:solve_captcha:1355 -   matching 907      : positions [1, 2, 3, 5, 7, 8]
+2026-10-14 17:04:01.623 | INFO     | modules.auth:solve_captcha:1383 -   vision positions: [1, 2, 3, 5, 7, 8]
+2026-10-14 17:04:01.623 | INFO     | modules.auth:solve_captcha:1397 -   matched tiles   : 6 -> ['zqfaxpdq', 'eujvyfht', 'qqvbfu', 'gupfr', 'smhep', 'eahahg']
+2026-10-14 17:04:06.578 | INFO     | modules.auth:solve_captcha:1403 -   click results   :
+2026-10-14 17:04:06.580 | INFO     | modules.auth:solve_captcha:1405 -       id=zqfaxpdq       number=None   clicked=True  img-selected=True
+2026-10-14 17:04:06.581 | INFO     | modules.auth:solve_captcha:1405 -       id=eujvyfht       number=None   clicked=True  img-selected=True
+2026-10-14 17:04:06.581 | INFO     | modules.auth:solve_captcha:1405 -       id=qqvbfu         number=None   clicked=True  img-selected=True
+2026-10-14 17:04:06.581 | INFO     | modules.auth:solve_captcha:1405 -       id=gupfr          number=None   clicked=True  img-selected=True
+2026-10-14 17:04:06.582 | INFO     | modules.auth:solve_captcha:1405 -       id=smhep          number=None   clicked=True  img-selected=True
+2026-10-14 17:04:06.582 | INFO     | modules.auth:solve_captcha:1405 -       id=eahahg         number=None   clicked=True  img-selected=True
+2026-10-14 17:04:07.612 | INFO     | modules.auth:solve_captcha:1415 -   SelectedImages  : ''
+2026-10-14 17:04:07.613 | INFO     | modules.auth:solve_captcha:1423 -   expected ids    : ['eahahg', 'eujvyfht', 'gupfr', 'qqvbfu', 'smhep', 'zqfaxpdq']
+2026-10-14 17:04:07.614 | INFO     | modules.auth:solve_captcha:1431 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-14 17:04:07.949 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170407_captcha-attempt1-before-submit.png
+2026-10-14 17:04:07.960 | INFO     | modules.auth:solve_captcha:1481 -   grid age        : 21.7s (limit 35s)
+2026-10-14 17:04:07.985 | INFO     | modules.auth:_click_captcha_submit:2462 - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+2026-10-14 17:04:07.986 | INFO     | modules.auth:solve_captcha:1490 -   submit clicked  : True
+2026-10-14 17:04:08.102 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-14 17:04:11.700 | WARNING  | modules.auth:_detect_captcha:2092 - auth: captcha detection failed: Frame.evaluate: Frame was detached
+2026-10-14 17:04:11.700 | SUCCESS  | modules.auth:solve_captcha:1537 -   outcome         : SOLVED on attempt 1
+2026-10-14 17:04:11.701 | INFO     | modules.auth:solve_captcha:1538 - ------------------------------------------------------------
+2026-10-14 17:04:11.701 | INFO     | modules.auth:_log:2825 - auth: captcha solved (attempt 1)
+2026-10-14 17:04:11.937 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170411_captcha-solved.png
+2026-10-14 17:04:12.959 | INFO     | modules.monitor:_gate_state:3937 -   gate state      : {'verified': True, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-14 17:04:12.959 | SUCCESS  | modules.monitor:ensure_visa_type_verified:1590 - monitor: verification captcha passed
+2026-10-14 17:04:13.012 | INFO     | modules.monitor:_submit_verified_form:3954 - monitor: clicked #btnSubmit
+2026-10-14 17:04:13.164 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-14 17:04:13.417 | INFO     | modules.monitor:_on_nav:3613 - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=Ze%2fMSX2SJCGLQMP2%2fJTPW5%2bV056JhbzSR3%2fPYhN1iXga)
+2026-10-14 17:04:15.264 | SUCCESS  | modules.monitor:_submit_verified_form:3971 - monitor: reached the appointment form — https://egypt.blsspainglobal.com/Global/bls/visatype?data=Ze%2fMSX2SJCGLQMP2%2fJTPW5%2bV056JhbzSR3%2fPYhN1iXgaZx7dBDIszvzFp4szYjk%2b0d5Mu6J8LQ5hOY2UFeGP4MdbQuPMPqZb1kgOGXj5LoOhxWUTwIULzLBmFRrAOlYr3GK8SOHDu5moOJTyb%2b7vVXTCtMnNEjciBf9seIfoXhc%3d
+2026-10-14 17:04:17.071 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170416_visatype-form.png
+2026-10-14 17:04:17.091 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170417_visatype-form.html
+2026-10-14 17:04:17.092 | INFO     | modules.monitor:run_once:1255 - monitor: 8 combination(s) configured; trying 1 this cycle, then continuing from there next cycle
+2026-10-14 17:04:17.093 | INFO     | modules.monitor:run_once:1260 - monitor:   1. Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+2026-10-14 17:04:17.093 | INFO     | modules.monitor:run_once:1275 - monitor: [1/1] Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+2026-10-14 17:04:17.094 | INFO     | modules.monitor:complete_visatype_form:1773 - ============================================================
+2026-10-14 17:04:17.094 | INFO     | modules.monitor:complete_visatype_form:1774 - APPOINTMENT FORM
+2026-10-14 17:04:18.847 | INFO     | modules.monitor:_set_kendo:2083 -   Appointment Category  : 'Normal' (of 3 options, widget AppointmentCategoryId3, via hand)
+2026-10-14 17:04:20.089 | INFO     | modules.monitor:complete_visatype_form:1800 -   Appointment For       : 'Individual' (name=AppointmentFor5, real click)
+2026-10-14 17:04:23.396 | INFO     | modules.monitor:_set_kendo:2083 -   Location              : 'Cairo' (of 2 options, widget Location5, via hand)
+2026-10-14 17:04:26.384 | INFO     | modules.monitor:_set_kendo:2083 -   Visa Type             : 'Schengen visa' (of 2 options, widget VisaType5, via hand)
+2026-10-14 17:04:29.555 | INFO     | modules.monitor:_set_kendo:2083 -   Visa Sub Type         : 'Airport Transit Visa (TAP)' (of 2 options, widget VisaSubType5, via hand)
+2026-10-14 17:04:31.126 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170430_visatype-form-filled.png
+2026-10-14 17:04:31.748 | INFO     | modules.monitor:complete_visatype_form:1869 - monitor: appointment form submitted
+2026-10-14 17:04:32.131 | INFO     | modules.monitor:_on_response:3658 - monitor: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaType
+2026-10-14 17:04:32.352 | INFO     | modules.monitor:complete_visatype_form:1871 - monitor: URL after submit — https://egypt.blsspainglobal.com/Global/bls/visatype?data=Ze%2fMSX2SJCGLQMP2%2fJTPW5%2bV056JhbzSR3%2fPYhN1iXgaZx7dBDIszvzFp4szYjk%2b0d5Mu6J8LQ5hOY2UFeGP4MdbQuPMPqZb1kgOGXj5LoOhxWUTwIULzLBmFRrAOlYr3GK8SOHDu5moOJTyb%2b7vVXTCtMnNEjciBf9seIfoXhc%3d
+2026-10-14 17:04:32.354 | INFO     | modules.monitor:complete_visatype_form:1888 - ============================================================
+2026-10-14 17:04:32.793 | INFO     | modules.monitor:_on_nav:3613 - monitor: page -> appointment  (https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsN)
+2026-10-14 17:04:33.847 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170432_after-visatype-submit.png
+2026-10-14 17:04:33.873 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170433_after-visatype-submit.html
+2026-10-14 17:04:33.874 | SUCCESS  | modules.monitor:complete_visatype_form:1899 - monitor: appointment page reached — https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=Ze%2fMSX2SJCGLQMP2%2fJTPW5%2bV056JhbzSR3%2fPYhN1iXgaZx7dBDIszvzFp4szYjk%2b0d5Mu6J8LQ5hOY2UFeGP4MdbQuPMPqZb1kgOGXj5LoOhxWUTwIULzLBmFRrAOlYr3GK8SOHDu5moOJTyb%2b7vVXTCtMnNEjciBf9seIfoXhc%3d
+2026-10-14 17:04:34.268 | INFO     | modules.monitor:_survey_page:4031 - ============================================================
+2026-10-14 17:04:34.268 | INFO     | modules.monitor:_survey_page:4032 - PAGE SURVEY (manage-appointment)
+2026-10-14 17:04:34.269 | INFO     | modules.monitor:_survey_page:4033 -   url      : https://egypt.blsspainglobal.com/Global/blsAppointment/ManageAppointment?appointmentFor=Individual&applicantsNo=1&visaType=c805c157-7e8f-4932-89cf-d7ab69e1af96&visaSubType=19102874-4542-4852-8f63-a042bc644eba&appointmentCategory=5c2e8e01-796d-4347-95ae-0c95a9177b26&location=60d2df036755e8de168d8db7&missionId=&jurisdictionId=&passportJurisdictionId=&residenceJurisdictionId=&residenceDurationOfStayId=&data=Ze%2fMSX2SJCGLQMP2%2fJTPW5%2bV056JhbzSR3%2fPYhN1iXgaZx7dBDIszvzFp4szYjk%2b0d5Mu6J8LQ5hOY2UFeGP4MdbQuPMPqZb1kgOGXj5LoOhxWUTwIULzLBmFRrAOlYr3GK8SOHDu5moOJTyb%2b7vVXTCtMnNEjciBf9seIfoXhc%3d
+2026-10-14 17:04:34.269 | INFO     | modules.monitor:_survey_page:4034 -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+2026-10-14 17:04:34.269 | INFO     | modules.monitor:_survey_page:4035 -   headings : ['BLS International']
+2026-10-14 17:04:34.269 | INFO     | modules.monitor:_survey_page:4036 -   selects  : []
+2026-10-14 17:04:34.270 | INFO     | modules.monitor:_survey_page:4037 -   buttons  : ['Get Verification Code']
+2026-10-14 17:04:34.270 | INFO     | modules.monitor:_survey_page:4038 -   inputs   : ['AppointmentDate3', 'AppointmentSlot3', 'AppointmentFor', 'AppointmentFor', 'MissionId', 'LocationId', 'VisaType', 'VisaSubTypeId', 'AppointmentCategoryId', 'MobileCountryCode', 'Mobile', 'Email']
+2026-10-14 17:04:34.270 | INFO     | modules.monitor:_survey_page:4039 -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', '#', '#', '#', '#', '/Global/bls/visatype', '/']
+2026-10-14 17:04:34.271 | INFO     | modules.monitor:_survey_page:4040 - ============================================================
+2026-10-14 17:04:35.757 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170434_manage-appointment.png
+2026-10-14 17:04:35.778 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170435_manage-appointment.html
+2026-10-14 17:04:35.779 | INFO     | modules.monitor:complete_appointment_details:2225 - ============================================================
+2026-10-14 17:04:35.779 | INFO     | modules.monitor:complete_appointment_details:2226 - APPOINTMENT DETAILS (date / slot / photo)
+2026-10-14 17:04:35.800 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170435_manage-appointment.html
+2026-10-14 17:04:36.913 | INFO     | modules.monitor:_pick_green_date:3062 -   date picker           : ready after 1s
+2026-10-14 17:04:36.914 | INFO     | modules.monitor:_pick_green_date:3063 -   date picker           : opened #AppointmentDate3
+2026-10-14 17:04:38.640 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170438_appointment-calendar-open.png
+2026-10-14 17:04:38.641 | INFO     | modules.monitor:_pick_green_date:3076 -   earliest allowed date : 2026-10-15 (1 day(s) ahead)
+2026-10-14 17:04:38.669 | INFO     | modules.monitor:_pick_green_date:3146 -   days offered          : 15, 16, 17, 18*, 19*, 20*, 21*, 22*, 23, 24, 25*, 26*, 27*, 28*, 29*, 30, 31   (* = available)
+2026-10-14 17:04:38.670 | INFO     | modules.monitor:complete_appointment_details:2255 -   bookable dates        : 2026-10-18, 2026-10-19, 2026-10-20, 2026-10-21, 2026-10-22, 2026-10-25, 2026-10-26, 2026-10-27, 2026-10-28, 2026-10-29
+2026-10-14 17:04:38.670 | INFO     | modules.monitor:complete_appointment_details:2262 -   trying date           : 2026-10-18 (1/10)
+2026-10-14 17:04:38.686 | INFO     | modules.monitor:_pick_green_date:3063 -   date picker           : opened #AppointmentDate3
+2026-10-14 17:04:40.376 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170439_appointment-calendar-open.png
+2026-10-14 17:04:40.377 | INFO     | modules.monitor:_pick_green_date:3076 -   earliest allowed date : 2026-10-15 (1 day(s) ahead)
+2026-10-14 17:04:40.409 | INFO     | modules.monitor:_pick_green_date:3146 -   days offered          : 15, 16, 17, 18*   (* = available)
+2026-10-14 17:04:40.410 | SUCCESS  | modules.monitor:_pick_green_date:3157 -   date chosen           : 18
+2026-10-14 17:04:43.790 | INFO     | modules.monitor:_pick_green_slot:3231 -   slot dropdown         : #AppointmentSlot3, ready after 0s
+2026-10-14 17:04:43.791 | INFO     | modules.monitor:_pick_green_slot:3232 -   slots offered         : 09:00-10:00*, 10:00-11:00*, 11:00-12:00*   (* = free)
+2026-10-14 17:04:43.809 | SUCCESS  | modules.monitor:_pick_green_slot:3268 -   slot chosen           : '09:00-10:00'
+2026-10-14 17:04:45.759 | SUCCESS  | modules.monitor:_upload_photo:3439 -   photo                 : uploaded photo.jpg (124 KB)
+2026-10-14 17:04:48.994 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170448_appointment-details-filled.png
+2026-10-14 17:04:49.007 | INFO     | modules.monitor:_verify_email:2938 -   email code            : requested, waiting for the mail
+2026-10-14 17:04:50.519 | INFO     | modules.monitor:_dismiss_open_modals:3404 -   modal dismissed       : 'Confirm Photo' via 'Understood'
+2026-10-14 17:04:51.339 | INFO     | modules.monitor:_dismiss_open_modals:3404 -   modal dismissed       : 'OTP Sent' via 'Ok'
+2026-10-14 17:04:53.699 | INFO     | modules.otp:_code_from_email:123 - otp: checking inbox (1/10)
+2026-10-14 17:04:55.785 | INFO     | modules.otp:_fetch_otp_sync:172 - otp: code found in mail from '"noreply.app@blsinternational.com" <noreply.app@blsinternati'
+2026-10-14 17:04:56.001 | SUCCESS  | modules.monitor:_verify_email:2950 -   email code            : received (6 digits)
+2026-10-14 17:04:56.017 | INFO     | modules.monitor:_verify_email:2989 -   email code            : entered and verify clicked
+2026-10-14 17:04:58.537 | INFO     | modules.monitor:_verify_email:3005 -   email verified        : {'shown': True, 'flag': 'True'}
+2026-10-14 17:04:59.006 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170458_appointment-email-verified.png
+2026-10-14 17:04:59.082 | SUCCESS  | modules.monitor:_finalise_appointment:2362 -   verify appointment    : clicked
+2026-10-14 17:04:59.229 | INFO     | modules.auth:_on_response:629 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/CaptchaPublic/GenerateCaptcha?data=CuaQBEiyWWL%2bAeE4ReqTMUGd7pxt74nCE2NFipB2ze5w0VmkT5Lr9rnomtItQbo%2f3VhQkjH
+2026-10-14 17:05:00.614 | INFO     | modules.monitor:_wait_for_captcha_frame:1723 - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/CaptchaPublic/GenerateCaptcha?data=CuaQBEiyWWL%2bAeE4ReqTMUGd7pxt74nCE2NFipB2ze5w0VmkT5Lr9rnomtItQbo%2f3VhQkjH%2bLiOQhtAbBrsMnuSe5%2fnVeXIiAcPSuizMIlo%3d
+2026-10-14 17:05:00.647 | INFO     | modules.monitor:_frame_offset:3737 - monitor: captcha frame at x=476 y=126 (398x557)
+2026-10-14 17:05:00.647 | INFO     | modules.monitor:_finalise_appointment:2378 -   verify appointment    : captcha frame at (475.5, 126.0)
+2026-10-14 17:05:00.677 | INFO     | modules.auth:solve_captcha:1180 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=35
+2026-10-14 17:05:00.678 | INFO     | modules.auth:solve_captcha:1186 - auth: CAPTCHA detected, attempting to solve
+2026-10-14 17:05:00.678 | INFO     | modules.auth:_log:2825 - auth: CAPTCHA detected — solving
+2026-10-14 17:05:01.261 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170500_captcha-before.png
+2026-10-14 17:05:01.292 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170501_captcha-detected.html
+2026-10-14 17:05:01.636 | INFO     | modules.auth:_captcha_target:2158 - auth: 35 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-14 17:05:01.636 | INFO     | modules.auth:_captcha_target:2179 - auth: prompt 150 chosen (contrast=15.16, z-index=914, color=rgb(33, 37, 41))
+2026-10-14 17:05:01.637 | INFO     | modules.auth:solve_captcha:1255 - ------------------------------------------------------------
+2026-10-14 17:05:01.637 | INFO     | modules.auth:solve_captcha:1256 - CAPTCHA attempt 1 of 4
+2026-10-14 17:05:01.637 | INFO     | modules.auth:solve_captcha:1257 -   target number   : 150
+2026-10-14 17:05:01.637 | INFO     | modules.auth:solve_captcha:1258 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-14 17:05:01.638 | INFO     | modules.auth:solve_captcha:1262 -   visible labels  : 35 (of 35 box-labels in the DOM)
+2026-10-14 17:05:01.638 | INFO     | modules.auth:_log:2825 - auth: captcha attempt 1: target=150, 9 visible tiles
+2026-10-14 17:05:01.638 | INFO     | modules.auth:solve_captcha:1286 -   grid order      : 1:rgcukp, 2:mfmckuixq, 3:xaadxw, 4:ldbrnbpd, 5:fobpy, 6:kivuej, 7:zgfouvsh, 8:hsfbwfaq, 9:crxevhik
+2026-10-14 17:05:01.646 | INFO     | modules.auth:_screenshot_grid_element:1716 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-14 17:05:01.664 | INFO     | modules.auth:_screenshot_grid:1850 -   grid clip       : x=499.5 y=202.0 w=350 h=350 (viewport 398x557, 9 tiles)
+2026-10-14 17:05:02.484 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-14 17:05:02.486 | INFO     | modules.auth:solve_captcha:1311 -   grid screenshot : FAILED
+2026-10-14 17:05:03.965 | INFO     | modules.auth:solve_captcha:1338 -   tile capture    : 9 element screenshot(s)
+2026-10-14 17:05:04.029 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.081 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.136 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.187 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.238 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.289 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.343 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.400 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:04.453 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 222x220 -> 666x660 (x3, LANCZOS)
+2026-10-14 17:05:21.300 | INFO     | modules.vision:read_tiles_individually:198 - vision: per-tile reply '150,559,259,150,150,150,150,239,473'
+2026-10-14 17:05:21.301 | INFO     | modules.auth:solve_captcha:1350 -   tiles read      : 1:150, 2:559, 3:259, 4:150, 5:150, 6:150, 7:150, 8:239, 9:473
+2026-10-14 17:05:21.302 | INFO     | modules.auth:solve_captcha:1355 -   matching 150      : positions [1, 4, 5, 6, 7]
+2026-10-14 17:05:21.303 | INFO     | modules.auth:solve_captcha:1383 -   vision positions: [1, 4, 5, 6, 7]
+2026-10-14 17:05:21.303 | INFO     | modules.auth:solve_captcha:1397 -   matched tiles   : 5 -> ['rgcukp', 'ldbrnbpd', 'fobpy', 'kivuej', 'zgfouvsh']
+2026-10-14 17:05:25.448 | INFO     | modules.auth:solve_captcha:1403 -   click results   :
+2026-10-14 17:05:25.448 | INFO     | modules.auth:solve_captcha:1405 -       id=rgcukp         number=None   clicked=True  img-selected=True
+2026-10-14 17:05:25.449 | INFO     | modules.auth:solve_captcha:1405 -       id=ldbrnbpd       number=None   clicked=True  img-selected=True
+2026-10-14 17:05:25.449 | INFO     | modules.auth:solve_captcha:1405 -       id=fobpy          number=None   clicked=True  img-selected=True
+2026-10-14 17:05:25.450 | INFO     | modules.auth:solve_captcha:1405 -       id=kivuej         number=None   clicked=True  img-selected=True
+2026-10-14 17:05:25.450 | INFO     | modules.auth:solve_captcha:1405 -       id=zgfouvsh       number=None   clicked=True  img-selected=True
+2026-10-14 17:05:26.483 | INFO     | modules.auth:solve_captcha:1415 -   SelectedImages  : ''
+2026-10-14 17:05:26.483 | INFO     | modules.auth:solve_captcha:1423 -   expected ids    : ['fobpy', 'kivuej', 'ldbrnbpd', 'rgcukp', 'zgfouvsh']
+2026-10-14 17:05:26.484 | INFO     | modules.auth:solve_captcha:1431 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-14 17:05:27.015 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170526_captcha-attempt1-before-submit.png
+2026-10-14 17:05:27.043 | INFO     | modules.auth:solve_captcha:1481 -   grid age        : 26.4s (limit 35s)
+2026-10-14 17:05:27.064 | INFO     | modules.auth:_click_captcha_submit:2462 - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+2026-10-14 17:05:27.065 | INFO     | modules.auth:solve_captcha:1490 -   submit clicked  : True
+2026-10-14 17:05:30.374 | WARNING  | modules.auth:_detect_captcha:2092 - auth: captcha detection failed: Frame.evaluate: Frame was detached
+2026-10-14 17:05:30.375 | SUCCESS  | modules.auth:solve_captcha:1537 -   outcome         : SOLVED on attempt 1
+2026-10-14 17:05:30.375 | INFO     | modules.auth:solve_captcha:1538 - ------------------------------------------------------------
+2026-10-14 17:05:30.376 | INFO     | modules.auth:_log:2825 - auth: captcha solved (attempt 1)
+2026-10-14 17:05:30.979 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170530_captcha-solved.png
+2026-10-14 17:05:31.009 | SUCCESS  | modules.monitor:_finalise_appointment:2401 -   appointment verified  : confirmed by the portal
+2026-10-14 17:05:31.049 | SUCCESS  | modules.monitor:_finalise_appointment:2410 -   submit appointment    : clicked
+2026-10-14 17:05:36.326 | SUCCESS  | modules.monitor:_accept_terms_of_service:2785 -   terms of service      : agreed via 'onAgree()'
+2026-10-14 17:05:38.421 | INFO     | modules.monitor:complete_applicant_details:2484 - ============================================================
+2026-10-14 17:05:38.422 | INFO     | modules.monitor:complete_applicant_details:2485 - APPLICANT DETAILS
+2026-10-14 17:05:38.486 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170538_applicant-form.html
+2026-10-14 17:05:38.499 | INFO     | modules.monitor:complete_applicant_details:2522 -   FirstName                   : 'FADY MELAD SEDHOM ZABIB'
+2026-10-14 17:05:38.668 | INFO     | modules.monitor:complete_applicant_details:2522 -   SurName                     : 'SAWAIRAS'
+2026-10-14 17:05:38.849 | INFO     | modules.monitor:complete_applicant_details:2522 -   SurnameAtBirth              : 'SAWAIRAS'
+2026-10-14 17:05:39.010 | INFO     | modules.monitor:complete_applicant_details:2522 -   DateOfBirth                 : '1989-08-24'
+2026-10-14 17:05:39.184 | INFO     | modules.monitor:complete_applicant_details:2522 -   PlaceOfBirth                : 'CAIRO'
+2026-10-14 17:05:39.365 | INFO     | modules.monitor:complete_applicant_details:2522 -   CountryOfBirthId            : 'Egypt'
+2026-10-14 17:05:39.539 | INFO     | modules.monitor:complete_applicant_details:2522 -   NationalityId               : 'Egypt'
+2026-10-14 17:05:39.714 | INFO     | modules.monitor:complete_applicant_details:2522 -   NationalityAtBirthId        : 'Egypt'
+2026-10-14 17:05:39.884 | INFO     | modules.monitor:complete_applicant_details:2522 -   GenderId                    : 'Male'
+2026-10-14 17:05:40.062 | INFO     | modules.monitor:complete_applicant_details:2522 -   MaritalStatusId             : 'Married'
+2026-10-14 17:05:40.230 | INFO     | modules.monitor:complete_applicant_details:2522 -   PassportType                : 'Ordinary Passport'
+2026-10-14 17:05:40.401 | INFO     | modules.monitor:complete_applicant_details:2522 -   PassportNo                  : 'A44403798'
+2026-10-14 17:05:40.574 | INFO     | modules.monitor:complete_applicant_details:2522 -   IssueDate                   : '2026-02-28'
+2026-10-14 17:05:40.743 | INFO     | modules.monitor:complete_applicant_details:2522 -   ExpiryDate                  : '2033-02-27'
+2026-10-14 17:05:40.913 | INFO     | modules.monitor:complete_applicant_details:2522 -   IssuePlace                  : 'Beni sweif'
+2026-10-14 17:05:41.081 | INFO     | modules.monitor:complete_applicant_details:2522 -   IssueCountryId              : 'Egypt'
+2026-10-14 17:05:41.252 | INFO     | modules.monitor:complete_applicant_details:2522 -   TravelDate                  : '2026-12-13'
+2026-10-14 17:05:41.424 | INFO     | modules.monitor:complete_applicant_details:2522 -   HomeAddressLine1            : 'Hassan Metwally Street, off Mohamed Shehata El-Zaeery Street'
+2026-10-14 17:05:41.593 | INFO     | modules.monitor:complete_applicant_details:2522 -   HomeAddressCountryId        : 'Egypt'
+2026-10-14 17:05:41.768 | INFO     | modules.monitor:complete_applicant_details:2522 -   HomeAddressCity             : 'BENI SUEF'
+2026-10-14 17:05:41.966 | INFO     | modules.monitor:complete_applicant_details:2522 -   HomeAddressPostalCode       : '2721080'
+2026-10-14 17:05:42.143 | INFO     | modules.monitor:complete_applicant_details:2522 -   HomeAddressContactNumber    : '201055565536'
+2026-10-14 17:05:42.326 | INFO     | modules.monitor:complete_applicant_details:2522 -   EmployerName                : 'Self-employed'
+2026-10-14 17:05:42.499 | INFO     | modules.monitor:complete_applicant_details:2522 -   EmployerPhone               : '201055565536'
+2026-10-14 17:05:42.673 | INFO     | modules.monitor:complete_applicant_details:2522 -   EmployerAddress             : 'Hassan Metwally Street, off Mohamed Shehata El-Zaeery Street, Beni Suef'
+2026-10-14 17:05:42.841 | WARNING  | modules.monitor:complete_applicant_details:2528 -   CurrentOccupationId         : NOT SET - no such option (offered: ['ARCHITECT', 'ARTISAN ', 'ARTIST ', 'BANKER ', 'BUSINESSMAN ', 'CHEMIST ', 'CIVIL SERVANT ', 'COMPUTER SPECIALIST', 'DIPLOMAT ', 'DRIVER ', 'ELECTRONIC TECHNICIAN ', 'EMPLOYEE '])
+2026-10-14 17:05:43.015 | INFO     | modules.monitor:complete_applicant_details:2522 -   PurposeOfJourneyId          : 'Tourism'
+2026-10-14 17:05:43.188 | INFO     | modules.monitor:complete_applicant_details:2522 -   MemberStateDestinationId    : 'Spain\t'
+2026-10-14 17:05:43.363 | INFO     | modules.monitor:complete_applicant_details:2522 -   CostCoveredById             : 'By the Applicant himself / herself '
+2026-10-14 17:05:43.565 | INFO     | modules.monitor:complete_applicant_details:2522 -   MeansOfSupportId            : 'Cash '
+2026-10-14 17:05:43.763 | INFO     | modules.monitor:_fill_extra_fields:2626 -   Number of Entries           : 'Multiple Entries' (#NumberOfEntriesRequested_0, dropdown)
+2026-10-14 17:05:43.942 | INFO     | modules.monitor:_fill_extra_fields:2626 -   Intended Stay               : '' (#IntendedStayDuration_0, text)
+2026-10-14 17:05:44.110 | WARNING  | modules.monitor:_fill_extra_fields:2637 -   Arrival Date                : NOT SET - no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.280 | WARNING  | modules.monitor:_fill_extra_fields:2637 -   Departure Date              : NOT SET - no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.445 | INFO     | modules.monitor:_fill_extra_fields:2626 -   Hotel Name                  : 'Hostal Nova, Barcelona' (#EmployerName_0, text)
+2026-10-14 17:05:44.612 | WARNING  | modules.monitor:_fill_extra_fields:2637 -   Hotel Details               : NOT SET - no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.782 | WARNING  | modules.monitor:_fill_extra_fields:2637 -   Hotel Phone Number          : NOT SET - no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.932 | INFO     | modules.monitor:complete_applicant_details:2534 -   filled                : 29 field(s)
+2026-10-14 17:05:44.933 | WARNING  | modules.monitor:complete_applicant_details:2558 - monitor: 5 field(s) would not set:
+2026-10-14 17:05:44.934 | WARNING  | modules.monitor:complete_applicant_details:2560 -     - CurrentOccupationId_0: no such option (offered: ['ARCHITECT', 'ARTISAN ', 'ARTIST ', 'BANKER ', 'BUSINESSMAN ', 'CHEMIST ', 'CIVIL SERVANT ', 'COMPUTER SPECIALIST', 'DIPLOMAT ', 'DRIVER ', 'ELECTRONIC TECHNICIAN ', 'EMPLOYEE '])
+2026-10-14 17:05:44.936 | WARNING  | modules.monitor:complete_applicant_details:2560 -     - Arrival Date: no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.937 | WARNING  | modules.monitor:complete_applicant_details:2560 -     - Departure Date: no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.941 | WARNING  | modules.monitor:complete_applicant_details:2560 -     - Hotel Details: no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:44.946 | WARNING  | modules.monitor:complete_applicant_details:2560 -     - Hotel Phone Number: no label match (labels on the page: ['first name(given name)', 'surname (family name)', 'surname at birth', 'last name', 'date of birth', 'place of birth', 'country of birth', 'current nationality', 'nationality at birth', 'gender', 'marital status', 'surname (family name)', 'first name(given name)', 'last name', 'nationality', 'address', 'national identity number', 'passport type', 'passport no', 'issue date', 'expiry date', 'issue place', 'issue country', 'travel date', 'home address line1', 'home address line2', 'country', 'city', 'postal code', 'contact number', 'permit number', 'permit valid untill', 'name', 'contact number', 'address', 'occupation', 'purpose of journey', 'member state destination', 'member state second destination', 'member state first entry'])
+2026-10-14 17:05:46.418 | INFO     | modules.utils:screenshot:594 - screenshot saved: logs\screenshots\20261014-170544_applicant-form-filled.png
+2026-10-14 17:05:46.451 | WARNING  | modules.monitor:_report_unfilled_required:2660 -   required check        : 25 required field(s) still empty — these are not in APPLICANT_FIELDS yet:
+2026-10-14 17:05:46.452 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - CurrentOccupationId_0              dropdown  'Occupation'
+2026-10-14 17:05:46.452 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - MemberStateFirstEntryId_0          dropdown  'Member State First Entry'
+2026-10-14 17:05:46.452 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - IntendedStayDuration_0             text      'Intended Stay Duration'
+2026-10-14 17:05:46.453 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - PreviousVisaNumber_0               text      'Previous Visa Number'
+2026-10-14 17:05:46.453 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - PreviousVisaValidFrom_0            date      'Previous Visa Valid From'
+2026-10-14 17:05:46.453 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - PreviousVisaValidTo_0              date      'Previous Visa Valid To'
+2026-10-14 17:05:46.454 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - PreviousVisaIssuedCountryId_0      dropdown  'Previous Visa Issued Country'
+2026-10-14 17:05:46.454 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - PreviousFingerPrintDate_0          date      'Previous Finger Print Date'
+2026-10-14 17:05:46.455 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - IntendedDateOfArrival_0            date      'Intended Date Of Arrival'
+2026-10-14 17:05:46.462 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - IntendedDateOfDeparture_0          date      'Intended Date Of Departure'
+2026-10-14 17:05:46.464 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingAuthorityName_0            text      'Name'
+2026-10-14 17:05:46.466 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingCountryId_0                dropdown  'Country'
+2026-10-14 17:05:46.468 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingCity_0                     text      'City'
+2026-10-14 17:05:46.469 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingZipCode_0                  text      'ZipCode'
+2026-10-14 17:05:46.470 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingAddress_0                  text      'Address'
+2026-10-14 17:05:46.471 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingEmail_0                    text      'Email'
+2026-10-14 17:05:46.472 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactNo_0                text      'Contact Number'
+2026-10-14 17:05:46.482 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactName_0              text      'Name'
+2026-10-14 17:05:46.484 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactSurname_0           text      'Surname (Family Name)'
+2026-10-14 17:05:46.485 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactCountryId_0         dropdown  'Country'
+2026-10-14 17:05:46.486 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactCity_0              text      'City'
+2026-10-14 17:05:46.486 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactZipCode_0           text      'ZipCode'
+2026-10-14 17:05:46.489 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactAddress_0           text      'Address'
+2026-10-14 17:05:46.496 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactContactNo_0         text      'Contact Number'
+2026-10-14 17:05:46.498 | WARNING  | modules.monitor:_report_unfilled_required:2665 -     - InvitingContactEmail_0             text      'Email'
+2026-10-14 17:05:46.625 | INFO     | modules.utils:dump_page_html:502 - DOM dumped: logs\dom\20261014-170546_applicant-form-unmapped.html
+2026-10-14 17:05:47.296 | WARNING  | modules.monitor:_finalise_appointment:2423 - monitor: applicant details not completed
+2026-10-14 17:05:47.297 | INFO     | modules.monitor:complete_appointment_details:2297 - ============================================================
+2026-10-14 17:05:47.298 | WARNING  | modules.monitor:complete_visatype_form:1916 - monitor: could not complete the appointment details
+2026-10-14 17:05:47.298 | INFO     | modules.monitor:run_once:1375 - monitor: no slots for Cairo / Schengen visa / Airport Transit Visa (TAP) / Normal / Individual
+2026-10-14 17:05:47.299 | INFO     | modules.monitor:run_once:1380 - monitor: no slots for any of the 1 combination(s) — cycle complete
+2026-10-14 17:05:47.319 | INFO     | modules.auth:_save_session:2654 - auth: session saved to session\cookies.json
+2026-10-14 17:05:47.748 | INFO     | modules.auth:stop:720 - auth: browser closed
+2026-10-14 17:05:48.244 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-14 17:05:48.247 | INFO     | __main__:_run_with_state:669 - shutdown complete
