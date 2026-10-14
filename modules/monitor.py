@@ -736,6 +736,125 @@ _KENDO_SET_JS = r"""
 }
 """
 
+# Set a Kendo dropdown the way a person does: OPEN it, then CLICK the option.
+#
+# CONFIRMED from the page's own script (dump 20261014-135231_visatype-form):
+#
+#   function OnSubmitVisaType() { $("#ResponseData").val(JSON.stringify(rspData)); return true; }
+#   function onDrpOpen(e)   { ... rspData.push({Id, Start: new Date($.now()), ...}) }
+#   function onDrpSelect(e) { ... records the selection against that Id ... }
+#   function onAjaxSuccess(res) { if (res.bot === true) location.href = "/Global/account/bot"; ... }
+#
+# rspData is INTERACTION TELEMETRY -- which dropdown was opened, when, and what
+# was then chosen -- and it is posted in ResponseData for the server to judge.
+# Assigning through dd.value() + trigger('change') fires neither handler, so
+# the bot posted an empty array every time. The submit itself never blocks
+# (OnSubmitVisaType always returns true), which is why the failure looked like
+# "nothing happened" rather than a validation error.
+#
+# open() and the item click go through Kendo's own event path, so both
+# handlers run and the array is populated as the server expects.
+_KENDO_CLICK_SET_JS = r"""
+(args) => {
+  const { label, wanted } = args;
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const vis = (el) => {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width < 5 || r.height < 5) return false;
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const st = getComputedStyle(n);
+      if (st.display === 'none') return false;
+      if (st.visibility === 'hidden' || st.visibility === 'collapse') return false;
+      if (parseFloat(st.opacity || '1') < 0.1) return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+
+  // The real field for this label, exactly as before: every field hides its
+  // own decoys independently, so each one is found on its own merits.
+  const target = norm(label);
+  let input = null;
+  for (const inp of document.querySelectorAll('input[data-role="dropdownlist"]')) {
+    const lab = inp.id ? document.querySelector('label[for="' + inp.id + '"]') : null;
+    if (!lab) continue;
+    if (!norm(lab.innerText).startsWith(target)) continue;
+    const widget = inp.closest('span.k-widget') || inp.parentElement;
+    if (!vis(widget)) continue;
+    const box = inp.closest('div.mb-3');
+    if (box && !vis(box)) continue;
+    input = inp;
+    break;
+  }
+  if (!input) return { ok: false, reason: 'no visible widget for this label' };
+
+  const dd = window.jQuery && jQuery('#' + input.id).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'kendo widget not initialised', id: input.id };
+
+  const data = dd.dataSource.data() || [];
+  const textField = (dd.options && dd.options.dataTextField) || 'Name';
+  const texts = data.map((d) => String(d[textField] || ''));
+  const isPlaceholder = (t) => !t || /^-+\s*select/i.test(t);
+
+  let idx = -1;
+  if (wanted) {
+    idx = texts.findIndex((t) => norm(t) === norm(wanted));
+    if (idx < 0) idx = texts.findIndex((t) => norm(t).includes(norm(wanted)));
+  }
+  if (idx < 0) idx = texts.findIndex((t) => !isPlaceholder(t));
+  if (idx < 0) {
+    return { ok: false, reason: 'no selectable option', id: input.id,
+             options: texts, count: texts.length };
+  }
+
+  // OPEN first: this is what records the Start timestamp for this field.
+  dd.open();
+
+  // Kendo renders the items on open; dd.ul is a jQuery object, so unwrap it.
+  let items = [];
+  try {
+    if (typeof dd.items === 'function') {
+      items = Array.prototype.slice.call(dd.items() || []);
+    }
+  } catch (e) { /* fall through */ }
+  if (!items.length) {
+    const ul = dd.ul ? (dd.ul[0] || dd.ul) : null;
+    if (ul && typeof ul.querySelectorAll === 'function') {
+      items = Array.prototype.slice.call(ul.querySelectorAll('li'));
+    }
+  }
+
+  // The rendered list includes the optionLabel placeholder as item 0 when the
+  // widget has one, while dataSource.data() does not -- line them up by text.
+  let node = items.find((li) => norm(li.textContent) === norm(texts[idx]));
+  if (!node && items.length === texts.length) node = items[idx];
+  if (!node && items.length === texts.length + 1) node = items[idx + 1];
+
+  if (node) {
+    node.click();
+    return { ok: true, id: input.id, chosen: texts[idx], via: 'click',
+             options: texts, count: texts.length, items: items.length };
+  }
+
+  // Last resort: Kendo's select() still raises its select event, which is the
+  // half that matters most; value() alone raises nothing.
+  try {
+    if (typeof dd.select === 'function') {
+      dd.select(idx);
+      dd.trigger('change');
+      dd.close();
+      return { ok: true, id: input.id, chosen: texts[idx], via: 'select',
+               options: texts, count: texts.length, items: items.length };
+    }
+  } catch (e) { /* fall through */ }
+
+  return { ok: false, reason: 'could not click the option', id: input.id,
+           options: texts, items: items.length };
+}
+"""
+
 _RADIO_SET_JS = r"""
 (wanted) => {
   const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -1715,6 +1834,22 @@ class Monitor:
             self._last_form_result = "no_slots"
             return True
 
+        # Still on /bls/visatype with no modal means the submit did not take.
+        # Reporting that as "advanced" stopped the sweep on a success that had
+        # not happened (run 20261014_135132).
+        if "/bls/visatype" in (page.url or "").lower():
+            logger.error(
+                "monitor: the appointment form did not submit — still on "
+                f"{(page.url or '').split('?')[0]} with no portal message"
+            )
+            problem = await self._form_validation_error(page)
+            if problem:
+                logger.error(f"monitor: validation says {problem!r}")
+            await utils.screenshot(page, "visatype-submit-stalled")
+            await utils.dump_page_html(page, "visatype-submit-stalled")
+            self._last_form_result = "submit_stalled"
+            return False
+
         self._last_form_result = "slots_possible"
         logger.success("monitor: no 'no slots' message — the form advanced")
         await self._survey_page(page, "after-visatype-submit")
@@ -1740,9 +1875,20 @@ class Monitor:
         result: dict[str, Any] = {}
         while waited < deadline:
             try:
+                # Open-and-click first so the portal's own onDrpOpen /
+                # onDrpSelect handlers fire and ResponseData carries real
+                # interaction data; fall back to assignment only if that
+                # cannot find the control.
                 result = await page.evaluate(
-                    _KENDO_SET_JS, {"label": label, "wanted": wanted}
+                    _KENDO_CLICK_SET_JS, {"label": label, "wanted": wanted}
                 )
+                if not result.get("ok") and result.get("reason") in (
+                    "no visible widget for this label",
+                    "kendo widget not initialised",
+                ):
+                    result = await page.evaluate(
+                        _KENDO_SET_JS, {"label": label, "wanted": wanted}
+                    )
             except Exception as exc:
                 logger.warning(f"monitor: {label!r} set threw: {exc}")
                 result = {"ok": False, "reason": str(exc)}
@@ -1750,7 +1896,8 @@ class Monitor:
                 opts = result.get("options") or []
                 logger.info(
                     f"  {label:<22}: {result.get('chosen')!r} "
-                    f"(of {len(opts)} options, widget {result.get('id')})"
+                    f"(of {len(opts)} options, widget {result.get('id')}, "
+                    f"via {result.get('via', 'value')})"
                 )
                 mismatch = (
                     wanted
