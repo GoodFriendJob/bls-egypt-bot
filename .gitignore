@@ -1,6 +1,17 @@
 # --- Secrets & runtime state (NEVER commit) ---
 config.yaml
 config.local.yaml
+# The dashboard writes config.yaml.bak beside the file every time settings are
+# saved, and it is a full copy -- portal password, Telegram token, OpenAI key.
+# Only config.yaml itself was ignored, so the backup was committable, and
+# GitHub's push protection caught the key in it (commit 26d5c0b). Any .bak
+# anywhere is a copy of something; none of them belong in git.
+config.yaml.bak
+*.bak
+# The save is atomic via a temp file beside the target; if the process is
+# killed mid-write one of these is left behind, holding the same secrets.
+config.yaml.tmp
+*.tmp
 session/
 !session/.gitkeep
 
@@ -67,3 +78,9 @@ logs/captcha_samples/*.png
 
 # Block cooldown marker, written when the portal 403s. Machine-local.
 logs/cooldown.json
+# The two files the bot and the dashboard talk through. Machine-local runtime
+# scratch, rewritten every couple of seconds, and state.json carries the
+# applicant summary -- name, passport number, date of birth. push_logs.bat
+# does "git add logs/", so without this they ride along with every log push.
+logs/state.json
+logs/command.json
