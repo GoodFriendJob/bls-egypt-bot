@@ -133,7 +133,8 @@
       "Bash(PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe -)",
       "Bash(PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\e--Work-bls-egypt-bot\\\\3731ba36-de56-4f32-9966-1d3d4c2c1235\\\\scratchpad\\\\inviting_party.py\")",
       "Bash(PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\e--Work-bls-egypt-bot\\\\3731ba36-de56-4f32-9966-1d3d4c2c1235\\\\scratchpad\\\\check_fixes.py\")",
-      "Bash(python -W error::SyntaxWarning -m compileall -q modules/ bot.py)"
+      "Bash(python -W error::SyntaxWarning -m compileall -q modules/ bot.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python -)"
     ],
     "additionalDirectories": [
       "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"
