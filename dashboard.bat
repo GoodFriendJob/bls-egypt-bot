@@ -9,6 +9,12 @@ REM
 REM  You can run this with the bot running or not running. With
 REM  the bot stopped the page still opens and simply says the
 REM  bot is offline.
+REM
+REM  NOTE for whoever edits this: do NOT try to read values out
+REM  of config.yaml with a PowerShell one-liner here. A pipe
+REM  character is parsed by cmd before PowerShell sees it, which
+REM  is what produced "The syntax of the command is incorrect".
+REM  The server prints its own address on startup; enough.
 REM ===========================================================
 setlocal
 cd /d "%~dp0"
@@ -32,19 +38,12 @@ if not exist "config.yaml" (
     goto :end
 )
 
-REM --- Show where it will be reachable -------------------------
-for /f "usebackq delims=" %%H in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "(Select-String -Path config.yaml -Pattern '^\s*host:' | Select-Object -First 1).Line -replace '.*host:\s*', '' -replace '\"', '' -replace '#.*', ''"`) do set DASHHOST=%%H
-for /f "usebackq delims=" %%P in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "(Select-String -Path config.yaml -Pattern '^\s*port:' | Select-Object -First 1).Line -replace '.*port:\s*', '' -replace '\"', '' -replace '#.*', ''"`) do set DASHPORT=%%P
-
-if "%DASHHOST%"=="" set DASHHOST=127.0.0.1
-if "%DASHPORT%"=="" set DASHPORT=5000
-
-echo   Address:  http://%DASHHOST%:%DASHPORT%
+echo   Starting the dashboard. The address is printed below.
 echo.
 echo   To reach it from another computer, set in config.yaml:
 echo       dashboard.host:     0.0.0.0
 echo       dashboard.password: your-password
-echo   then open  http://THIS-PC-IP:%DASHPORT%  from the other machine.
+echo   then open  http://THIS-PC-IP:5000  from the other machine.
 echo.
 echo   Close this window to stop the dashboard. The bot keeps running.
 echo.
