@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BLS Appointment Bot — sign in</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+  <form class="card login-card" method="post" autocomplete="off">
+    <div class="login-brand">
+      <span class="dot on"></span>
+      <h1>BLS Appointment Bot</h1>
+    </div>
+    <p class="hero-detail">Enter the dashboard password to continue.</p>
+
+    {% if error %}
+      <p class="banner err">{{ error }}</p>
+    {% endif %}
+
+    <label class="k" for="password">Password</label>
+    <input class="input" type="password" id="password" name="password"
+           autofocus required autocomplete="current-password">
+
+    <button class="btn btn-ok login-submit" type="submit">Sign in</button>
+
+    <p class="login-note">
+      This page shows applicant data and edits the bot configuration.
+      If you reach it over a network, make sure the connection is trusted.
+    </p>
+  </form>
+</body>
+</html>

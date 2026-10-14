@@ -250,6 +250,379 @@ _DATEPICKER_OPEN_JS = r"""
 }
 """
 
+# Open the real Time Slot dropdown and report its rendered options.
+#
+# The dataSource route read Count/Code off the model and set the value
+# programmatically. It kept coming back empty ("not-loaded after 20s") even
+# though the control was populated on screen, because the list is only built
+# when the widget is OPENED. So drive it the way a person does: open the box,
+# read the rendered <li>s, and click the green one. Availability is a
+# BACKGROUND COLOUR on the item, exactly like the calendar.
+_SLOT_OPEN_JS = r"""
+(dateId) => {
+  // The slot widget is decoyed like everything else (AppointmentSlot1..5) and
+  // the real one carries the same numeric suffix as the real date picker.
+  const suffix = (String(dateId || '').match(/([0-9]+)$/) || [])[1];
+  const all = Array.from(document.querySelectorAll('input'))
+    .filter((i) => /AppointmentSlot/i.test(i.id || ''));
+  const widget = (i) => window.jQuery && jQuery(i).data('kendoDropDownList');
+
+  let dd = null, input = null;
+  const paired = suffix ? all.find((i) => i.id === 'AppointmentSlot' + suffix) : null;
+  if (paired && widget(paired) && !paired.disabled) { dd = widget(paired); input = paired; }
+  if (!dd) {
+    for (const i of all) {
+      if (i.disabled || !widget(i)) continue;
+      dd = widget(i); input = i; break;
+    }
+  }
+  if (!dd) {
+    return { ok: false, reason: 'no enabled slot dropdown',
+             seen: all.map((i) => i.id + (i.disabled ? ':off' : ':on') +
+                                 (widget(i) ? ':kendo' : ':raw')) };
+  }
+
+  dd.open();
+  return { ok: true, id: input.id, opened: true };
+}
+"""
+
+# Read the options the open dropdown is showing, and click one by index.
+_SLOT_PICK_JS = r"""
+({ inputId, wantIndex }) => {
+  const input = document.getElementById(inputId);
+  const dd = input && window.jQuery && jQuery(input).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'widget vanished' };
+
+  const list = dd.ul;                       // the rendered <ul> of <li> items
+  if (!list) return { ok: false, reason: 'no list element' };
+  const items = Array.from(list.querySelectorAll('li'));
+  if (!items.length) return { ok: false, reason: 'not-loaded' };
+
+  const colourOf = (el) => {
+    // Walk up a little: the colour may sit on the li or on an inner span.
+    for (const node of [el, ...el.querySelectorAll('*')]) {
+      const bg = getComputedStyle(node).backgroundColor || '';
+      const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?/.exec(bg);
+      if (!m) continue;
+      if (m[4] !== undefined && Number(m[4]) === 0) continue;   // transparent
+      const r = +m[1], g = +m[2], b = +m[3];
+      if (r === 255 && g === 255 && b === 255) continue;        // plain white
+      return { r, g, b };
+    }
+    return null;
+  };
+
+  const options = items.map((li, index) => {
+    const text = (li.innerText || '').trim();
+    const c = colourOf(li);
+    // Judge by WHICH channel leads, not by how far it leads. The portal
+    // uses Bootstrap's pale tints as well as saturated fills: bg-success is
+    // rgb(212,237,218), where green tops red by exactly 25 -- a "g > r + 25"
+    // rule read that as not-green and skipped a free 09:00 slot in testing.
+    const lead = (c) => {
+      if (!c) return '';
+      const lo = Math.min(c.r, c.g, c.b);
+      const spread = Math.max(c.r, c.g, c.b) - lo;
+      if (spread < 10) return '';                 // grey / white: no signal
+      if (c.g >= c.r && c.g >= c.b) return 'free';
+      if (c.r >= c.g && c.r >= c.b) return 'full';
+      return '';
+    };
+    const tone = lead(c);
+    const free = tone === 'free';
+    const full = tone === 'full';
+    return { index, text, free, full,
+             colour: c ? `rgb(${c.r},${c.g},${c.b})` : 'none' };
+  }).filter((o) => o.text && !/^-+\s*select/i.test(o.text));
+
+  if (wantIndex === null || wantIndex === undefined) {
+    return { ok: true, options };
+  }
+  const target = items[wantIndex];
+  if (!target) return { ok: false, reason: 'index gone', options };
+  // Click the actual <li> so the portal's own change handlers run.
+  target.click();
+  return { ok: true, options, clicked: (target.innerText || '').trim() };
+}
+"""
+
+# --------------------------------------------------------------------------- #
+# Applicant details form (/Global/BLSAppointment/ManageAppointment, #visaForm)
+#
+# (element id WITHOUT the _<n> applicant suffix, kind, config key, required).
+# The suffix is the applicant index, so the same map drives every applicant on
+# a family booking. Email/Mobile/Mission/Location/VisaType are prefilled and
+# readonly on this page, so they are deliberately absent.
+# --------------------------------------------------------------------------- #
+APPLICANT_FIELDS: tuple[tuple[str, str, str, bool], ...] = (
+    # 1. Personal details
+    ("FirstName",                "text",     "first_name",               True),
+    ("SurName",                  "text",     "surname",                  True),
+    ("SurnameAtBirth",           "text",     "surname_at_birth",         True),
+    ("LastName",                 "text",     "last_name",                False),
+    ("DateOfBirth",              "date",     "dob",                      True),
+    ("PlaceOfBirth",             "text",     "place_of_birth",           True),
+    ("CountryOfBirthId",         "dropdown", "country_of_birth",         True),
+    ("NationalityId",            "dropdown", "nationality",              True),
+    ("NationalityAtBirthId",     "dropdown", "nationality_at_birth",     False),
+    ("GenderId",                 "dropdown", "gender",                   True),
+    ("MaritalStatusId",          "dropdown", "marital_status",           True),
+    # 3. Passport details
+    ("NationalIdentityNumber",   "text",     "national_identity_number", False),
+    ("PassportType",             "dropdown", "passport_type",            True),
+    ("PassportNo",               "text",     "passport_number",          True),
+    ("IssueDate",                "date",     "passport_issue_date",      True),
+    ("ExpiryDate",               "date",     "passport_expiry_date",     True),
+    ("IssuePlace",               "text",     "passport_issue_place",     True),
+    ("IssueCountryId",           "dropdown", "passport_issue_country",   True),
+    ("TravelDate",               "date",     "travel_date",              True),
+    # 4. Address & contact
+    ("HomeAddressLine1",         "text",     "address",                  True),
+    ("HomeAddressLine2",         "text",     "address_line2",            False),
+    ("HomeAddressCountryId",     "dropdown", "country",                  True),
+    ("HomeAddressCity",          "text",     "city",                     True),
+    ("HomeAddressPostalCode",    "text",     "postal_code",              True),
+    ("HomeAddressContactNumber", "text",     "contact_number",           True),
+    # 6. Employer
+    ("EmployerName",             "text",     "employer_name",            True),
+    ("EmployerPhone",            "text",     "employer_phone",           True),
+    ("EmployerAddress",          "text",     "employer_address",         True),
+    ("CurrentOccupationId",      "dropdown", "occupation",               True),
+    # 7. Travel information
+    ("PurposeOfJourneyId",       "dropdown", "purpose_of_journey",       True),
+    ("MemberStateDestinationId", "dropdown", "destination_state",        True),
+    ("MemberStateSecondDestinationId", "dropdown", "second_destination_state", False),
+    # CONFIRMED ids; both are Kendo dropdowns fed by costCoveredData /
+    # meansOfSupportData.
+    ("CostCoveredById",          "dropdown", "cost_covered_by",          True),
+    ("MeansOfSupportId",         "dropdown", "means_of_support",         True),
+)
+
+# Fill one field. Kendo owns the date pickers and dropdowns, so their widget
+# API is used and 'change' fired: writing .value directly leaves the widget's
+# own model stale and the form posts the old value.
+_FILL_FIELD_JS = r"""
+(field) => {
+  const el = document.getElementById(field.id);
+  if (!el) return { id: field.id, ok: false, reason: 'missing' };
+  const $ = window.jQuery;
+
+  if (field.kind === 'date') {
+    const dp = $ && $(el).data('kendoDatePicker');
+    if (!dp) return { id: field.id, ok: false, reason: 'no datepicker widget' };
+    // yyyy-mm-dd, parsed as LOCAL time: new Date("2026-10-15") is UTC and can
+    // land on the previous day once the timezone is applied.
+    const p = String(field.value).split('-').map(Number);
+    if (p.length !== 3) return { id: field.id, ok: false, reason: 'bad date' };
+    dp.value(new Date(p[0], p[1] - 1, p[2]));
+    dp.trigger('change');
+    return { id: field.id, ok: true, set: el.value };
+  }
+
+  if (field.kind === 'dropdown') {
+    const dd = $ && $(el).data('kendoDropDownList');
+    if (!dd) return { id: field.id, ok: false, reason: 'no dropdown widget' };
+    const data = dd.dataSource.data() || [];
+    const textField = (dd.options && dd.options.dataTextField) || 'Name';
+    const valueField = (dd.options && dd.options.dataValueField) || 'Id';
+    const norm = (t) => String(t || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const want = norm(field.value);
+    const texts = data.map((d) => String(d[textField] || ''));
+    let i = texts.findIndex((t) => norm(t) === want);
+    if (i < 0) i = texts.findIndex((t) => norm(t).includes(want));
+    // And the other way round: config says nationality "Egyptian" while the
+    // dropdown offers the country "Egypt", so neither exact nor
+    // option-contains-want matches. Require 4+ chars so this cannot latch
+    // onto something trivial.
+    if (i < 0 && want.length >= 4) {
+      i = texts.findIndex((t) => norm(t).length >= 4 && want.includes(norm(t)));
+    }
+    if (i < 0) {
+      return { id: field.id, ok: false, reason: 'no such option',
+               options: texts.slice(0, 12), count: texts.length };
+    }
+    dd.value(data[i][valueField]);
+    dd.trigger('change');
+    return { id: field.id, ok: true, set: texts[i] };
+  }
+
+  el.value = field.value;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+  return { id: field.id, ok: true, set: el.value };
+}
+"""
+
+# After filling, find every control the page marks required that is still
+# empty. The applicant form is longer than the markup captured so far -- the
+# Travel Information section continues past MemberStateSecondDestinationId with
+# entries/stay/previous-visa/expenses controls whose ids were never seen. This
+# reports them by id and label so they can be added to APPLICANT_FIELDS without
+# another round of guessing.
+# Fill a control located by its visible LABEL rather than its element id.
+#
+# APPLICANT_FIELDS keys off ids, which only works for markup that has been
+# captured. The form carries more required controls than that -- Number of
+# Entries, Intended Stay, Cost Covered By, Means Of Support -- and their ids
+# were never seen. Labels ARE visible on the page, so config can name them
+# directly and no id has to be invented. The kind is detected from whatever
+# widget the control turns out to be.
+_FILL_BY_LABEL_JS = r"""
+({ label, value, index }) => {
+  const form = document.getElementById('visaForm') || document;
+  const norm = (t) => String(t || '').replace(/\*/g, ' ')
+                        .replace(/\s+/g, ' ').trim().toLowerCase();
+  const want = norm(label);
+  const suffix = '_' + (index || 0);
+
+  const seen = [];
+  let target = null;
+  for (const el of form.querySelectorAll('label')) {
+    const id = el.getAttribute('for');
+    if (!id) continue;
+    // Only this applicant's controls, so a family booking cannot cross-fill.
+    if (/_\d+$/.test(id) && !id.endsWith(suffix)) continue;
+    const text = norm(el.innerText);
+    if (!text) continue;
+    seen.push(text);
+    if (text === want || text.includes(want) || want.includes(text)) {
+      const node = document.getElementById(id);
+      if (node) { target = node; break; }
+    }
+  }
+  if (!target) return { ok: false, reason: 'no label match', seen: seen.slice(0, 40) };
+
+  const $ = window.jQuery;
+  const dd = $ && $(target).data('kendoDropDownList');
+  const dp = $ && $(target).data('kendoDatePicker');
+
+  if (dd) {
+    const data = dd.dataSource.data() || [];
+    const textField = (dd.options && dd.options.dataTextField) || 'Name';
+    const valueField = (dd.options && dd.options.dataValueField) || 'Id';
+    const texts = data.map((d) => String(d[textField] || ''));
+    const w = norm(value);
+    let i = texts.findIndex((t) => norm(t) === w);
+    if (i < 0) i = texts.findIndex((t) => norm(t).includes(w));
+    if (i < 0 && w.length >= 4) {
+      i = texts.findIndex((t) => norm(t).length >= 4 && w.includes(norm(t)));
+    }
+    if (i < 0) {
+      return { ok: false, id: target.id, reason: 'no such option',
+               options: texts.slice(0, 15), count: texts.length };
+    }
+    dd.value(data[i][valueField]);
+    dd.trigger('change');
+    return { ok: true, id: target.id, kind: 'dropdown', set: texts[i] };
+  }
+
+  if (dp) {
+    const parts = String(value).split('-').map(Number);
+    if (parts.length !== 3) return { ok: false, id: target.id, reason: 'bad date' };
+    dp.value(new Date(parts[0], parts[1] - 1, parts[2]));
+    dp.trigger('change');
+    return { ok: true, id: target.id, kind: 'date', set: target.value };
+  }
+
+  target.value = value;
+  target.dispatchEvent(new Event('input', { bubbles: true }));
+  target.dispatchEvent(new Event('change', { bubbles: true }));
+  return { ok: true, id: target.id, kind: 'text', set: target.value };
+}
+"""
+
+_UNFILLED_REQUIRED_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { form: false, fields: [] };
+  const $ = window.jQuery;
+  const out = [];
+
+  for (const label of form.querySelectorAll('label')) {
+    if (!label.querySelector('.required')) continue;          // not required
+    const id = label.getAttribute('for');
+    if (!id) continue;
+    const el = document.getElementById(id);
+    if (!el) continue;
+
+    // Hidden sections (minor / other residence) are not in play unless their
+    // checkbox was ticked, and the bot never ticks them.
+    const box = el.closest('div[id^="minor_div"], div[id^="residence_div"]');
+    if (box && getComputedStyle(box).display === 'none') continue;
+
+    let value = (el.value || '').trim();
+    let kind = 'text';
+    if ($) {
+      const dd = $(el).data('kendoDropDownList');
+      const dp = $(el).data('kendoDatePicker');
+      if (dd) {
+        kind = 'dropdown';
+        const text = (dd.text && dd.text()) || '';
+        value = /^-+\s*select/i.test(text) ? '' : text;
+      } else if (dp) {
+        kind = 'date';
+        value = dp.value() ? value : '';
+      }
+    }
+    if (value) continue;
+
+    out.push({
+      id,
+      kind,
+      label: (label.innerText || '').replace(/\*/g, '').trim().slice(0, 40),
+    });
+  }
+  return { form: true, fields: out };
+}
+"""
+
+_APPLICANT_READY_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { form: false };
+  const $ = window.jQuery;
+  const first = document.getElementById('FirstName_0');
+  const gender = document.getElementById('GenderId_0');
+  const dob = document.getElementById('DateOfBirth_0');
+  return {
+    form: true,
+    text: !!first,
+    dropdown: !!(gender && $ && $(gender).data('kendoDropDownList')),
+    date: !!(dob && $ && $(dob).data('kendoDatePicker')),
+  };
+}
+"""
+
+_APPLICANT_SUBMIT_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { ok: false, reason: 'no form' };
+  const vis = (el) => {
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  // Never the escape hatches, whatever the markup order happens to be.
+  const bad = /disagree|cancel|back|reset|clear|logout/i;
+  const pool = Array.from(form.querySelectorAll('button, input[type=submit]'))
+    .concat(Array.from(document.querySelectorAll('button, input[type=submit]')));
+  const seen = [];
+  for (const el of pool) {
+    if (!vis(el)) continue;
+    const text = ((el.innerText || el.value || '') + '').trim();
+    if (seen.length < 12) seen.push(text.slice(0, 30));
+    if (bad.test(text)) continue;
+    const isSubmit = el.type === 'submit' || /submit|continue|next|save/i.test(text);
+    if (!isSubmit) continue;
+    el.click();
+    return { ok: true, text };
+  }
+  return { ok: false, reason: 'no submit control', seen };
+}
+"""
+
 _KENDO_SET_JS = r"""
 (args) => {
   const { label, wanted } = args;
@@ -1586,39 +1959,90 @@ class Monitor:
             await self.notifier.wait_for_resume()
             self.state.clear_manual_pause()
 
-        for label, fn, button_id in (
-            ("verify appointment", "VerifyAppointment", "btnVerifyAppointment"),
-            ("submit appointment", "OnAppointmentSubmit", "btnSubmit"),
+        # CONFIRMED markup for this step:
+        #   <button id="btnVerifyAppointment"   style="display:none"
+        #           onclick="VerifyAppointment(event,this)">Verify Appointment
+        #   <button id="btnVerifiedAppointment" disabled>Appointment Verified
+        #   <button id="btnSubmit" type="submit"
+        #           onclick="return OnAppointmentSubmit(event)">Submit Appointment
+        #
+        # The flow is: Verify Appointment -> captcha popup -> submit selection
+        # -> popup closes and "Appointment Verified" appears -> Submit
+        # Appointment. Only the FIRST button raises a captcha, so waiting for
+        # one after the submit just stalled for the full frame timeout.
+
+        # --- 1. Verify Appointment ------------------------------------------
+        await self._dismiss_open_modals(page)
+        if not await self._click_when_ready(
+            page, "btnVerifyAppointment", "VerifyAppointment"
         ):
-            # Anything left on screen eats the click.
-            await self._dismiss_open_modals(page)
+            logger.error("  verify appointment    : control never became available")
+            await utils.screenshot(page, "appointment-verify-missing")
+            await utils.dump_page_html(page, "appointment-verify-missing")
+            return False
+        logger.success("  verify appointment    : clicked")
+        await asyncio.sleep(1.5)
 
-            clicked = await self._click_when_ready(page, button_id, fn)
-            if not clicked:
-                logger.error(f"  {label:<22}: control never became available")
-                await utils.screenshot(page, f"appointment-{button_id}-missing")
-                await utils.dump_page_html(page, f"appointment-{button_id}-missing")
-                return False
-            logger.success(f"  {label:<22}: clicked")
-            await asyncio.sleep(1.5)
-
-            # CONFIRMED: "Verify Appointment" raises a THIRD captcha, served
-            # from /Global/CaptchaPublic/GenerateCaptcha. Run 20261013_162707
-            # loaded it at 16:29:10 and never answered it, so 31s later the
-            # portal said "Your session has been expired", returned 403, and
-            # #btnSubmit never appeared. Solve it here, immediately, while its
-            # token is young. solve_captcha returns True when there is none.
-            await self._dismiss_open_modals(page)
-            try:
-                if not await self.auth.solve_captcha(page):
-                    logger.error(f"  {label:<22}: its captcha was not solved")
-                    await utils.screenshot(page, f"appointment-{button_id}-captcha")
+        # --- 2. its captcha, inside the popup's iframe ----------------------
+        # The popup is a Kendo window whose body is
+        # /Global/CaptchaPublic/GenerateCaptcha. Solving against the PAGE found
+        # no captcha, so solve_captcha returned "nothing to do" and the step
+        # walked straight past the challenge; 31s later the portal said "Your
+        # session has been expired" and #btnSubmit never appeared
+        # (run 20261013_162707). CAPTCHA_FRAME_HINT already matches this URL.
+        try:
+            work = await self._wait_for_captcha_frame(page, timeout=20.0)
+            if work is None:
+                logger.info("  verify appointment    : no captcha popup appeared")
+            else:
+                offset = await self._frame_offset(work)
+                logger.info(f"  verify appointment    : captcha frame at {offset}")
+                if not await self.auth.solve_captcha(page, ctx=work, offset=offset):
+                    logger.error("  verify appointment    : captcha not solved")
+                    await utils.screenshot(page, "appointment-verify-captcha")
                     return False
-            except Exception as exc:
-                logger.warning(f"  {label:<22}: captcha step errored — {exc}")
-            await self._dismiss_open_modals(page)
-            await self._settle(page)
-            await asyncio.sleep(1.5)
+        except Exception as exc:
+            logger.warning(f"  verify appointment    : captcha step errored — {exc}")
+
+        await self._dismiss_open_modals(page)
+
+        # --- 3. wait for the portal to confirm the verification -------------
+        # "Appointment Verified" appearing is the signal that the captcha was
+        # accepted and the popup is gone. Clicking Submit before it shows just
+        # posts an unverified form.
+        verified = await self._wait_for_verified(page)
+        if not verified:
+            logger.error(
+                "  appointment verified  : never confirmed — not submitting an "
+                "unverified appointment"
+            )
+            await utils.screenshot(page, "appointment-not-verified")
+            await utils.dump_page_html(page, "appointment-not-verified")
+            return False
+        logger.success("  appointment verified  : confirmed by the portal")
+
+        # --- 4. Submit Appointment ------------------------------------------
+        await self._dismiss_open_modals(page)
+        if not await self._click_when_ready(page, "btnSubmit", "OnAppointmentSubmit"):
+            logger.error("  submit appointment    : control never became available")
+            await utils.screenshot(page, "appointment-submit-missing")
+            await utils.dump_page_html(page, "appointment-submit-missing")
+            return False
+        logger.success("  submit appointment    : clicked")
+        await self._dismiss_open_modals(page)
+        await self._settle(page)
+        await asyncio.sleep(2.0)
+
+        # Submitting lands on a Terms of Service page that must be consented to
+        # before the booking proceeds.
+        await self._accept_terms_of_service(page)
+        await self._dismiss_open_modals(page)
+
+        # Consent leads to the applicant details form.
+        if await self._applicant_form_present(page):
+            if not await self.complete_applicant_details(page):
+                logger.warning("monitor: applicant details not completed")
+                return False
 
         await utils.screenshot(page, "appointment-submitted")
         await utils.dump_page_html(page, "appointment-submitted")
@@ -1632,6 +2056,412 @@ class Monitor:
         )
         await self._survey_page(page, "after-appointment-submit")
         return True
+
+    @staticmethod
+    def _normalise_date(value: str) -> str:
+        """Accept dd/mm/yyyy as well as yyyy-mm-dd and return yyyy-mm-dd.
+
+        config.yaml documents dob as DD/MM/YYYY and that is what is in it, but
+        the Kendo pickers on this form are configured "{0:yyyy-MM-dd}". Passing
+        the config value through unchanged produced "bad date" and left the
+        field empty.
+        """
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        if "/" in text:
+            parts = [p.strip() for p in text.split("/")]
+            if len(parts) == 3:
+                day, month, year = parts
+                if len(year) == 4:
+                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                # yyyy/mm/dd
+                if len(day) == 4:
+                    return f"{day}-{month.zfill(2)}-{year.zfill(2)}"
+        return text.replace(".", "-")
+
+    async def _applicant_form_present(self, page: Any, timeout: float = 20.0) -> bool:
+        """True once #visaForm shows up after the consent step."""
+        waited = 0.0
+        while waited < timeout:
+            try:
+                if await page.evaluate("() => !!document.getElementById('visaForm')"):
+                    return True
+            except Exception:
+                pass
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.info("  applicant form        : did not appear")
+        return False
+
+    async def complete_applicant_details(self, page: Any, applicants: int = 1) -> bool:
+        """Fill #visaForm -- the applicant details page -- and submit it.
+
+        Values come from the applicant section of config.yaml, which the
+        dashboard Settings tab edits live. Every field the portal marks
+        required is checked BEFORE submitting: a blank one is reported by name
+        rather than posting a form the portal is going to bounce.
+        """
+        logger.info("=" * 60)
+        logger.info("APPLICANT DETAILS")
+        await utils.dump_page_html(page, "applicant-form")
+
+        if not await self._wait_for_applicant_form(page):
+            logger.error("monitor: the applicant form never finished rendering")
+            await utils.screenshot(page, "applicant-form-not-ready")
+            return False
+
+        applicant = self.config.get("applicant", {}) or {}
+        filled = 0
+        missing_required: list[str] = []
+        failures: list[str] = []
+
+        for index in range(max(1, applicants)):
+            if index:
+                logger.info(f"  applicant {index + 1}")
+            for base, kind, key, required in APPLICANT_FIELDS:
+                element_id = f"{base}_{index}"
+                value = str(applicant.get(key, "") or "").strip()
+                if kind == "date":
+                    value = self._normalise_date(value)
+                if not value:
+                    if required:
+                        missing_required.append(f"{key} (-> {element_id})")
+                    continue
+
+                try:
+                    result = await page.evaluate(
+                        _FILL_FIELD_JS,
+                        {"id": element_id, "kind": kind, "value": value},
+                    )
+                except Exception as exc:
+                    failures.append(f"{element_id}: {exc}")
+                    continue
+
+                if result.get("ok"):
+                    filled += 1
+                    logger.info(f"  {base:<28}: {result.get('set')!r}")
+                else:
+                    detail = str(result.get("reason"))
+                    if result.get("options"):
+                        detail += f" (offered: {result['options']})"
+                    failures.append(f"{element_id}: {detail}")
+                    logger.warning(f"  {base:<28}: NOT SET - {detail}")
+                await asyncio.sleep(0.15)
+
+        # Controls the id-based map cannot name, matched by their label.
+        failures.extend(await self._fill_extra_fields(page))
+
+        logger.info(f"  filled                : {filled} field(s)")
+
+        if missing_required:
+            logger.error(
+                "monitor: cannot submit - these required settings are blank "
+                "in config.yaml:"
+            )
+            for name in missing_required:
+                logger.error(f"    - {name}")
+            await utils.screenshot(page, "applicant-form-incomplete")
+            self.state.log_event(
+                "bot",
+                f"applicant details incomplete: {len(missing_required)} blank",
+                status="error",
+            )
+            bullets = "\n".join(f"- {n}" for n in missing_required[:20])
+            await self.notifier.manual_required(
+                "The applicant details form needs values the config does not "
+                f"have:\n{bullets}\n\nFill them in the dashboard Settings "
+                "tab, then send /resume."
+            )
+            return False
+
+        if failures:
+            logger.warning(f"monitor: {len(failures)} field(s) would not set:")
+            for name in failures:
+                logger.warning(f"    - {name}")
+
+        await utils.screenshot(page, "applicant-form-filled")
+
+        # Ask the PAGE what is still missing, rather than trusting the map to
+        # be complete. Submitting with a required field empty just bounces.
+        unfilled = await self._report_unfilled_required(page)
+        if unfilled:
+            await utils.dump_page_html(page, "applicant-form-unmapped")
+            names = ", ".join(f"{f['id']} ({f['label']})" for f in unfilled[:12])
+            await self.notifier.manual_required(
+                f"The applicant form has {len(unfilled)} required field(s) the "
+                f"bot does not know about yet:\n{names}\n\nThey need adding to "
+                "the config before it can submit."
+            )
+            return False
+
+        await self._dismiss_open_modals(page)
+
+        if not await self._submit_applicant_form(page):
+            return False
+
+        await self._settle(page)
+        await self._dismiss_open_modals(page)
+        await utils.screenshot(page, "applicant-form-submitted")
+        await utils.dump_page_html(page, "applicant-form-submitted")
+
+        problem = await self._form_validation_error(page)
+        if problem:
+            logger.error(f"monitor: the portal rejected the form - {problem!r}")
+            self.state.log_event(
+                "bot", f"applicant form rejected: {problem}", status="error"
+            )
+            return False
+
+        logger.success(f"monitor: applicant details submitted - now at {page.url}")
+        self.state.log_event("bot", "applicant details submitted", status="ok")
+        logger.info("=" * 60)
+        await self._survey_page(page, "after-applicant-submit")
+        return True
+
+    async def _fill_extra_fields(self, page: Any, index: int = 0) -> list[str]:
+        """Fill applicant.extra_fields, which are keyed by visible label.
+
+        For controls APPLICANT_FIELDS cannot name because their ids were never
+        captured. Returns the labels that could not be set.
+        """
+        extras = (self.config.get("applicant", {}) or {}).get("extra_fields") or {}
+        if not isinstance(extras, dict) or not extras:
+            return []
+
+        failures: list[str] = []
+        for label, value in extras.items():
+            text = str(value or "").strip()
+            if not text:
+                continue
+            try:
+                result = await page.evaluate(
+                    _FILL_BY_LABEL_JS,
+                    {"label": str(label), "value": text, "index": index},
+                )
+            except Exception as exc:
+                failures.append(f"{label}: {exc}")
+                continue
+
+            if result.get("ok"):
+                logger.info(
+                    f"  {str(label)[:26]:<28}: {result.get('set')!r} "
+                    f"(#{result.get('id')}, {result.get('kind')})"
+                )
+            else:
+                detail = str(result.get("reason"))
+                if result.get("options"):
+                    detail += f" (offered: {result['options']})"
+                elif result.get("seen"):
+                    detail += f" (labels on the page: {result['seen']})"
+                failures.append(f"{label}: {detail}")
+                logger.warning(f"  {str(label)[:26]:<28}: NOT SET - {detail}")
+            await asyncio.sleep(0.15)
+        return failures
+
+    async def _report_unfilled_required(self, page: Any) -> list[dict[str, Any]]:
+        """Name any required control the page still shows as empty.
+
+        The field map was built from the markup captured so far, which stops
+        part way through Travel Information. Anything the portal requires but
+        the map does not know about shows up here with its real id, so it can
+        be added rather than guessed at.
+        """
+        try:
+            report = await page.evaluate(_UNFILLED_REQUIRED_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: required-field scan failed: {exc}")
+            return []
+
+        fields = report.get("fields") or []
+        if not fields:
+            logger.info("  required check        : every required field has a value")
+            return []
+
+        logger.warning(
+            f"  required check        : {len(fields)} required field(s) still empty "
+            "— these are not in APPLICANT_FIELDS yet:"
+        )
+        for field in fields:
+            logger.warning(
+                f"    - {field['id']:<34} {field['kind']:<9} {field['label']!r}"
+            )
+        self.state.log_event(
+            "bot",
+            f"{len(fields)} required applicant field(s) unmapped: "
+            + ", ".join(f["id"] for f in fields[:8]),
+            status="warn",
+        )
+        return fields
+
+    async def _wait_for_applicant_form(self, page: Any, timeout: float = 30.0) -> bool:
+        """Wait for #visaForm AND its Kendo widgets, not just the markup."""
+        waited = 0.0
+        last: dict[str, Any] = {}
+        while waited < timeout:
+            try:
+                last = await page.evaluate(_APPLICANT_READY_JS)
+            except Exception as exc:
+                logger.debug(f"monitor: applicant form probe failed: {exc}")
+                last = {}
+            if (
+                last.get("form")
+                and last.get("text")
+                and last.get("dropdown")
+                and last.get("date")
+            ):
+                if waited:
+                    logger.info(f"  form ready            : after {waited:.0f}s")
+                return True
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.warning(
+            f"  applicant form        : not ready after {timeout:.0f}s - {last}"
+        )
+        return False
+
+    async def _submit_applicant_form(self, page: Any) -> bool:
+        """Submit #visaForm, never touching a Disagree/Cancel/Back control."""
+        try:
+            result = await page.evaluate(_APPLICANT_SUBMIT_JS)
+        except Exception as exc:
+            logger.error(f"monitor: applicant submit failed: {exc}")
+            return False
+
+        if not result.get("ok"):
+            logger.error(
+                f"monitor: could not submit the applicant form "
+                f"({result.get('reason')}); controls seen: {result.get('seen')}"
+            )
+            await utils.screenshot(page, "applicant-no-submit")
+            await utils.dump_page_html(page, "applicant-no-submit")
+            return False
+
+        logger.success(f"  submitted via         : {result.get('text')!r}")
+        await asyncio.sleep(2.0)
+        return True
+
+    async def _accept_terms_of_service(self, page: Any, timeout: float = 30.0) -> bool:
+        """Give consent on the Terms of Service page that follows submission.
+
+        CONFIRMED markup — the two buttons sit side by side:
+
+          <button class="btn btn-danger p-2"
+                  onclick="onDisagree()">I disagree and don't give my consent
+          <button class="btn btn-success ml-4 p-2"
+                  onclick="onAgree()">I agree to provide my consent
+
+        Targeted by its onclick handler, never by position or by being "the
+        other one": clicking Disagree would throw the booking away, so the
+        match has to be positive. Anything whose handler or text mentions
+        disagreeing is rejected outright, and if only that one is present this
+        returns False rather than guessing.
+        """
+        waited = 0.0
+        while waited < timeout:
+            try:
+                result = await page.evaluate(
+                    """
+                    () => {
+                      const vis = (el) => {
+                        const s = getComputedStyle(el);
+                        if (s.display === 'none' || s.visibility === 'hidden') return false;
+                        const r = el.getBoundingClientRect();
+                        return r.width > 2 && r.height > 2;
+                      };
+                      const all = Array.from(document.querySelectorAll('button, a.btn'));
+                      const blob = (el) =>
+                        ((el.getAttribute('onclick') || '') + ' ' +
+                         (el.innerText || '')).toLowerCase();
+
+                      const seen = [];
+                      let agree = null;
+                      for (const el of all) {
+                        if (!vis(el)) continue;
+                        const b = blob(el);
+                        seen.push((el.innerText || '').trim().slice(0, 40));
+                        // Reject the refusal explicitly before anything else.
+                        if (b.includes('ondisagree') || b.includes('disagree') ||
+                            b.includes("don't give") || b.includes('do not give')) {
+                          continue;
+                        }
+                        if (b.includes('onagree') ||
+                            (b.includes('agree') && b.includes('consent'))) {
+                          agree = el;
+                          break;
+                        }
+                      }
+                      if (!agree) return { found: false, seen };
+                      agree.click();
+                      return { found: true, text: (agree.innerText || '').trim(),
+                               handler: agree.getAttribute('onclick') || '' };
+                    }
+                    """
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: consent scan failed: {exc}")
+                result = {"found": False}
+
+            if result.get("found"):
+                logger.success(
+                    f"  terms of service      : agreed via "
+                    f"{result.get('handler') or result.get('text')!r}"
+                )
+                self.state.log_event("bot", "terms of service accepted", status="ok")
+                await self._settle(page)
+                await asyncio.sleep(1.5)
+                return True
+
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
+        logger.info("  terms of service      : no consent page appeared")
+        return False
+
+    async def _wait_for_verified(self, page: Any, timeout: float = 45.0) -> bool:
+        """Wait for "Appointment Verified" to appear after the captcha.
+
+        CONFIRMED: #btnVerifyAppointment is style="display:none" once accepted
+        and #btnVerifiedAppointment becomes visible. Either signal will do, and
+        the state is polled rather than assumed because the portal has to round
+        trip the captcha first.
+        """
+        waited = 0.0
+        last: dict[str, Any] = {}
+        while waited < timeout:
+            try:
+                last = await page.evaluate(
+                    """
+                    () => {
+                      const shown = (id) => {
+                        const el = document.getElementById(id);
+                        if (!el) return null;
+                        const s = getComputedStyle(el);
+                        return s.display !== 'none' && s.visibility !== 'hidden';
+                      };
+                      const flag = document.getElementById('AppointmentVerified');
+                      return {
+                        verify: shown('btnVerifyAppointment'),
+                        verified: shown('btnVerifiedAppointment'),
+                        submit: shown('btnSubmit'),
+                        flag: flag ? flag.value : null,
+                      };
+                    }
+                    """
+                )
+            except Exception as exc:
+                logger.debug(f"monitor: verified check failed: {exc}")
+                last = {}
+            if last.get("verified") or str(last.get("flag")).lower() == "true":
+                return True
+            # The verify button disappearing is the same signal from the other
+            # side, but only once something else is on screen in its place.
+            if last.get("verify") is False and last.get("submit"):
+                return True
+            await asyncio.sleep(1.0)
+            waited += 1.0
+        logger.warning(f"  appointment verified  : state after {timeout:.0f}s — {last}")
+        return False
 
     async def _click_when_ready(
         self, page: Any, button_id: str, fallback_fn: str, timeout: float = 30.0
@@ -1852,7 +2682,7 @@ class Monitor:
         if waited:
             logger.info(f"  date picker           : ready after {waited:.0f}s")
         logger.info(f"  date picker           : opened #{opened}")
-        # The slot dropdown shares this suffix; see _read_slot_dropdown.
+        # The slot dropdown shares this suffix; see _SLOT_OPEN_JS.
         self._date_field_id = str(opened)
         await asyncio.sleep(1.2)
         await utils.screenshot(page, "appointment-calendar-open")
@@ -1951,131 +2781,107 @@ class Monitor:
         return {"ok": True, "offered": offered, "clicked": picked["clicked"]}
 
     async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
-        """Choose a free time slot once a date has been picked.
+        """Open the Time Slot box and click a free (green) option.
 
-        The Kendo template renders each slot with bg-success when free and
-        bg-danger when booked (Count < Code), so a date can be selectable while
-        every slot on it is full — only green is acceptable.
+        Driven the way a person drives it: open the select, look at the
+        options, click the green one. The previous version read the widget's
+        dataSource and assigned the value programmatically, and it kept
+        reporting "not-loaded after 20s" on a control that was populated on
+        screen -- Kendo only builds the list when the dropdown is OPENED, so
+        there was nothing in the DOM to read.
         """
-        # Poll: the slot list arrives by AJAX after the date is chosen.
-        deadline = 20.0
+        deadline = 25.0
         waited = 0.0
-        result: dict[str, Any] = {}
-        # "no enabled slot dropdown" is also a not-ready state, not a verdict:
-        # the widget is created by the same Kendo pass that builds the date
-        # picker, so it can legitimately be missing for the first seconds.
-        pending = ("not-loaded", "no enabled slot dropdown")
+        opened: dict[str, Any] = {}
+
+        # The widget is built by the same Kendo pass as the date picker, so a
+        # missing one early on is "not ready", not "not there".
         while waited < deadline:
-            result = await self._read_slot_dropdown(page, date_id)
-            if result.get("reason") not in pending:
+            try:
+                opened = await page.evaluate(_SLOT_OPEN_JS, date_id)
+            except Exception as exc:
+                logger.warning(f"  slot                  : open failed — {exc}")
+                return False
+            if opened.get("ok"):
                 break
             await asyncio.sleep(1.0)
             waited += 1.0
-        if result.get("reason") in pending:
+
+        if not opened.get("ok"):
             logger.warning(
-                f"  slot                  : {result.get('reason')} after "
-                f"{deadline:.0f}s — treating as no slots "
-                f"(widgets seen: {result.get('seen')})"
+                f"  slot                  : {opened.get('reason')} after "
+                f"{deadline:.0f}s (widgets seen: {opened.get('seen')})"
             )
             return False
 
-        slots = result.get("slots") or []
-        if slots:
-            logger.info(
-                "  slots offered         : "
-                + ", ".join(f"{s['name']}{'*' if s['free'] else ''}" for s in slots[:20])
-                + "   (* = free)"
-            )
-        if result.get("seen"):
-            logger.info(f"  slot widgets seen     : {result['seen']}")
-        if result.get("sample"):
-            logger.info(f"  slot row sample       : {result['sample']}")
-        if not result.get("ok"):
-            logger.warning(f"  slot                  : {result.get('reason')}")
-            return False
-        logger.success(f"  slot chosen           : {result.get('chosen')!r}")
-        await self._settle(page)
-        return True
+        input_id = opened.get("id")
+        logger.info(f"  slot dropdown         : opened #{input_id}")
 
-    async def _read_slot_dropdown(
-        self, page: Any, date_id: str = ""
-    ) -> dict[str, Any]:
-        """One read of the Time Slot Kendo dropdown. See _pick_green_slot."""
+        # The options are fetched for the chosen date, so give them time to
+        # render INTO the open list.
+        options: list[dict[str, Any]] = []
+        waited = 0.0
+        read: dict[str, Any] = {}
+        while waited < deadline:
+            try:
+                read = await page.evaluate(
+                    _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": None}
+                )
+            except Exception as exc:
+                logger.warning(f"  slot                  : read failed — {exc}")
+                return False
+            options = read.get("options") or []
+            if options:
+                break
+            await asyncio.sleep(1.0)
+            waited += 1.0
+
+        if not options:
+            logger.warning(
+                f"  slot                  : no options rendered within "
+                f"{deadline:.0f}s ({read.get('reason')}) — this date has none"
+            )
+            await utils.screenshot(page, "appointment-slot-list-empty")
+            return False
+
+        logger.info(
+            "  slots offered         : "
+            + ", ".join(
+                f"{o['text']}{'*' if o['free'] else '(full)' if o['full'] else ''}"
+                for o in options[:20]
+            )
+            + "   (* = free)"
+        )
+
+        free = [o for o in options if o.get("free")]
+        if not free:
+            # Log the colours once so a wrong threshold is diagnosable rather
+            # than silently reading every slot as taken.
+            logger.warning(
+                "  slot colours          : "
+                + ", ".join(f"{o['text']}={o['colour']}" for o in options[:9])
+            )
+            logger.warning("  slot                  : every option is taken")
+            await utils.screenshot(page, "appointment-no-green-slot")
+            return False
+
+        choice = free[0]
         try:
-            return await page.evaluate(
-                """
-                (dateId) => {
-                  // CONFIRMED: the slot dropdown is decoyed exactly like the
-                  // login fields -- AppointmentSlot1..5, all but one disabled
-                  // (dump 20261013-160050_manage-appointment.html). The real
-                  // one carries the same numeric suffix as the real date
-                  // picker, so pair them rather than taking the first enabled
-                  // widget, which can be a decoy mid-render.
-                  const suffix = (String(dateId || '').match(/([0-9]+)$/) || [])[1];
-                  const all = Array.from(
-                    document.querySelectorAll('input[data-role="dropdownlist"]'))
-                    .filter((i) => /AppointmentSlot/i.test(i.id || ''));
-                  const widget = (i) =>
-                    window.jQuery && jQuery(i).data('kendoDropDownList');
-                  const usable = (i) => {
-                    if (!widget(i)) return false;
-                    const wrap = i.closest('.k-widget') || i.parentElement;
-                    if (wrap && getComputedStyle(wrap).display === 'none') return false;
-                    return true;
-                  };
-
-                  let dd = null, id = null;
-                  const paired = suffix
-                    ? all.find((i) => i.id === 'AppointmentSlot' + suffix)
-                    : null;
-                  if (paired && usable(paired)) { dd = widget(paired); id = paired.id; }
-                  if (!dd) {
-                    for (const i of all) {
-                      if (i.disabled || !usable(i)) continue;
-                      dd = widget(i); id = i.id; break;
-                    }
-                  }
-                  if (!dd) {
-                    return { ok: false, reason: 'no enabled slot dropdown',
-                             seen: all.map((i) => i.id + (i.disabled ? ':off' : ':on')) };
-                  }
-
-                  const data = dd.dataSource.data() || [];
-                  // The list is fetched by AJAX for the chosen date, so an
-                  // empty dataSource means NOT LOADED YET, not "all booked".
-                  // Reporting the latter lost a real opening: run
-                  // 20261013_154625 read the list ~2s after picking the date,
-                  // got zero items, and declared every slot taken.
-                  if (!data.length) return { ok: false, reason: 'not-loaded', id };
-                  const slots = [];
-                  let chosen = null;
-                  for (let i = 0; i < data.length; i++) {
-                    const item = data[i];
-                    const name = String(item.Name || '');
-                    // Mirrors the page's own template: Count < Code means full.
-                    const free = !(Number(item.Count) < Number(item.Code));
-                    slots.push({ name, free });
-                    if (free && !chosen && name && !/^-+\\s*select/i.test(name)) {
-                      chosen = { name, id: item.Id, index: i };
-                    }
-                  }
-                  if (!chosen) {
-                    // Carry one raw row: the free/full rule below is inferred
-                    // from the page template and has never been seen against
-                    // real data, so make the next run able to confirm it.
-                    return { ok: false, reason: 'all slots booked', slots, id,
-                             sample: JSON.stringify(data[0] || {}).slice(0, 300) };
-                  }
-                  dd.value(chosen.id);
-                  dd.trigger('change');
-                  return { ok: true, chosen: chosen.name, slots, id };
-                }
-                """,
-                date_id,
+            picked = await page.evaluate(
+                _SLOT_PICK_JS, {"inputId": input_id, "wantIndex": choice["index"]}
             )
         except Exception as exc:
-            logger.warning(f"monitor: slot selection failed: {exc}")
-            return {"ok": False, "reason": f"read failed: {exc}"}
+            logger.warning(f"  slot                  : click failed — {exc}")
+            return False
+        if not picked.get("ok") or not picked.get("clicked"):
+            logger.warning(
+                f"  slot                  : could not click {choice['text']!r} "
+                f"({picked.get('reason')})"
+            )
+            return False
+
+        logger.success(f"  slot chosen           : {picked['clicked']!r}")
+        await self._settle(page)
         await asyncio.sleep(1.0)
         return True
 

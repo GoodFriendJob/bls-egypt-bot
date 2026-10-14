@@ -9,12 +9,92 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import hmac
+import os
+import secrets
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from dashboard import config_api
 from loguru import logger
+
+
+LOGIN_ENDPOINT = "login"
+
+
+def _install_auth(app: Flask, password: str) -> None:
+    """Gate every page and API route behind a shared password.
+
+    Static: one password from config, compared in constant time, held in a
+    signed session cookie. That is proportionate for a single-operator tool,
+    but it is only as private as the transport -- see the warning in
+    dashboard/server.py about running this over plain HTTP.
+
+    With no password configured the dashboard is open; server.py refuses to
+    bind anything but loopback in that case, so "open" means "this machine
+    only".
+    """
+    # A fresh key each start means restarting the dashboard logs everyone out,
+    # which is the safer default for a tool that edits credentials.
+    app.secret_key = os.environ.get("BLS_DASHBOARD_SECRET") or secrets.token_hex(32)
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        PERMANENT_SESSION_LIFETIME=60 * 60 * 12,
+    )
+
+    if not password:
+        app.config["BLS_AUTH"] = False
+        return
+    app.config["BLS_AUTH"] = True
+
+    @app.before_request
+    def _require_login():  # type: ignore[no-untyped-def]
+        if request.endpoint in (LOGIN_ENDPOINT, "static"):
+            return None
+        if session.get("bls_ok"):
+            return None
+        # An expired session on a background poll must not render the login
+        # PAGE into the fetch; answer API calls with a status the UI can act on.
+        if request.path.startswith("/api/"):
+            return jsonify({"ok": False, "error": "auth required"}), 401
+        return redirect(url_for(LOGIN_ENDPOINT, next=request.path))
+
+    @app.route("/login", methods=["GET", "POST"])
+    def login():  # type: ignore[no-untyped-def]
+        error = ""
+        if request.method == "POST":
+            supplied = str(request.form.get("password", ""))
+            # compare_digest keeps the check constant-time, so a wrong password
+            # cannot be narrowed down by timing it.
+            if hmac.compare_digest(supplied, password):
+                session.clear()
+                session["bls_ok"] = True
+                session.permanent = True
+                target = request.args.get("next") or "/"
+                # Only ever bounce to a local path; an attacker-supplied
+                # absolute URL would turn this into an open redirect.
+                if not target.startswith("/") or target.startswith("//"):
+                    target = "/"
+                logger.info("dashboard: login accepted")
+                return redirect(target)
+            error = "Wrong password"
+            logger.warning(f"dashboard: failed login from {request.remote_addr}")
+        return render_template("login.html", error=error)
+
+    @app.route("/logout")
+    def logout():  # type: ignore[no-untyped-def]
+        session.clear()
+        return redirect(url_for(LOGIN_ENDPOINT))
 
 
 def create_app(
@@ -23,6 +103,7 @@ def create_app(
     app = Flask(__name__)
     app.config["JSON_AS_ASCII"] = False  # keep Arabic readable in API responses
     dash_cfg = config.get("dashboard", {}) or {}
+    _install_auth(app, str(dash_cfg.get("password", "") or ""))
 
     @app.route("/")
     def index() -> str:
