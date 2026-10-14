@@ -1537,6 +1537,19 @@ class BLSAuth:
             if banner:
                 logger.warning(f"  portal message  : {banner!r}")
 
+            # Keep the image the model actually saw. Samples are off by default
+            # now, which is why a clip landing on the wrong pixels could only
+            # be inferred from the digits rather than seen. A rejection is rare
+            # and is exactly when the picture is worth having.
+            if grid_png:
+                kept = vision.save_sample(
+                    vision.upscale_png(grid_png),
+                    f"{_sample_stamp()}_REJECTED_target{target}_attempt{attempt}",
+                    enabled=True,
+                )
+                if kept:
+                    logger.warning(f"  rejected grid   : {kept}")
+
             logger.warning(
                 f"  outcome         : REJECTED - captcha still present after "
                 f"attempt {attempt}, grid reloaded"
@@ -1642,8 +1655,26 @@ class BLSAuth:
 
             if box and box["width"] > 10 and box["height"] > 10:
                 # Frame coordinates are relative to the frame; the page
-                # screenshot needs page coordinates, so shift by the
-                # iframe's own position.
+                # screenshot needs page coordinates, so shift by the iframe's
+                # own position.
+                #
+                # CRITICAL: re-measure that position HERE. The JS above calls
+                # scrollIntoView, and on a long page that scrolls the PAGE, not
+                # just the frame — which moves the iframe and makes the offset
+                # captured before the call stale. Run 20261014_050558 clipped
+                # one tile-row too high on the booking page for exactly this
+                # reason: the per-tile crops came back shifted by +3 (one full
+                # row, "?,9,688,178,..." against a real "178,508,757,..."), the
+                # model was handed the prompt band instead of row 1, and the
+                # portal answered "Invalid selection" four times.
+                live = await self._frame_page_offset(ctx)
+                if live is not None and live != tuple(offset):
+                    logger.info(
+                        f"  frame moved     : offset {tuple(offset)} -> {live} "
+                        "(scrollIntoView moved the page); using the fresh one"
+                    )
+                    offset = live
+
                 clip = {
                     "x": round(box["x"] + offset[0], 2),
                     "y": round(box["y"] + offset[1], 2),
@@ -2170,6 +2201,27 @@ class BLSAuth:
             return True
         logger.debug(f"auth: {fn}() not present on this page")
         return False
+
+    @staticmethod
+    async def _frame_page_offset(ctx: Any) -> tuple[float, float] | None:
+        """Where this frame sits on the page, measured NOW.
+
+        Returns None for a Page (already page coordinates) or when the frame
+        element cannot be reached. Measuring late matters: anything that
+        scrolls between the caller's measurement and the screenshot invalidates
+        the earlier number, and the clip then lands on the wrong pixels.
+        """
+        if not hasattr(ctx, "frame_element"):
+            return None
+        try:
+            element = await ctx.frame_element()
+            box = await element.bounding_box()
+        except Exception as exc:
+            logger.debug(f"auth: could not re-measure the frame: {exc}")
+            return None
+        if not box:
+            return None
+        return (round(box["x"], 2), round(box["y"], 2))
 
     async def _click_captcha_submit(self, ctx: Any, *, avoid_login: bool = False) -> bool:
         """Click submit IMMEDIATELY — the captcha token is short-lived.
