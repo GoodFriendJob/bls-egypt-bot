@@ -762,8 +762,16 @@ class BLSAuth:
             await self.start()
             page = self.page
 
+            # No saved cookies means there is nothing to probe. Asking for the
+            # dashboard anyway earns a 302 to http://, which port 80 does not
+            # answer -- 42 seconds of dead time before the first login attempt
+            # even starts, on every cold start.
+            has_session = self.session_file.exists()
+            if not has_session and not self._logged_in:
+                logger.info("auth: no saved session — going straight to the login page")
+
             try:
-                if not force and await self._is_logged_in(page):
+                if not force and has_session and await self._is_logged_in(page):
                     self._logged_in = True
                     logger.debug("auth: existing session is still valid")
                     return page
@@ -2824,7 +2832,12 @@ class BLSAuth:
         await utils.human_delay(self.config, scale=0.5)
 
     async def _dismiss_cookie_banner(self, page: Page) -> None:
-        if await utils.click_by_text(page, COOKIE_ACCEPT_TEXTS, config=self.config):
+        # allow_navigation=False: an Accept control never leaves the page, and
+        # the one time this clicked a link instead it was "Book New
+        # Appointment" on the login page -- which took the login form with it.
+        if await utils.click_by_text(
+            page, COOKIE_ACCEPT_TEXTS, config=self.config, allow_navigation=False
+        ):
             logger.debug("auth: cookie banner dismissed")
             await utils.human_delay(self.config, scale=0.5)
 

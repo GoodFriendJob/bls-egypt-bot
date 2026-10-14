@@ -318,14 +318,48 @@ async def _label_text(element: Any) -> str:
         return ""
 
 
+def _label_matches(label: str, text: str) -> bool:
+    """Does this control's label match the wanted text, as WORDS?
+
+    A plain substring test is not good enough. Looking for "ok" -- one of the
+    cookie-banner words -- matched "bOOK new appointment", the portal's nav
+    link to /Global/bls/visatypeverification. On the login page the bot
+    therefore clicked it, the portal answered with a 302 to http://, port 80
+    never replied, and 42 seconds later the login form had been replaced by a
+    blank error page. The whole run then failed as "could not locate the real
+    email field among the honeypots" (run 20261014_221409).
+
+    The boundaries are only applied where the text itself ends in a word
+    character. "Airport Transit Visa (TAP)" ends in ")", and \b after that
+    requires a following word character -- which at the end of a label there
+    is not, so a blanket \b...\b would stop every option like it from ever
+    matching.
+    """
+    wanted = text.lower()
+    if not wanted:
+        return False
+    prefix = r"\b" if wanted[0].isalnum() or wanted[0] == "_" else ""
+    suffix = r"\b" if wanted[-1].isalnum() or wanted[-1] == "_" else ""
+    return re.search(prefix + re.escape(wanted) + suffix, label) is not None
+
+
 async def click_by_text(
     page: Any,
     texts: Sequence[str],
     *,
     roles: Sequence[str] = ("button", "a", 'input[type="submit"]', 'input[type="button"]'),
     config: dict[str, Any] | None = None,
+    allow_navigation: bool = True,
 ) -> bool:
-    """Click the first visible button/link whose text matches any of ``texts``."""
+    """Click the first visible button/link whose text matches any of ``texts``.
+
+    Matching is on whole words, so "ok" cannot hit "book".
+
+    ``allow_navigation=False`` additionally refuses any <a> that would leave the
+    page. Dismissing a banner, accepting a notice or closing a dialog is never
+    a navigation, and on this portal clicking the wrong link costs the whole
+    page.
+    """
     for text in texts:
         for role in roles:
             for element in await visible_elements(page, role):
@@ -340,14 +374,23 @@ async def click_by_text(
                         ],
                     )
                 ).strip().lower()
-                if text.lower() in label:
-                    await human_delay(config, scale=0.5)
-                    try:
-                        await element.click()
-                        logger.debug(f"clicked element matching {text!r}")
-                        return True
-                    except Exception as exc:
-                        logger.debug(f"click on {text!r} failed: {exc}")
+                if not _label_matches(label, text):
+                    continue
+                if not allow_navigation:
+                    href = (await _attr(element, "href") or "").strip()
+                    # "#", "javascript:..." and no href at all stay on the page.
+                    if href and not href.startswith(("#", "javascript:")):
+                        logger.debug(
+                            f"skipping {label[:40]!r}: it would navigate to {href[:60]}"
+                        )
+                        continue
+                await human_delay(config, scale=0.5)
+                try:
+                    await element.click()
+                    logger.debug(f"clicked element matching {text!r}")
+                    return True
+                except Exception as exc:
+                    logger.debug(f"click on {text!r} failed: {exc}")
     return False
 
 
