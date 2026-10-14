@@ -290,12 +290,17 @@ function render() {
   // have nothing to act on, so only Start is offered -- and it says plainly
   // that Start cannot revive a process that has exited.
   const online = snapshot.bot_online !== false;
-  const paused = !!snapshot.paused;
+  // Two different kinds of "not running": a manual pause waiting for a human
+  // step (snapshot.paused), and a dashboard/Telegram pause, which simply
+  // clears running. Both mean the same thing for the buttons.
+  const halted = online && !snapshot.running && !snapshot.stopping;
+  const paused = !!snapshot.paused || halted;
   $("btn-resume").classList.toggle("hidden", !(online && paused));
   $("btn-start").classList.toggle("hidden", online && paused);
   $("btn-start").disabled = online && snapshot.running;
   $("btn-pause").disabled = !online || paused;
   $("btn-stop").disabled  = !online;
+  if (halted && !snapshot.paused) stateEl.textContent = t("st_paused");
   if (!online) {
     stateEl.textContent = t("st_idle");
     stateEl.className = "hero-value";
