@@ -754,6 +754,122 @@ _KENDO_SET_JS = r"""
 #
 # open() and the item click go through Kendo's own event path, so both
 # handlers run and the array is populated as the server expects.
+# Two halves of one human interaction, so a real pause can sit between them.
+#
+# The portal records WHEN each dropdown was opened and when it was chosen
+# (onDrpOpen / onDrpSelect -> rspData -> ResponseData) and judges the result:
+# onAjaxSuccess redirects to /Global/account/bot when it decides the answer
+# came from a machine. Run 20261014_162958 got all four fields in "via click"
+# and the POST through, and was still sent to that page -- because opening and
+# clicking inside a single evaluate puts Start and End in the same
+# millisecond, which no hand can do.
+#
+# So: tag the control, let PLAYWRIGHT click it (a real input event, not a
+# synthetic node.click()), wait a human beat, then tag and click the option.
+_KENDO_PREPARE_JS = r"""
+(args) => {
+  const { label, wanted } = args;
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const vis = (el) => {
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width < 5 || r.height < 5) return false;
+    let n = el;
+    while (n && n.nodeType === 1) {
+      const st = getComputedStyle(n);
+      if (st.display === 'none') return false;
+      if (st.visibility === 'hidden' || st.visibility === 'collapse') return false;
+      if (parseFloat(st.opacity || '1') < 0.1) return false;
+      n = n.parentElement;
+    }
+    return true;
+  };
+
+  document.querySelectorAll('[data-bot-dd]').forEach(
+    (el) => el.removeAttribute('data-bot-dd'));
+
+  const target = norm(label);
+  let input = null;
+  for (const inp of document.querySelectorAll('input[data-role="dropdownlist"]')) {
+    const lab = inp.id ? document.querySelector('label[for="' + inp.id + '"]') : null;
+    if (!lab) continue;
+    if (!norm(lab.innerText).startsWith(target)) continue;
+    const widget = inp.closest('span.k-widget') || inp.parentElement;
+    if (!vis(widget)) continue;
+    const box = inp.closest('div.mb-3');
+    if (box && !vis(box)) continue;
+    input = inp;
+    break;
+  }
+  if (!input) return { ok: false, reason: 'no visible widget for this label' };
+
+  const dd = window.jQuery && jQuery('#' + input.id).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'kendo widget not initialised', id: input.id };
+
+  const data = dd.dataSource.data() || [];
+  const textField = (dd.options && dd.options.dataTextField) || 'Name';
+  const texts = data.map((d) => String(d[textField] || ''));
+  const isPlaceholder = (t) => !t || /^-+\s*select/i.test(t);
+
+  let idx = -1;
+  if (wanted) {
+    idx = texts.findIndex((t) => norm(t) === norm(wanted));
+    if (idx < 0) idx = texts.findIndex((t) => norm(t).includes(norm(wanted)));
+  }
+  if (idx < 0) idx = texts.findIndex((t) => !isPlaceholder(t));
+  if (idx < 0) {
+    return { ok: false, reason: 'no selectable option', id: input.id,
+             options: texts, count: texts.length };
+  }
+
+  // The clickable face of the widget, which is what a person presses.
+  const widget = input.closest('span.k-widget') || input.parentElement;
+  const face = widget.querySelector('.k-dropdown-wrap') || widget;
+  face.setAttribute('data-bot-dd', '1');
+
+  return { ok: true, id: input.id, wantedText: texts[idx], index: idx,
+           options: texts, count: texts.length };
+}
+"""
+
+# Tag the rendered option so Playwright can click it for real.
+_KENDO_TAG_OPTION_JS = r"""
+({ inputId, wantedText, index }) => {
+  const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  document.querySelectorAll('[data-bot-opt]').forEach(
+    (el) => el.removeAttribute('data-bot-opt'));
+
+  const input = document.getElementById(inputId);
+  const dd = input && window.jQuery && jQuery('#' + inputId).data('kendoDropDownList');
+  if (!dd) return { ok: false, reason: 'widget vanished' };
+
+  let items = [];
+  try {
+    if (typeof dd.items === 'function') {
+      items = Array.prototype.slice.call(dd.items() || []);
+    }
+  } catch (e) { /* fall through */ }
+  if (!items.length) {
+    const ul = dd.ul ? (dd.ul[0] || dd.ul) : null;
+    if (ul && typeof ul.querySelectorAll === 'function') {
+      items = Array.prototype.slice.call(ul.querySelectorAll('li'));
+    }
+  }
+  if (!items.length) return { ok: false, reason: 'list not rendered' };
+
+  // The rendered list carries the --Select-- placeholder that dataSource does
+  // not, so match on text first and only fall back to position.
+  let node = items.find((li) => norm(li.textContent) === norm(wantedText));
+  if (!node && items.length === index + 1 + 1) node = items[index + 1];
+  if (!node && items[index]) node = items[index];
+  if (!node) return { ok: false, reason: 'option not in the list',
+                      rendered: items.length };
+
+  node.setAttribute('data-bot-opt', '1');
+  return { ok: true, text: (node.textContent || '').trim() };
+}
+"""
+
 _KENDO_CLICK_SET_JS = r"""
 (args) => {
   const { label, wanted } = args;
@@ -875,7 +991,11 @@ _RADIO_SET_JS = r"""
     const lab = r.id ? document.querySelector('label[for="' + r.id + '"]') : null;
     const text = norm((lab && lab.innerText) || '');
     if (own === target || text === target || text.startsWith(target)) {
-      r.click();
+      // Tagged, not clicked: the caller presses it through Playwright so the
+      // event is trusted, like every other control on this form.
+      document.querySelectorAll('[data-bot-radio]').forEach(
+        (el) => el.removeAttribute('data-bot-radio'));
+      r.setAttribute('data-bot-radio', '1');
       return { ok: true, name: r.name, id: r.id, value: r.value };
     }
   }
@@ -1671,9 +1791,15 @@ class Monitor:
             logger.warning(f"monitor: radio set failed: {exc}")
             result = {"ok": False}
         if result.get("ok"):
+            try:
+                await page.click("[data-bot-radio]", timeout=5000)
+            except Exception as exc:
+                logger.warning(f"  Appointment For       : click failed — {exc}")
+                result = {"ok": False}
+        if result.get("ok"):
             logger.info(
                 f"  Appointment For       : {result.get('value')!r} "
-                f"(name={result.get('name')})"
+                f"(name={result.get('name')}, real click)"
             )
         else:
             logger.warning(f"  Appointment For       : NOT SET ({appointment_for!r})")
@@ -1855,6 +1981,70 @@ class Monitor:
         await self._survey_page(page, "after-visatype-submit")
         return True
 
+    async def _set_kendo_by_hand(
+        self, page: Any, label: str, wanted: str
+    ) -> dict[str, Any]:
+        """Open a dropdown and choose from it with real, paced clicks.
+
+        Playwright's click dispatches a genuine input event; node.click() from
+        inside the page does not, and the portal is watching. Between the two
+        clicks sits a human-length pause, because ResponseData carries the
+        open and select timestamps and a zero-millisecond gap is the clearest
+        possible tell.
+        """
+        try:
+            prepared = await page.evaluate(
+                _KENDO_PREPARE_JS, {"label": label, "wanted": wanted}
+            )
+        except Exception as exc:
+            return {"ok": False, "reason": f"prepare failed: {exc}"}
+        if not prepared.get("ok"):
+            return prepared
+
+        # 1. Press the face of the control -> onDrpOpen records Start.
+        try:
+            await page.click("[data-bot-dd]", timeout=5000)
+        except Exception as exc:
+            logger.debug(f"monitor: could not click the {label} control: {exc}")
+            return {"ok": False, "reason": f"open click failed: {exc}",
+                    "id": prepared.get("id")}
+
+        # 2. Read the options, the way a person does before choosing.
+        await utils.human_delay(self.config)
+
+        try:
+            tagged = await page.evaluate(
+                _KENDO_TAG_OPTION_JS,
+                {
+                    "inputId": prepared["id"],
+                    "wantedText": prepared["wantedText"],
+                    "index": prepared["index"],
+                },
+            )
+        except Exception as exc:
+            return {"ok": False, "reason": f"tag failed: {exc}",
+                    "id": prepared.get("id")}
+        if not tagged.get("ok"):
+            return {"ok": False, "reason": tagged.get("reason"),
+                    "id": prepared.get("id"),
+                    "options": prepared.get("options")}
+
+        # 3. Press the option -> onDrpSelect records End, and the gap is real.
+        try:
+            await page.click("[data-bot-opt]", timeout=5000)
+        except Exception as exc:
+            return {"ok": False, "reason": f"option click failed: {exc}",
+                    "id": prepared.get("id")}
+
+        return {
+            "ok": True,
+            "id": prepared["id"],
+            "chosen": prepared["wantedText"],
+            "via": "hand",
+            "options": prepared.get("options", []),
+            "count": prepared.get("count", 0),
+        }
+
     async def _set_kendo(
         self, page: Any, label: str, wanted: str, *, strict: bool = False
     ) -> bool:
@@ -1875,13 +2065,9 @@ class Monitor:
         result: dict[str, Any] = {}
         while waited < deadline:
             try:
-                # Open-and-click first so the portal's own onDrpOpen /
-                # onDrpSelect handlers fire and ResponseData carries real
-                # interaction data; fall back to assignment only if that
-                # cannot find the control.
-                result = await page.evaluate(
-                    _KENDO_CLICK_SET_JS, {"label": label, "wanted": wanted}
-                )
+                # Real clicks, paced like a hand: the portal times the gap
+                # between opening a dropdown and choosing from it.
+                result = await self._set_kendo_by_hand(page, label, wanted)
                 if not result.get("ok") and result.get("reason") in (
                     "no visible widget for this label",
                     "kendo widget not initialised",
