@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Iterable, Sequence
@@ -454,7 +454,17 @@ def record_block(reason: str) -> None:
         import json
 
         COOLDOWN_FILE.write_text(
-            json.dumps({"blocked_at": datetime.now().isoformat(), "reason": reason[:200]}),
+            # UTC, not naive local time: the marker used to be committed by
+            # mistake, and a timestamp from a machine ten hours ahead read as
+            # the future on the other, blocking a run over a cooldown that had
+            # already expired. It is machine-local again now, but an
+            # unambiguous instant costs nothing.
+            json.dumps(
+                {
+                    "blocked_at": datetime.now(timezone.utc).isoformat(),
+                    "reason": reason[:200],
+                }
+            ),
             encoding="utf-8",
         )
         logger.warning(f"block recorded in {COOLDOWN_FILE}")
@@ -473,9 +483,13 @@ def block_cooldown_remaining(minutes: float) -> float:
             return 0.0
         data = json.loads(COOLDOWN_FILE.read_text(encoding="utf-8"))
         blocked_at = datetime.fromisoformat(data["blocked_at"])
+        # Markers written before this were naive local time; treat those as
+        # local so an old file still reads correctly.
+        if blocked_at.tzinfo is None:
+            blocked_at = blocked_at.astimezone()
     except Exception:
         return 0.0
-    elapsed = (datetime.now() - blocked_at).total_seconds() / 60.0
+    elapsed = (datetime.now(timezone.utc) - blocked_at).total_seconds() / 60.0
     return max(0.0, minutes - elapsed)
 
 
