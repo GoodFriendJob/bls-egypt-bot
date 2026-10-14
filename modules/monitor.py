@@ -450,6 +450,57 @@ _FILL_FIELD_JS = r"""
 }
 """
 
+# After filling, find every control the page marks required that is still
+# empty. The applicant form is longer than the markup captured so far -- the
+# Travel Information section continues past MemberStateSecondDestinationId with
+# entries/stay/previous-visa/expenses controls whose ids were never seen. This
+# reports them by id and label so they can be added to APPLICANT_FIELDS without
+# another round of guessing.
+_UNFILLED_REQUIRED_JS = r"""
+() => {
+  const form = document.getElementById('visaForm');
+  if (!form) return { form: false, fields: [] };
+  const $ = window.jQuery;
+  const out = [];
+
+  for (const label of form.querySelectorAll('label')) {
+    if (!label.querySelector('.required')) continue;          // not required
+    const id = label.getAttribute('for');
+    if (!id) continue;
+    const el = document.getElementById(id);
+    if (!el) continue;
+
+    // Hidden sections (minor / other residence) are not in play unless their
+    // checkbox was ticked, and the bot never ticks them.
+    const box = el.closest('div[id^="minor_div"], div[id^="residence_div"]');
+    if (box && getComputedStyle(box).display === 'none') continue;
+
+    let value = (el.value || '').trim();
+    let kind = 'text';
+    if ($) {
+      const dd = $(el).data('kendoDropDownList');
+      const dp = $(el).data('kendoDatePicker');
+      if (dd) {
+        kind = 'dropdown';
+        const text = (dd.text && dd.text()) || '';
+        value = /^-+\s*select/i.test(text) ? '' : text;
+      } else if (dp) {
+        kind = 'date';
+        value = dp.value() ? value : '';
+      }
+    }
+    if (value) continue;
+
+    out.push({
+      id,
+      kind,
+      label: (label.innerText || '').replace(/\*/g, '').trim().slice(0, 40),
+    });
+  }
+  return { form: true, fields: out };
+}
+"""
+
 _APPLICANT_READY_JS = r"""
 () => {
   const form = document.getElementById('visaForm');
@@ -2051,6 +2102,20 @@ class Monitor:
                 logger.warning(f"    - {name}")
 
         await utils.screenshot(page, "applicant-form-filled")
+
+        # Ask the PAGE what is still missing, rather than trusting the map to
+        # be complete. Submitting with a required field empty just bounces.
+        unfilled = await self._report_unfilled_required(page)
+        if unfilled:
+            await utils.dump_page_html(page, "applicant-form-unmapped")
+            names = ", ".join(f"{f['id']} ({f['label']})" for f in unfilled[:12])
+            await self.notifier.manual_required(
+                f"The applicant form has {len(unfilled)} required field(s) the "
+                f"bot does not know about yet:\n{names}\n\nThey need adding to "
+                "the config before it can submit."
+            )
+            return False
+
         await self._dismiss_open_modals(page)
 
         if not await self._submit_applicant_form(page):
@@ -2074,6 +2139,41 @@ class Monitor:
         logger.info("=" * 60)
         await self._survey_page(page, "after-applicant-submit")
         return True
+
+    async def _report_unfilled_required(self, page: Any) -> list[dict[str, Any]]:
+        """Name any required control the page still shows as empty.
+
+        The field map was built from the markup captured so far, which stops
+        part way through Travel Information. Anything the portal requires but
+        the map does not know about shows up here with its real id, so it can
+        be added rather than guessed at.
+        """
+        try:
+            report = await page.evaluate(_UNFILLED_REQUIRED_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: required-field scan failed: {exc}")
+            return []
+
+        fields = report.get("fields") or []
+        if not fields:
+            logger.info("  required check        : every required field has a value")
+            return []
+
+        logger.warning(
+            f"  required check        : {len(fields)} required field(s) still empty "
+            "— these are not in APPLICANT_FIELDS yet:"
+        )
+        for field in fields:
+            logger.warning(
+                f"    - {field['id']:<34} {field['kind']:<9} {field['label']!r}"
+            )
+        self.state.log_event(
+            "bot",
+            f"{len(fields)} required applicant field(s) unmapped: "
+            + ", ".join(f["id"] for f in fields[:8]),
+            status="warn",
+        )
+        return fields
 
     async def _wait_for_applicant_form(self, page: Any, timeout: float = 30.0) -> bool:
         """Wait for #visaForm AND its Kendo widgets, not just the markup."""
