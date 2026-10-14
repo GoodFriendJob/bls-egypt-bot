@@ -68,3 +68,5 @@
 {"sample": "", "target": "698", "tiles": ["152", "698", "568", "698", "664", "698", "780", "698", "522"], "positions": [2, 4, 6, 8], "method": "per-tile"}
 {"sample": "", "target": "958", "tiles": ["050", "7", "940", "950", "958", "157", "500", "203", "352"], "positions": [5], "method": "per-tile"}
 {"sample": "", "target": "221", "tiles": ["140", "221", "221", "221", "221", "153", "243", "439", "193"], "positions": [2, 3, 4, 5], "method": "per-tile"}
+{"sample": "", "target": "537", "tiles": ["7", "9", "7", "8", "150", "33", "404", "7", "527"], "positions": [], "method": "per-tile"}
+{"sample": "", "target": "928", "tiles": ["8", "7", "7", "111", "44", "8", "3", "090", "038"], "positions": [], "method": "per-tile"}
