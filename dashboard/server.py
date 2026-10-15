@@ -36,6 +36,34 @@ from modules import ipc  # noqa: E402
 
 LOOPBACK = ("127.0.0.1", "localhost", "::1")
 
+# The dashboard is a long-lived process, so "git pull" does not change the code
+# it is RUNNING -- only the code on disk. That is invisible, and it bites
+# exactly when it matters: the fix that made Start launch a bot shipped while a
+# dashboard from before it was still open, so Start went on doing what the old
+# code did, which was nothing. Comparing what is on disk now against what it
+# was at startup turns that into something the page can say out loud.
+_WATCHED_SOURCE = (
+    "dashboard/server.py",
+    "dashboard/app.py",
+    "dashboard/config_api.py",
+    "dashboard/templates/index.html",
+    "dashboard/static/style.css",
+    "modules/ipc.py",
+)
+
+
+def _source_mtime() -> float:
+    newest = 0.0
+    for name in _WATCHED_SOURCE:
+        try:
+            newest = max(newest, (ROOT / name).stat().st_mtime)
+        except OSError:
+            continue
+    return newest
+
+
+_SOURCE_MTIME_AT_START = _source_mtime()
+
 
 class RemoteState:
     """BotState's read side, backed by the file the bot publishes.
@@ -55,6 +83,25 @@ class RemoteState:
     def bot_online(self) -> bool:
         _status, _log, age = ipc.read_state()
         return age <= ipc.STALE_AFTER
+
+    @staticmethod
+    def _note(message: str) -> None:
+        """Write a line to the launch log, whatever happens next.
+
+        Pressing Start used to be able to leave NO trace at all: the child's
+        output goes to this file, so if the child never started there was
+        nothing in it, and the only record was a line on the dashboard's own
+        console -- which is usually a window nobody is looking at. Every press
+        is recorded here now, including the ones that fail.
+        """
+        try:
+            path = ROOT / "logs" / "dashboard-launch.log"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            stamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(f"{stamp} | dashboard | {message}\n")
+        except OSError as exc:  # pragma: no cover - diagnostics only
+            logger.debug(f"dashboard: could not write the launch log: {exc}")
 
     def _python(self) -> str:
         """The interpreter the bot is installed under, not whatever runs this.
@@ -115,11 +162,13 @@ class RemoteState:
             )
         except Exception as exc:
             logger.error(f"dashboard: could not launch the bot — {exc}")
+            self._note(f"FAILED to launch: {exc}  (command: {command})")
             return f"could not launch the bot: {exc}"
 
         logger.info(
             f"dashboard: launched the bot (pid {self._child.pid}) with {python}"
         )
+        self._note(f"launched pid {self._child.pid} using {python}")
 
         # It may fail immediately -- a bad config, a missing package. Saying so
         # now beats a panel that sits at "offline" with no explanation.
@@ -166,6 +215,9 @@ class RemoteState:
             }
         status = dict(status)
         status["bot_online"] = online
+        # A second of slack: a checkout can rewrite a file with a timestamp a
+        # hair newer than the read taken moments before.
+        status["dashboard_stale"] = _source_mtime() > _SOURCE_MTIME_AT_START + 1
         status["state_age_seconds"] = None if age == float("inf") else round(age, 1)
         if not online:
             # However the bot left off, it is not running now.
@@ -181,7 +233,9 @@ class RemoteState:
         """Resume a running bot, or launch one when none is running."""
         if self.bot_online():
             ipc.send_command("start")
+            self._note("Start pressed; a bot is already online — command sent")
             return "start sent to the running bot"
+        self._note("Start pressed; no bot online — launching one")
         return self.launch_bot()
 
     def request_pause(self) -> None:
