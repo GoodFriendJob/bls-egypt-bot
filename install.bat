@@ -98,10 +98,12 @@ echo    Installation complete!
 echo ===========================================================
 echo.
 echo What to do next:
-echo   1. Open config.yaml and fill in your details
-echo   2. Put your documents in the docs folder:
-echo        docs\passport.pdf
+echo   1. Put your documents in the docs folder:
+echo        docs\passport.jpg
 echo        docs\photo.jpg
+echo   2. Run  dashboard.bat , open http://127.0.0.1:5000 in your
+echo      browser, and fill in your details on the Settings page.
+echo      ^(You can edit config.yaml by hand instead, if you prefer.^)
 echo   3. Run  start.bat  to start the bot
 echo.
 echo NOTE: the BLS website only answers to internet connections

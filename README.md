@@ -22,6 +22,16 @@ you.
 
 # Part 1 — Using the bot
 
+### The whole thing in four steps
+
+```
+   ①  install.bat        →  ②  dashboard.bat      →  ③  start.bat        →  ④  Telegram
+      install it,            type in your             let it run,            do the video
+      once                   details                  day and night          check + pay
+```
+
+Steps ① to ③ take about half an hour, once. After that you only touch step ④.
+
 1. [Before you start](#1-before-you-start)
 2. [Install it (once)](#2-install-it-once)
 3. [Enter your details](#3-enter-your-details)
@@ -37,72 +47,185 @@ you.
 
 ## 1. Before you start
 
-You need five things:
+Tick these off before you begin. You only do this once.
 
-| | |
-|---|---|
-| **A Windows computer in Egypt** | The BLS website only answers from inside Egypt. From anywhere else it refuses every request. The computer must stay switched on. |
-| **Python** | Free, from [python.org/downloads](https://www.python.org/downloads/). While installing, **tick the box that says "Add Python to PATH"** — this matters. |
-| **Your BLS account** | The email and password you use to sign in to the BLS website. |
-| **Your documents** | A scan of the passport, and the applicant's photograph. |
-| **A Telegram account** | This is how the bot talks to you. |
+- [ ] **A Windows computer in Egypt, that stays switched on.**
+      The BLS website only answers from inside Egypt — from anywhere else it
+      refuses every request. The bot must keep running, so the computer cannot
+      be shut down or put to sleep.
 
-### Making the Telegram bot
+- [ ] **Python installed.**
+      Free, from [python.org/downloads](https://www.python.org/downloads/).
+      While installing, **tick the box that says "Add Python to PATH"**:
 
-Five minutes, done once:
+      ```
+      ┌──────────────────────────────────────────────┐
+      │  Install Python 3.13                         │
+      │                                              │
+      │   [ ] Install launcher for all users         │
+      │   [✓] Add Python to PATH     ← TICK THIS     │
+      │                                              │
+      │              [ Install Now ]                 │
+      └──────────────────────────────────────────────┘
+      ```
 
-1. Open Telegram and search for **@BotFather**.
-2. Send it `/newbot` and follow the questions. It gives you a long **token** —
-   copy it.
-3. Search for **@userinfobot** and press Start. It replies with a number —
-   that is your **chat id**. Copy it too.
+      If you miss it, nothing will work. Just install Python again and tick it.
 
-Keep both. You will paste them in step 3.
+- [ ] **Your BLS sign-in** — the email and password you use on the BLS website.
+
+- [ ] **Two files**: a scan of the passport, and the applicant's photograph.
+
+- [ ] **Telegram on your phone** — this is how the bot talks to you.
+
+### Setting up Telegram (five minutes)
+
+You need two things from Telegram: a **token** and a **chat id**.
+
+**① The token** — open Telegram, search for **@BotFather**, press Start, then:
+
+> **You:** `/newbot`
+> **BotFather:** Alright, a new bot. How are we going to call it?
+> **You:** `My Visa Bot`
+> **BotFather:** Good. Now let's choose a username…
+> **You:** `my_visa_appointment_bot`  *(must end in `bot`)*
+> **BotFather:** Done! Use this token to access the HTTP API:
+> **`8971494456:AAGvIzAf3kLf74PkhqoMNvL4iLP7qdFePsU`**
+
+That long line is your **token**. Copy it.
+
+**② The chat id** — search for **@userinfobot**, press Start:
+
+> **@userinfobot:** Id: **`123456789`**
+> First: Ahmed
+> Lang: en
+
+That number is your **chat id**. Copy it.
+
+Keep both open somewhere — you paste them in [step 3](#3-enter-your-details).
 
 ---
 
 ## 2. Install it (once)
 
-Open the bot's folder and **double-click `install.bat`**.
+### Double-click `install.bat`
 
-It takes a few minutes and tells you when it has finished. That is the whole
-installation.
+A black window opens and does everything by itself. It takes a few minutes.
 
-Then put the two documents in the `docs` folder inside the bot's folder:
+**What you'll see:**
 
 ```
-docs\passport.jpg     the passport scan
-docs\photo.jpg        the applicant's photograph
+===========================================================
+   BLS Appointment Bot - Installation
+===========================================================
+
+Python found: Python 3.13.1
+
+[1 of 3] Updating pip ...
+[2 of 3] Installing the Python packages ...
+[3 of 3] Downloading the Chromium browser (about 140 MB) ...
+This part is slow. Please wait, do not close this window.
+
+===========================================================
+   Installation complete!
+===========================================================
 ```
 
-The names must match exactly, or you can change them later in the settings.
+> ✅ **It worked if** you see *Installation complete!*
+>
+> ❌ **"Python was not found"** → Python is not installed, or the "Add Python to
+> PATH" box was not ticked. Install Python again, tick the box, then run
+> `install.bat` again.
+
+### Then add the two documents
+
+Put them in the **`docs`** folder inside the bot's folder:
+
+```
+bls-egypt-bot\
+│
+├── docs\
+│   ├── passport.jpg     ← the passport scan
+│   └── photo.jpg        ← the applicant's photograph
+│
+├── install.bat
+├── start.bat
+└── dashboard.bat
+```
+
+Use exactly those two names, or change them later in the settings.
 
 ---
 
 ## 3. Enter your details
 
-The easiest way is the settings page in your web browser.
+This is the longest step, and you only do it once. Use the settings page — it
+is far easier than editing files.
 
-1. **Double-click `dashboard.bat`.** A black window opens — leave it open.
-2. Open your web browser and go to: **http://127.0.0.1:5000**
-3. Click **الإعدادات / Settings** at the top.
-4. Fill in the boxes and click **Save**.
+### ① Double-click `dashboard.bat`
 
-The page is in Arabic and English — the **EN** button at the top right switches
-between them.
+A black window opens. **Leave it open** — closing it closes the settings page.
 
-### What you must fill in
+### ② Open your web browser and go to
 
-| Setting | What to put |
+```
+http://127.0.0.1:5000
+```
+
+You will see this:
+
+![The dashboard sign-in page](assets/dashboard-login.png)
+
+The password is whatever is in `dashboard.password`. On a fresh install it is
+empty, so just press **Sign in**.
+
+### ③ Click **Settings** at the top
+
+![The settings page](assets/dashboard-settings.png)
+
+Every box is one setting. Type in it, then press **Save changes** at the top.
+Use the **search box** to find a setting quickly instead of scrolling.
+
+> The page is in Arabic and English. The **EN / ع** button at the top right
+> switches between them.
+
+### What to fill in
+
+| Setting | Example | Where it comes from |
+|---|---|---|
+| `bls.email` | `applicant@gmail.com` | Your BLS website sign-in |
+| `bls.password` | `••••••••` | Your BLS website sign-in |
+| `telegram.token` | `8971494456:AAGvIz…` | @BotFather, [step 1](#1-before-you-start) |
+| `telegram.chat_id` | `123456789` | @userinfobot, [step 1](#1-before-you-start) |
+| `otp.imap_user` | `applicant@gmail.com` | The inbox that receives BLS codes |
+| `otp.imap_pass` | `abcd efgh ijkl mnop` | **Gmail needs an [app password](https://myaccount.google.com/apppasswords)**, not your normal one |
+| `openai.api_key` | `sk-proj-…` | [platform.openai.com](https://platform.openai.com/api-keys) — the bot uses it to read the puzzle pictures |
+| `applicant.*` | see below | The applicant's own details |
+
+The `applicant` section is the big one — about fifty boxes. Every one marked
+**REQ** must be filled, or the BLS website will refuse the application:
+
+| Setting | Example |
 |---|---|
-| `bls.email`, `bls.password` | Your BLS website sign-in |
-| `telegram.token` | The long token from @BotFather |
-| `telegram.chat_id` | Your number from @userinfobot |
-| `applicant.*` | The applicant's details — name, passport, dates, hotel, and so on. There are about fifty boxes; every one marked **REQ** must be filled, or the BLS website will refuse the application. |
-| `otp.imap_user`, `otp.imap_pass` | The email account that receives codes from BLS. **For Gmail this must be an [app password](https://myaccount.google.com/apppasswords)**, not your normal password. |
-| `openai.api_key` | A key from [platform.openai.com](https://platform.openai.com/api-keys). The bot uses it to read the puzzle pictures the website shows. |
+| `applicant.first_name` | `AHMED HASSAN` |
+| `applicant.surname` | `IBRAHIM` |
+| `applicant.dob` | `1990-05-12` |
+| `applicant.passport_number` | `A12345678` |
+| `applicant.passport_expiry_date` | `2033-02-27` |
+| `applicant.travel_date` | `2026-12-13` |
+| `applicant.hotel_name` | `Hostal Nova, Barcelona` |
+| `applicant.arrival_date` | `2027-01-18` |
+| `applicant.departure_date` | `2027-01-31` |
 
-**If more than one person needs the bot**, put several chat ids:
+**Dates are always `YYYY-MM-DD`** — year, month, day. `2027-01-18` means
+18 January 2027.
+
+> ### Don't know a value? Start anyway.
+>
+> The bot checks everything the moment it starts and sends you a Telegram
+> message naming exactly what is missing — before it does anything else. You do
+> not have to get it all right first time.
+
+**If two people need the bot** (say, you and the applicant), put both chat ids:
 
 ```yaml
 telegram:
@@ -111,32 +234,59 @@ telegram:
     - "987654321"      # the applicant
 ```
 
-Anyone not on that list is ignored — the bot replies telling them their own
+Anyone not on that list is ignored — but the bot replies telling them their own
 chat id, so you can add it.
-
-> **Don't know a value?** Leave it and start the bot anyway. It checks
-> everything at startup and sends you a Telegram message naming exactly what is
-> missing, before it does anything else.
 
 ---
 
 ## 4. Start the bot
 
-**Double-click `start.bat`.**
+### Double-click `start.bat`
 
-Two windows appear:
+**Two windows open. Both must stay open:**
 
-- a **black text window** showing what the bot is doing
-- a **browser window** — this one **stays open the whole time**
+```
+┌─ Black text window ──────────────┐   ┌─ Browser window ─────────────────┐
+│                                  │   │                                  │
+│  BLS Appointment Bot - Start     │   │   the BLS website                │
+│                                  │   │                                  │
+│  A browser window will open and  │   │   This is where YOU will         │
+│  STAY open while the bot runs.   │   │   finish the booking later.      │
+│                                  │   │                                  │
+│  11:00:12  logged in             │   │   Do not close it.               │
+│  11:01:30  verification cleared  │   │   Do not type in it.             │
+│  11:02:14  cairo: no slots       │   │   You may minimise it.           │
+│                                  │   │                                  │
+└──────────────────────────────────┘   └──────────────────────────────────┘
+        what it is doing                    where you will be needed
+```
 
-> ### Leave the browser window alone
+> ### ⚠️ Leave the browser window alone
 >
-> Do not close it, and do not type in it. That window is where you will finish
-> the booking later. If you close it, the bot loses the appointment.
->
-> You can minimise it.
+> That window holds your place in the queue. **If you close it, the bot loses
+> the appointment.** You can minimise it — just do not close it.
 
-The bot now checks for appointments over and over, day and night.
+You will also get a Telegram message straight away:
+
+```
+🤖 Bot started
+Locations: ['Cairo', 'Alexandria'],
+Category: ['Normal']
+Appointment For: ['Individual'],
+Visa type: ['Schengen visa'],
+Visa sub type: ['Schengen Visa']
+Interval: 90s
+
+Send /help for commands.
+```
+
+> ✅ **It worked if** that message arrives on Telegram.
+>
+> ❌ **No message?** Your `telegram.token` or `telegram.chat_id` is wrong. Check
+> them in the settings page.
+
+That's it. The bot now checks for appointments over and over, day and night.
+**You can walk away.**
 
 ---
 
@@ -171,37 +321,85 @@ Booking now…
 
 ## 6. Your two jobs
 
-The bot does everything up to here by itself. These last two steps are yours —
-it will not do them.
+The bot does everything up to here on its own. These last two steps are yours.
 
-**Be quick.** The BLS website only holds an unfinished appointment for a short
-time. Treat these messages as "do it now", not "do it tonight". Make sure
-Telegram notifications are switched on for this chat.
+```
+   bot finds a slot  →  bot fills the form  →  🎥 YOU: video  →  💳 YOU: pay  →  done
+      automatic            automatic            the bot waits    the bot waits
+```
 
-### Job 1 — the live video check
+> ### ⏱️ Be quick
+>
+> BLS only holds an unfinished appointment for a short time. Treat these
+> messages as **"do it now"**, not "do it this evening".
+>
+> **Turn Telegram notifications on for this chat**, and keep your phone nearby
+> once you get the ✅ *Application submitted* message.
 
-You get:
+---
 
-> 🎥 The booking has reached the LIVE VIDEO verification step.
+### 🎥 Job 1 — the live video check
 
-1. Go to the computer running the bot.
-2. Find the **browser window** that has been open all along.
-3. Do the camera check in that window. The applicant has to be the one in front
-   of the camera — that is the entire point of this step.
-4. When it is done, send **`/resume`** to the bot on Telegram.
+**You get this on Telegram** (with a picture of the page):
 
-### Job 2 — the payment
+```
+🟠 MANUAL STEP REQUIRED
+🎥 The booking has reached the LIVE VIDEO verification step.
 
-You get:
+This one confirms the applicant is personally present, so it has to be
+done by them, on this machine — the browser is open and waiting.
 
-> 💳 The booking has reached the PAYMENT step.
+Page: https://egypt.blsspainglobal.com/Global/BlsAppointment/livenessView…
 
-1. Same browser window.
-2. Enter the card details and pay.
-3. Send **`/resume`** on Telegram.
+The bot is paused. Finish the step in the browser, then send /resume.
+```
 
-**The bot never spends money.** It stops at the payment page and waits — with
-no time limit — until you tell it to carry on.
+**What to do:**
+
+| | |
+|---|---|
+| **1** | Go to the computer running the bot |
+| **2** | Open the **browser window** that has been sitting there all along |
+| **3** | Do the camera check. **The applicant must be the person in front of the camera** — confirming that is the entire point of this step |
+| **4** | Send **`/resume`** to the bot on Telegram |
+
+The bot then reads the page again and carries on by itself.
+
+---
+
+### 💳 Job 2 — the payment
+
+**You get this on Telegram:**
+
+```
+🟠 MANUAL STEP REQUIRED
+💳 The booking has reached the PAYMENT step.
+
+The browser window is still open on the payment page. Pay there by
+hand — the bot will not touch it.
+
+The bot is paused. Finish the step in the browser, then send /resume.
+```
+
+**What to do:**
+
+| | |
+|---|---|
+| **1** | Same browser window |
+| **2** | Enter the card details and pay |
+| **3** | Send **`/resume`** on Telegram |
+
+> **The bot never spends money.** It stops at the payment page and waits — with
+> **no time limit** — until you tell it to carry on. It will wait all night if
+> it has to.
+
+---
+
+### If you are not at that computer
+
+The browser window is on the Egypt machine, so the step has to happen there.
+Install **AnyDesk** or **TeamViewer** on it beforehand, and you can connect from
+anywhere when the message arrives.
 
 ---
 
@@ -225,15 +423,21 @@ everything important — but it is useful.
 
 **Double-click `dashboard.bat`**, then open **http://127.0.0.1:5000**
 
-You get:
+![The dashboard overview](assets/dashboard-overview.png)
 
-- whether the bot is running, and for how long
-- when each city was last checked
-- every setting, editable (changes reach the running bot within seconds)
-- a live list of everything that has happened
-- **Start**, **Pause**, **Resume** and **Stop** buttons
+Reading it top to bottom:
 
-The dashboard is separate from the bot. Closing it does not stop a booking.
+| On the page | What it tells you |
+|---|---|
+| **Running · 2h 3m** | The bot is alive and has been for two hours |
+| **CYCLES / SLOTS / BOOKINGS / ERRORS** | Running totals since it started |
+| **Monitoring status per location** | When each city was last checked, and what was found |
+| **Applicant data** | A summary of whose appointment this is — handy for spotting a typo |
+| **Live log** | Everything that has happened, newest first. Search it, or filter to just errors |
+| **Start / Pause / Stop** | Same controls as the batch files |
+
+The dashboard is separate from the bot. Closing it does not stop a booking, and
+you do not need it open for the bot to work.
 
 > **After updating the bot's files, close the dashboard and open it again.**
 > It keeps running the version it started with. If the page shows a red warning
