@@ -1343,6 +1343,9 @@ class Monitor:
 
         # Unattended recovery state.
         self.block_cooldown_minutes = float(retry.get("block_cooldown_minutes", 60))
+        self.block_cooldown_max_minutes = float(
+            retry.get("block_cooldown_max_minutes", 180)
+        )
         # Consecutive login failures before this stops being treated as
         # transient and becomes a critical, manager-facing pause.
         self.critical_login_failures = int(retry.get("critical_login_failures", 8))
@@ -1417,6 +1420,9 @@ class Monitor:
         self.page_error_wait = float(retry.get("page_error_wait", 30))
         self.network_error_wait = float(retry.get("network_error_wait", 60))
         self.block_cooldown_minutes = float(retry.get("block_cooldown_minutes", 60))
+        self.block_cooldown_max_minutes = float(
+            retry.get("block_cooldown_max_minutes", 180)
+        )
         self.critical_login_failures = int(retry.get("critical_login_failures", 8))
 
         # Collaborators hold their own copies.
@@ -1446,7 +1452,9 @@ class Monitor:
                 continue
 
             # Honour a recorded block before touching the portal at all.
-            remaining = utils.block_cooldown_remaining(self.block_cooldown_minutes)
+            remaining = utils.block_cooldown_remaining(
+                self.block_cooldown_minutes, self.block_cooldown_max_minutes
+            )
             if remaining > 0:
                 logger.warning(
                     f"monitor: portal blocked — waiting {remaining:.0f} more "
@@ -5259,7 +5267,14 @@ class Monitor:
         discarded so the next attempt is a clean login rather than a replay of
         cookies the portal may already have invalidated.
         """
-        wait_minutes = self.block_cooldown_minutes
+        # record_block has already counted this one, so ask what the wait is
+        # now rather than assuming the base figure: it doubles each time.
+        wait_minutes = (
+            utils.block_cooldown_remaining(
+                self.block_cooldown_minutes, self.block_cooldown_max_minutes
+            )
+            or self.block_cooldown_minutes
+        )
         logger.error(f"monitor: portal blocked — {exc}")
         logger.warning(
             f"monitor: sleeping {wait_minutes:.0f} min, then logging in from scratch"
@@ -5277,7 +5292,9 @@ class Monitor:
             self._block_alerted = True
             await self.notifier.error(
                 f"Portal is blocking us (HTTP 403). The bot will keep running and "
-                f"retry automatically in {wait_minutes:.0f} minutes.",
+                f"retry automatically in {wait_minutes:.0f} minutes.\n\n"
+                "Each further refusal doubles the wait, so it stops asking an "
+                "address that is already flagged.",
                 retry_info="no action needed — this is handled automatically",
             )
 

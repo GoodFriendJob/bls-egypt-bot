@@ -915,6 +915,11 @@ class BLSAuth:
                     if await self._perform_login(page):
                         self._logged_in = True
                         await self._save_session()
+                        # The portal is serving us again, so the escalating
+                        # block wait starts from scratch next time. Without
+                        # this one bad afternoon would still be imposing
+                        # multi-hour waits the following morning.
+                        utils.clear_block()
                         self._log("login successful", status="ok")
                         return page
                     last_error = LoginError("login did not reach an authenticated page")

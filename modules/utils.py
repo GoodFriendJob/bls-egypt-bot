@@ -496,6 +496,18 @@ def record_block(reason: str) -> None:
         COOLDOWN_FILE.parent.mkdir(parents=True, exist_ok=True)
         import json
 
+        # How many blocks in a row. A flat wait is what turned one refusal
+        # into a ten-hour outage: the bot retried every 8 minutes from 05:00
+        # to 15:27, roughly 75 attempts against an edge that was refusing on
+        # the FIRST request, which is the behaviour that keeps an IP flagged.
+        # Each consecutive block now waits twice as long as the last.
+        consecutive = 1
+        try:
+            previous = json.loads(COOLDOWN_FILE.read_text(encoding="utf-8"))
+            consecutive = int(previous.get("consecutive", 1)) + 1
+        except Exception:
+            pass
+
         COOLDOWN_FILE.write_text(
             # UTC, not naive local time: the marker used to be committed by
             # mistake, and a timestamp from a machine ten hours ahead read as
@@ -506,17 +518,39 @@ def record_block(reason: str) -> None:
                 {
                     "blocked_at": datetime.now(timezone.utc).isoformat(),
                     "reason": reason[:200],
+                    "consecutive": consecutive,
                 }
             ),
             encoding="utf-8",
         )
-        logger.warning(f"block recorded in {COOLDOWN_FILE}")
+        logger.warning(f"block recorded in {COOLDOWN_FILE} (#{consecutive} in a row)")
     except Exception as exc:
         logger.debug(f"could not record the block: {exc}")
 
 
-def block_cooldown_remaining(minutes: float) -> float:
-    """Minutes still to wait before another attempt is sensible. 0 = go ahead."""
+def clear_block() -> None:
+    """Forget the block history — called when the portal serves us again.
+
+    Without this the escalation would only ever grow: one bad afternoon would
+    still be making the bot wait hours the next morning, long after the portal
+    had started answering.
+    """
+    try:
+        if COOLDOWN_FILE.exists():
+            COOLDOWN_FILE.unlink()
+            logger.info("portal answered normally — block history cleared")
+    except OSError as exc:
+        logger.debug(f"could not clear the block marker: {exc}")
+
+
+def block_cooldown_remaining(minutes: float, cap_minutes: float = 180.0) -> float:
+    """Minutes still to wait before another attempt is sensible. 0 = go ahead.
+
+    The wait DOUBLES with each consecutive block, up to ``cap_minutes``. An
+    edge that is refusing the very first request of a session is not going to
+    change its mind in eight minutes, and asking it seventy-five times is what
+    keeps the address flagged.
+    """
     if minutes <= 0:
         return 0.0
     try:
@@ -530,10 +564,15 @@ def block_cooldown_remaining(minutes: float) -> float:
         # local so an old file still reads correctly.
         if blocked_at.tzinfo is None:
             blocked_at = blocked_at.astimezone()
+        consecutive = max(1, int(data.get("consecutive", 1)))
     except Exception:
         return 0.0
+
+    # 8, 16, 32, 64 ... capped. Exponent bounded before the shift so a corrupt
+    # or absurd counter cannot produce an overflow instead of a wait.
+    wait = min(float(cap_minutes), minutes * (2 ** min(consecutive - 1, 16)))
     elapsed = (datetime.now(timezone.utc) - blocked_at).total_seconds() / 60.0
-    return max(0.0, minutes - elapsed)
+    return max(0.0, wait - elapsed)
 
 
 async def dump_page_html(page: Any, label: str) -> str | None:

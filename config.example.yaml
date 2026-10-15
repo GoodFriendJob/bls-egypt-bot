@@ -373,6 +373,13 @@ retry:
   # again from scratch. The bot waits this out by itself and keeps running —
   # it never stops and never needs a manual restart.
   block_cooldown_minutes: 60
+  # Ceiling on that doubling, in minutes. A flat retry is what turned one
+  # refusal into a ten-hour outage: the bot asked every 8 minutes from 05:00
+  # to 15:27, about 75 times, against an edge refusing the FIRST request of
+  # every session -- which is the behaviour that keeps an address flagged.
+  # Each consecutive block now waits twice as long as the last, up to this,
+  # and the count resets as soon as a login succeeds.
+  block_cooldown_max_minutes: 180
   # Consecutive login failures before the bot stops retrying quietly and
   # raises a critical, manager-facing pause.
   critical_login_failures: 8
