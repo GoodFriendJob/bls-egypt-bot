@@ -55,6 +55,9 @@
       <!-- What a Start/Pause/Stop press actually did. Pressing Start with no
            bot running used to look identical to pressing it with one. -->
       <p id="control-banner" class="banner hidden"></p>
+      <!-- The dashboard runs until it is closed, so pulling an update changes
+           the code on disk but not the code serving this page. -->
+      <p id="stale-banner" class="banner err hidden"></p>
     </section>
 
     <!-- Locations -------------------------------------------------------- -->
@@ -146,6 +149,7 @@ const I18N = {
     title: "لوحة متابعة مواعيد BLS", stop: "إيقاف", resume: "استئناف",
     start: "تشغيل", pause: "إيقاف مؤقت",
     offline: "البوت غير متصل — شغّله عبر start.bat", online: "متصل",
+    stale: "لوحة التحكم تعمل بإصدار أقدم من الموجود على القرص — أغلق النافذة وشغّل dashboard.bat من جديد.",
     tabOverview: "نظرة عامة", tabSettings: "الإعدادات",
     botState: "حالة البوت", uptime: "التشغيل", interval: "الفحص",
     cycles: "الدورات", slots: "مواعيد", bookings: "حجوزات", errors: "أخطاء",
@@ -173,6 +177,7 @@ const I18N = {
     title: "BLS Appointment Bot", stop: "Stop", resume: "Resume",
     start: "Start", pause: "Pause",
     offline: "Bot offline — start it with start.bat", online: "online",
+    stale: "This dashboard is running older code than is on disk — close it and run dashboard.bat again.",
     tabOverview: "Overview", tabSettings: "Settings",
     botState: "Bot state", uptime: "Uptime", interval: "Interval",
     cycles: "Cycles", slots: "Slots", bookings: "Bookings", errors: "Errors",
@@ -310,6 +315,12 @@ function render() {
     $("live-dot").className = "dot off";
     $("bot-detail").textContent = t("offline");
   }
+
+  const stale = $("stale-banner");
+  if (snapshot.dashboard_stale) {
+    stale.textContent = t("stale");
+    stale.classList.remove("hidden");
+  } else stale.classList.add("hidden");
 
   const pause = $("pause-banner");
   if (snapshot.paused) {

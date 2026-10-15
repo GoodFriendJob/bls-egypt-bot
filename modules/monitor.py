@@ -849,7 +849,7 @@ _PAGE_STAGE_JS = r"""
   const buttons = Array.prototype.filter.call(
     document.querySelectorAll('button, a.btn, input[type=button]'), vis);
   const affirm = buttons.filter((b) =>
-    /^(ok|yes|confirm|continue|proceed|next|done|finish)\b/i
+    /^(ok|yes|accept|agree|confirm|continue|proceed|next|done|finish)\b/i
       .test(((b.innerText || b.value || '')).trim()));
   if (affirm.length && buttons.length <= 6 &&
       !document.querySelector('input[id^="AppointmentDate"]')) {
@@ -2785,9 +2785,22 @@ class Monitor:
         server redirect can drop the bot on any of them, so the page is read
         before deciding what to do next.
         """
-        url_stage = classify_page(page.url or "")
-        if "/account/bot" in (page.url or "").lower():
+        url = (page.url or "").lower()
+        url_stage = classify_page(url)
+        if "/account/bot" in url:
             return "bot-blocked"
+
+        # CONFIRMED: submitting the applicant form lands on
+        #   /Global/BlsAppointment/livenessView?id=...
+        # a welcome page whose only controls are Reject and Accept, and which
+        # leads to the video check. Judged on the url, because the DOM alone
+        # cannot tell this apart from any other two-button page -- and reading
+        # it wrong here means pressing Reject on a booked appointment.
+        # Without this it classified as plain "appointment" (the path contains
+        # blsappointment), the walk decided there was nothing to do, and the
+        # run ended one click short (run 20261014_234430).
+        if "livenessview" in url:
+            return "liveness-consent"
         # These are unambiguous from the URL alone.
         if url_stage in ("login", "login-captcha", "browser-error"):
             return url_stage
@@ -2829,6 +2842,11 @@ class Monitor:
 
         if stage == "payment":
             return stage, await self._pause_for_payment(page)
+
+        if stage == "liveness-consent":
+            if not await self._accept_liveness_terms(page):
+                return stage, False
+            return stage, await self._advance_remaining_stages(page)
 
         if stage == "liveness":
             return stage, await self._pause_for_liveness(page)
@@ -2951,7 +2969,10 @@ class Monitor:
         return r.width > 2 && r.height > 2;
       };
       const no = /cancel|back|close|edit|disagree|reject|no\b|logout|exit/i;
-      const yes = /^(ok|yes|confirm|continue|proceed|next|done|finish)\b/i;
+      // "accept" is here for the welcome page at /BlsAppointment/livenessView,
+      // whose two buttons are Reject and Accept. "reject" is in `no` above, and
+      // it is tested first, so the refusal can never be the one that is pressed.
+      const yes = /^(ok|yes|accept|agree|confirm|continue|proceed|next|done|finish)\b/i;
       const pool = Array.from(
         document.querySelectorAll('button, a.btn, input[type=button], input[type=submit]'));
       const seen = [];
@@ -2996,6 +3017,40 @@ class Monitor:
         )
         await self._settle(page)
         await self._dismiss_open_modals(page)
+        return True
+
+    async def _accept_liveness_terms(self, page: Any) -> bool:
+        """Press Accept on the welcome page that precedes the video check.
+
+        CONFIRMED: /Global/BlsAppointment/livenessView, two buttons, Reject and
+        Accept. This is still the booking -- the appointment is already held
+        and accepting is what carries it to the video step -- so the bot does
+        press it. The video check itself is where it stops.
+
+        _click_confirm rejects anything matching reject/cancel/disagree before
+        it looks for an affirmative, so the refusal cannot be the one pressed.
+        """
+        logger.info("  welcome page          : accepting to reach the video step")
+        await utils.screenshot(page, "liveness-welcome")
+        await utils.dump_page_html(page, "liveness-welcome")
+
+        if not await self._click_confirm(page):
+            logger.error(
+                "  welcome page          : no Accept control found — stopping "
+                "rather than guessing, with Reject on the same page"
+            )
+            self.state.log_event(
+                "bot", "could not accept on the liveness welcome page", status="error"
+            )
+            await self.notifier.manual_required(
+                "The booking reached the welcome page before the video check, "
+                "but the bot could not find the Accept button.\n\n"
+                "Press Accept in the open browser, then send /resume."
+            )
+            return False
+
+        self.state.log_event("bot", "accepted the liveness welcome page", status="ok")
+        await self._settle(page)
         return True
 
     async def _pause_for_liveness(self, page: Any) -> bool:
@@ -3054,6 +3109,14 @@ class Monitor:
                 if not await self._click_confirm(page):
                     await self._hold_for_debug(
                         page, "a confirmation page the bot could not continue past"
+                    )
+                    return False
+                continue
+
+            if stage == "liveness-consent":
+                if not await self._accept_liveness_terms(page):
+                    await self._hold_for_debug(
+                        page, "the welcome page before the video check"
                     )
                     return False
                 continue
