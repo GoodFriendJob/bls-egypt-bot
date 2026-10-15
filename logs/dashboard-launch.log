@@ -5062,3 +5062,4 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 15:27:02 | INFO    | modules.auth - auth: browser closed
 15:27:05 | INFO    | modules.notifier - notifier: telegram listener stopped
 15:27:05 | INFO    | __main__ - shutdown complete
+2026-10-15 06:22:31 | dashboard | Start pressed; a bot is already online — command sent

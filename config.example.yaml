@@ -226,7 +226,17 @@ openai:
 telegram:
   # Create a bot with @BotFather and paste the token here.
   token: ""
-  # Your numeric chat id (talk to @userinfobot to get it).
+  # Numeric chat id(s) allowed to command the bot, and sent every alert.
+  # Talk to @userinfobot to get yours. ONE id, or a list of them when more
+  # than one person uses the bot -- whoever runs it and whoever the
+  # appointment is for:
+  #
+  #   chat_id:
+  #     - "123456789"
+  #     - "987654321"
+  #
+  # A command from a chat that is not listed is refused, and the reply tells
+  # that chat its own id so it can be added here.
   chat_id: ""
   # Heartbeat STATUS message interval, in hours. 0 disables heartbeats.
   heartbeat_hours: 6

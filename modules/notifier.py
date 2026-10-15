@@ -1,7 +1,11 @@
 """Telegram alerts + command listener.
 
 Alert types (per CLAUDE.md): SLOT_FOUND, MANUAL_REQUIRED, APPOINTMENT_CONFIRMED,
-ERROR, STATUS. Commands: /resume, /status, /stop, /help.
+ERROR, STATUS. Commands: /start, /resume, /status, /stop, /help.
+
+telegram.chat_id may name one chat or a list of them: the operator and the
+applicant are not always the same person, and a command from a chat that is
+not listed is refused with its own id so it can be added.
 
 If the Telegram token or chat id is missing the notifier degrades to log-only
 mode so the bot still runs — it never raises for a missing credential.
@@ -25,6 +29,7 @@ except ImportError:  # pragma: no cover - dependency missing
 
 HELP_TEXT = (
     "BLS appointment bot commands:\n"
+    "/start — begin or resume monitoring\n"
     "/status — current monitoring status\n"
     "/resume — continue after a manual step\n"
     "/stop — stop the bot gracefully\n"
@@ -41,8 +46,17 @@ class Notifier:
 
         telegram_cfg = config.get("telegram", {}) or {}
         self.token = (telegram_cfg.get("token") or "").strip()
-        self.chat_id = str(telegram_cfg.get("chat_id") or "").strip()
-        self.enabled = bool(self.token and self.chat_id and TELEGRAM_AVAILABLE)
+        # chat_id may name ONE chat or several. The bot is used by more than
+        # one person -- whoever runs it and whoever the appointment is for --
+        # and with a single id every command from the other one was dropped
+        # without a word, which looks exactly like a bot that is not running.
+        self.chat_ids = self._as_chat_ids(telegram_cfg.get("chat_id"))
+        # Alerts go to the first; it is the one the operator configured.
+        self.chat_id = self.chat_ids[0] if self.chat_ids else ""
+        self.enabled = bool(self.token and self.chat_ids and TELEGRAM_AVAILABLE)
+        # Chats told once that they are not on the list, so a stranger cannot
+        # make the bot chatter by spamming it.
+        self._told_unauthorised: set[str] = set()
 
         self._app: Any = None
         self._monitor: Any = None
@@ -53,6 +67,20 @@ class Notifier:
             logger.warning("notifier: python-telegram-bot not installed — log-only mode")
         elif not self.enabled:
             logger.warning("notifier: telegram token/chat_id missing — log-only mode")
+
+    @staticmethod
+    def _as_chat_ids(value: Any) -> list[str]:
+        """One chat id, or several, however the config spells it."""
+        if value is None:
+            return []
+        items = value if isinstance(value, (list, tuple)) else [value]
+        out: list[str] = []
+        for item in items:
+            # YAML reads a bare number as an int; ids are compared as strings.
+            text = str(item).strip()
+            if text and text not in out:
+                out.append(text)
+        return out
 
     def bind(self, *, monitor: Any = None) -> None:
         """Attach collaborators that commands need to drive."""
@@ -70,7 +98,7 @@ class Notifier:
 
         try:
             self._app = Application.builder().token(self.token).build()
-            self._app.add_handler(CommandHandler("start", self._cmd_help))
+            self._app.add_handler(CommandHandler("start", self._cmd_start))
             self._app.add_handler(CommandHandler("help", self._cmd_help))
             self._app.add_handler(CommandHandler("status", self._cmd_status))
             self._app.add_handler(CommandHandler("resume", self._cmd_resume))
@@ -108,16 +136,19 @@ class Notifier:
         if not self.enabled or self._app is None:
             logger.info(f"notifier (log-only): {text}")
             return False
-        try:
-            await self._app.bot.send_message(
-                chat_id=self.chat_id,
-                text=text,
-                disable_web_page_preview=True,
-            )
-            return True
-        except Exception as exc:
-            logger.warning(f"notifier: send failed: {exc}")
-            return False
+        sent = False
+        for chat_id in self.chat_ids:
+            try:
+                await self._app.bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    disable_web_page_preview=True,
+                )
+                sent = True
+            except Exception as exc:
+                # One unreachable chat must not silence the others.
+                logger.warning(f"notifier: send to {chat_id} failed: {exc}")
+        return sent
 
     async def send_photo(self, path: str | Path, caption: str = "") -> bool:
         if not self.enabled or self._app is None:
@@ -126,15 +157,19 @@ class Notifier:
         file_path = Path(path)
         if not file_path.exists():
             return await self.send(caption)
-        try:
-            with file_path.open("rb") as handle:
-                await self._app.bot.send_photo(
-                    chat_id=self.chat_id, photo=handle, caption=caption[:1024]
-                )
-            return True
-        except Exception as exc:
-            logger.warning(f"notifier: photo send failed: {exc}")
+        sent = False
+        for chat_id in self.chat_ids:
+            try:
+                with file_path.open("rb") as handle:
+                    await self._app.bot.send_photo(
+                        chat_id=chat_id, photo=handle, caption=caption[:1024]
+                    )
+                sent = True
+            except Exception as exc:
+                logger.warning(f"notifier: photo send to {chat_id} failed: {exc}")
+        if not sent:
             return await self.send(caption)
+        return True
 
     # ------------------------------------------------------------------ #
     # Alert types
@@ -364,27 +399,78 @@ class Notifier:
     # ------------------------------------------------------------------ #
     # Command handlers
     # ------------------------------------------------------------------ #
-    def _authorised(self, update: Any) -> bool:
+    async def _authorised(self, update: Any) -> bool:
+        """Is this chat allowed to drive the bot? Says so if not.
+
+        It used to return False in silence. Someone added the bot, typed
+        /start, saw nothing at all, and reasonably concluded the bot was not
+        running -- while the log said "ignoring command from unauthorised chat
+        7340367798" on a machine they could not see. Telling them their own
+        chat id turns that into a thirty-second fix.
+        """
         chat = getattr(update, "effective_chat", None)
         if chat is None:
             return False
-        if str(chat.id) != self.chat_id:
-            logger.warning(f"notifier: ignoring command from unauthorised chat {chat.id}")
-            return False
-        return True
+        chat_id = str(chat.id)
+        if chat_id in self.chat_ids:
+            return True
+
+        logger.warning(
+            f"notifier: ignoring a command from unauthorised chat {chat_id} — "
+            "add it to telegram.chat_id in config.yaml to allow it"
+        )
+        # Once per chat per run, so this cannot be used to make the bot talk.
+        if chat_id not in self._told_unauthorised:
+            self._told_unauthorised.add(chat_id)
+            try:
+                await update.message.reply_text(
+                    "This chat is not on the bot's allowed list, so its "
+                    "commands are ignored.\n\n"
+                    f"Your chat id is: {chat_id}\n\n"
+                    "Send that to whoever runs the bot and ask them to add it "
+                    "to telegram.chat_id in config.yaml (it accepts a list)."
+                )
+            except Exception as exc:
+                logger.debug(f"notifier: could not reply to {chat_id}: {exc}")
+        return False
 
     async def _cmd_help(self, update: Any, _context: Any) -> None:
-        if self._authorised(update):
+        if await self._authorised(update):
             await update.message.reply_text(HELP_TEXT)
 
+    async def _cmd_start(self, update: Any, _context: Any) -> None:
+        """/start — begin (or resume) monitoring.
+
+        This is the first thing anyone types to a Telegram bot, so it has to
+        do the obvious thing rather than print a help page.
+        """
+        if not await self._authorised(update):
+            return
+        logger.info("notifier: /start command received")
+        if self.state is None:
+            await update.message.reply_text("No bot state to start.")
+            return
+
+        was_running = bool(getattr(self.state, "running", False))
+        self.state.request_start()
+        if was_running:
+            await update.message.reply_text(
+                "▶️ Already monitoring — carrying on.\n\n" + HELP_TEXT
+            )
+        else:
+            await update.message.reply_text(
+                "▶️ Monitoring started. You will get a message the moment a "
+                "slot appears.\n\n" + HELP_TEXT
+            )
+
     async def _cmd_status(self, update: Any, _context: Any) -> None:
-        if not self._authorised(update):
+        if not await self._authorised(update):
             return
         text = self.state.status_text() if self.state is not None else "no state available"
         await update.message.reply_text(text)
 
     async def _cmd_resume(self, update: Any, _context: Any) -> None:
-        if not self._authorised(update):
+        if not await self._authorised(update):
             return
         if self.state is not None:
             self.state.clear_manual_pause()
@@ -394,7 +480,7 @@ class Notifier:
         await update.message.reply_text("▶️ Resuming.")
 
     async def _cmd_stop(self, update: Any, _context: Any) -> None:
-        if not self._authorised(update):
+        if not await self._authorised(update):
             return
         logger.info("notifier: /stop command received")
         if self.state is not None:
@@ -405,7 +491,7 @@ class Notifier:
 
     async def _on_text(self, update: Any, _context: Any) -> None:
         """Queue free text so otp.py can consume a code sent by the user."""
-        if not self._authorised(update):
+        if not await self._authorised(update):
             return
         text = (update.message.text or "").strip()
         if not text:

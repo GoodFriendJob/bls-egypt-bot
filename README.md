@@ -371,11 +371,27 @@ anything happens.
 Commands you can send it:
 
 ```
+/start    begin or resume monitoring
 /status   what it is doing right now
 /resume   carry on after you have done a manual step
 /stop     shut down cleanly
 /help     this list
 ```
+
+Commands only work from a chat listed in `telegram.chat_id`, which accepts a
+**list** when more than one person uses the bot. A chat that is not on the list
+is refused — and told its own chat id, so you can add it:
+
+```yaml
+telegram:
+  chat_id:
+    - "123456789"      # whoever runs the bot
+    - "987654321"      # whoever the appointment is for
+```
+
+The bot has to be **running** for any of this to work. `/start` tells a running
+bot to begin monitoring; it cannot launch one. Use `start.bat`, or the
+dashboard's Start button, for that.
 
 A real `Slot Found` message looks like this:
 
@@ -637,7 +653,7 @@ push_logs.bat          send logs to GitHub
 
 http://127.0.0.1:5000  the dashboard
 
-/status /resume /stop /help     on Telegram
+/start /status /resume /stop /help    on Telegram
 ```
 
 **The bot needs you for exactly two things: the live video check, and the
