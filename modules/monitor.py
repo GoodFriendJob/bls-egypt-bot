@@ -1813,6 +1813,27 @@ class Monitor:
             await utils.screenshot(main_page, f"verify-modal-attempt{attempt}")
             await utils.dump_page_html(work, f"verify-frame-attempt{attempt}")
 
+            # The frame may have loaded the gateway's error page instead of the
+            # grid. Retrying against that is pointless -- the document does not
+            # change between attempts -- and it reads as "no CAPTCHA detected",
+            # which sends anyone debugging it after the solver instead of the
+            # portal. 23 of 35 frame loads went this way in one night.
+            frame_error = getattr(self.auth, "_last_captcha_frame_error", "")
+            if frame_error:
+                logger.error(
+                    f"monitor: the portal served {frame_error} for the captcha "
+                    "frame — there is no challenge on it to solve"
+                )
+                self.state.log_event(
+                    "bot", f"captcha frame unavailable ({frame_error})", status="error"
+                )
+                await self.notifier.error(
+                    f"The portal's captcha service answered {frame_error}, so "
+                    "the verification step cannot be completed right now.",
+                    retry_info="waiting out the cycle and trying again",
+                )
+                return False
+
             # STEP 2 — solve and submit the selection, inside the frame.
             #
             # CONFIRMED from the frame dump: this challenge is structurally

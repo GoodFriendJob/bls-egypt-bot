@@ -66,6 +66,12 @@ VERIFY_BUTTON_SELECTOR = "#btnVerify"  # CONFIRMED: stable id
 VERIFY_BUTTON_TEXTS = ("verify", "continue", "next", "submit", "proceed", "تحقق", "متابعة")
 LOGIN_BUTTON_TEXTS = ("login", "log in", "sign in", "submit", "دخول", "تسجيل")
 COOKIE_ACCEPT_TEXTS = ("accept", "agree", "got it", "ok", "موافق")
+# How many times to ask the portal again when it answers the captcha frame
+# with its gateway's error page. Kept small: the grid's token lives about 45
+# seconds and the modal is only waited on for 30.
+CAPTCHA_FRAME_TRIES = 3
+CAPTCHA_FRAME_RETRY_WAIT = 1.2
+
 LOGGED_IN_MARKERS = ("logout", "log out", "sign out", "my account", "تسجيل الخروج")
 
 # CONFIRMED: a successful login lands on /Global/bls/visatypeverification.
@@ -476,6 +482,9 @@ class BLSAuth:
         # The last plain-http URL whose request died, so a navigation that was
         # redirected to port 80 can be retried where it was actually going.
         self._last_insecure_url: str = ""
+        # Set when the portal answers the captcha frame with its gateway's
+        # error page, so the caller can say that instead of "no CAPTCHA found".
+        self._last_captcha_frame_error: str = ""
 
         self.session_file = Path(SESSION_FILE)
 
@@ -581,6 +590,27 @@ class BLSAuth:
         self._install_network_logging(self._page)
         self._log("browser launched", status="ok")
 
+    @staticmethod
+    def _is_gateway_error(status: int, body: bytes) -> bool:
+        """Is this the gateway's error page rather than the captcha?
+
+        Judged on the BODY as well as the status. The portal has served that
+        page with a 200 on it — the frame rendered "502 Bad Gateway" while the
+        response line said 200 — so trusting the status alone would let it
+        through as a perfectly good captcha.
+        """
+        if status >= 500:
+            return True
+        if len(body) > 4096:          # a real grid is far larger than this
+            return False
+        text = body[:4096].lower()
+        return (
+            b"bad gateway" in text
+            or b"service unavailable" in text
+            or b"gateway time-out" in text
+            or b"gateway timeout" in text
+        )
+
     async def _serve_captcha_frame(self, route: Any, request: Any) -> None:
         """Fetch the captcha frame one redirect at a time, upgrading as we go.
 
@@ -599,29 +629,63 @@ class BLSAuth:
         http:// Location to https:// before asking for it. The frame is then
         fulfilled with the real response body.
         """
-        url = request.url or ""
+        start = request.url or ""
         response = None
         try:
-            for _ in range(5):
-                if url.lower().startswith("http://"):
-                    url = "https://" + url[len("http://"):]
-                response = await route.fetch(url=url, max_redirects=0)
-                if response.status not in (301, 302, 303, 307, 308):
+            for attempt in range(1, CAPTCHA_FRAME_TRIES + 1):
+                url = start
+                response = None
+                for _ in range(5):
+                    if url.lower().startswith("http://"):
+                        url = "https://" + url[len("http://"):]
+                    response = await route.fetch(url=url, max_redirects=0)
+                    if response.status not in (301, 302, 303, 307, 308):
+                        break
+                    location = (response.headers or {}).get("location", "")
+                    if not location:
+                        break
+                    nxt = urljoin(url, location)
+                    if nxt.lower().startswith("http://"):
+                        logger.warning(
+                            "auth: the captcha frame was redirected to http:// — "
+                            "following it over https instead"
+                        )
+                    url = nxt
+                else:
+                    logger.warning("auth: captcha frame redirected too many times")
+
+                if response is None:
+                    break
+
+                # The endpoint is flaky: across one night it served the
+                # gateway's own "502 Bad Gateway" page for 23 of 35 frame
+                # loads. The bot then stared at a 121-byte error document for
+                # five attempts and reported "no CAPTCHA detected", which is
+                # true and useless. A bad gateway is transient, so ask again.
+                body = b""
+                try:
+                    body = await response.body()
+                except Exception:
+                    pass
+                if not self._is_gateway_error(response.status, body):
+                    self._last_captcha_frame_error = ""
                     await route.fulfill(response=response)
                     return
-                location = (response.headers or {}).get("location", "")
-                if not location:
-                    await route.fulfill(response=response)
-                    return
-                nxt = urljoin(url, location)
-                if nxt.lower().startswith("http://"):
-                    logger.warning(
-                        "auth: the captcha frame was redirected to http:// — "
-                        "following it over https instead"
-                    )
-                url = nxt
-            logger.warning("auth: captcha frame redirected too many times")
+
+                detail = f"HTTP {response.status}"
+                if b"Bad Gateway" in body:
+                    detail = "502 Bad Gateway"
+                self._last_captcha_frame_error = detail
+                logger.warning(
+                    f"auth: the portal served {detail} for the captcha frame "
+                    f"(try {attempt}/{CAPTCHA_FRAME_TRIES})"
+                )
+                if attempt < CAPTCHA_FRAME_TRIES:
+                    await asyncio.sleep(CAPTCHA_FRAME_RETRY_WAIT)
+
             if response is not None:
+                # Out of tries: serve what the portal gave, so the failure is
+                # visible on the page rather than being a hung request.
                 await route.fulfill(response=response)
         except Exception as exc:
             # Never leave the request hanging: a failure here has to look
