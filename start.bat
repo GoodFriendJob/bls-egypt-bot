@@ -42,6 +42,13 @@ if %BOTCOUNT% GTR 0 (
 REM --- Start ---------------------------------------------------
 echo Starting the bot ...
 echo.
+echo   A browser window will open and STAY open while the bot runs.
+echo   Leave it alone - that is where you will finish the booking.
+echo.
+echo   When a slot is found you will get a Telegram message. The last
+echo   two steps need you: the live video check, and the payment. Do
+echo   them in that browser window, then send /resume to the bot.
+echo.
 echo   To watch it:  run dashboard.bat (separate window)
 echo   To stop:      press Ctrl+C here, or run stop.bat
 echo.
@@ -55,7 +62,16 @@ if errorlevel 1 (
     goto :end
 )
 
-python bot.py
+REM --headful, always. The booking ENDS in two steps a person has to do --
+REM the live video check and the payment -- and both need a browser window
+REM that someone can see and use. Run headless and the bot gets all the way
+REM to the video page, holds the appointment, and waits for a /resume nobody
+REM can act on: the session is alive and completely unreachable.
+REM
+REM This overrides headless in config.yaml on purpose, so the launcher most
+REM people double-click cannot be the one that strands a booking. For a
+REM headless server run, use:  python bot.py
+python bot.py --headful
 
 echo.
 echo -----------------------------------------------------------

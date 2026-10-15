@@ -1,79 +1,307 @@
 # BLS Spain Egypt — Appointment Bot
 
-Watches the BLS Spain visa portal for Egypt, takes an appointment the moment one
-opens, fills in the application, and tells you about it on Telegram. Comes with
-a web dashboard in Arabic and English.
+This program watches the BLS Spain visa website for Egypt. The moment an
+appointment becomes free in **Cairo** or **Alexandria** it takes it, fills in
+the application form, and sends you a message on Telegram.
 
-It runs on an ordinary Windows PC or a small Linux server, and needs no attention
-except for the two steps that require a person — the **live video check**
-and the **payment**. It stops at both and waits for you.
-
----
-
-## Contents
-
-1. [What it does](#1-what-it-does)
-2. [How it works](#2-how-it-works)
-3. [How the pieces fit together](#3-how-the-pieces-fit-together)
-4. [Installing it (Windows)](#4-installing-it-windows)
-5. [Installing it (Linux server)](#5-installing-it-linux-server)
-6. [Setting it up](#6-setting-it-up)
-7. [Day-to-day use](#7-day-to-day-use)
-8. [Telegram](#8-telegram)
-9. [The dashboard](#9-the-dashboard)
-10. [The two steps you have to do yourself](#10-the-two-steps-you-have-to-do-yourself)
-11. [What the code is made of](#11-what-the-code-is-made-of)
-12. [When something goes wrong](#12-when-something-goes-wrong)
-13. [Keeping it safe](#13-keeping-it-safe)
+It does almost everything on its own. **You only have to do two things**: the
+live video check, and the payment. It will tell you when, and it will wait for
+you.
 
 ---
 
-## 1. What it does
+> ### New here? Read Part 1 and stop.
+>
+> **[Part 1 — Using the bot](#part-1--using-the-bot)** is written for the person
+> who will run this. No programming needed. Everything is a double-click.
+>
+> [Part 2 — Technical reference](#part-2--technical-reference) is for whoever
+> maintains the code.
+
+---
+
+# Part 1 — Using the bot
+
+1. [Before you start](#1-before-you-start)
+2. [Install it (once)](#2-install-it-once)
+3. [Enter your details](#3-enter-your-details)
+4. [Start the bot](#4-start-the-bot)
+5. [What happens next](#5-what-happens-next)
+6. [Your two jobs](#6-your-two-jobs)
+7. [Stopping the bot](#7-stopping-the-bot)
+8. [The dashboard](#8-the-dashboard)
+9. [Telegram commands](#9-telegram-commands)
+10. [If something looks wrong](#10-if-something-looks-wrong)
+
+---
+
+## 1. Before you start
+
+You need five things:
 
 | | |
 |---|---|
-| **Watches** | Cairo and Alexandria, continuously, at whatever interval you set |
-| **Searches widely** | Every combination of visa type, sub-type, category and applicant type you list |
-| **Logs in by itself** | Two-step email → password, keeps the session, logs back in when it expires |
-| **Solves the CAPTCHAs** | All three of them, by reading the tiles with GPT-4o vision |
-| **Reads the email code** | Fetches the portal's verification code straight from your inbox |
-| **Books** | Picks a free date and a green time slot, uploads the photo, fills ~50 application fields |
-| **Tells you** | Telegram message when a slot is found, when it is submitted, and whenever it needs you |
-| **Shows you** | A dashboard with live status, the full log, and every setting editable in the browser |
-| **Knows when to stop** | Live video verification and payment are handed to you, never attempted |
+| **A Windows computer in Egypt** | The BLS website only answers from inside Egypt. From anywhere else it refuses every request. The computer must stay switched on. |
+| **Python** | Free, from [python.org/downloads](https://www.python.org/downloads/). While installing, **tick the box that says "Add Python to PATH"** — this matters. |
+| **Your BLS account** | The email and password you use to sign in to the BLS website. |
+| **Your documents** | A scan of the passport, and the applicant's photograph. |
+| **A Telegram account** | This is how the bot talks to you. |
 
-### What it will not do
+### Making the Telegram bot
 
-- It will **not** complete a payment. It stops at the payment page with the
-  browser open and waits for you.
-- It will **not** perform the live video identity check. That step exists to
-  confirm the applicant is personally present, so the applicant does it.
-- It will **not** invent application data. Anything it has no value for is
-  reported by name rather than guessed at.
+Five minutes, done once:
+
+1. Open Telegram and search for **@BotFather**.
+2. Send it `/newbot` and follow the questions. It gives you a long **token** —
+   copy it.
+3. Search for **@userinfobot** and press Start. It replies with a number —
+   that is your **chat id**. Copy it too.
+
+Keep both. You will paste them in step 3.
 
 ---
 
-## 2. How it works
+## 2. Install it (once)
 
-### The short version
+Open the bot's folder and **double-click `install.bat`**.
 
-```mermaid
-flowchart LR
-    A[Wake up] --> B[Log in]
-    B --> C{Any slots?}
-    C -- No --> D[Wait, then try<br/>the next combination]
-    D --> C
-    C -- Yes --> E[Telegram:<br/>Slot Found]
-    E --> F[Book the slot<br/>and fill the form]
-    F --> G[Telegram:<br/>Application submitted]
-    G --> H[Hand over for<br/>video + payment]
+It takes a few minutes and tells you when it has finished. That is the whole
+installation.
+
+Then put the two documents in the `docs` folder inside the bot's folder:
+
+```
+docs\passport.jpg     the passport scan
+docs\photo.jpg        the applicant's photograph
 ```
 
-### The full journey
+The names must match exactly, or you can change them later in the settings.
 
-Every box below is a real page on the portal. The bot works out which one it is
+---
+
+## 3. Enter your details
+
+The easiest way is the settings page in your web browser.
+
+1. **Double-click `dashboard.bat`.** A black window opens — leave it open.
+2. Open your web browser and go to: **http://127.0.0.1:5000**
+3. Click **الإعدادات / Settings** at the top.
+4. Fill in the boxes and click **Save**.
+
+The page is in Arabic and English — the **EN** button at the top right switches
+between them.
+
+### What you must fill in
+
+| Setting | What to put |
+|---|---|
+| `bls.email`, `bls.password` | Your BLS website sign-in |
+| `telegram.token` | The long token from @BotFather |
+| `telegram.chat_id` | Your number from @userinfobot |
+| `applicant.*` | The applicant's details — name, passport, dates, hotel, and so on. There are about fifty boxes; every one marked **REQ** must be filled, or the BLS website will refuse the application. |
+| `otp.imap_user`, `otp.imap_pass` | The email account that receives codes from BLS. **For Gmail this must be an [app password](https://myaccount.google.com/apppasswords)**, not your normal password. |
+| `openai.api_key` | A key from [platform.openai.com](https://platform.openai.com/api-keys). The bot uses it to read the puzzle pictures the website shows. |
+
+**If more than one person needs the bot**, put several chat ids:
+
+```yaml
+telegram:
+  chat_id:
+    - "123456789"      # you
+    - "987654321"      # the applicant
+```
+
+Anyone not on that list is ignored — the bot replies telling them their own
+chat id, so you can add it.
+
+> **Don't know a value?** Leave it and start the bot anyway. It checks
+> everything at startup and sends you a Telegram message naming exactly what is
+> missing, before it does anything else.
+
+---
+
+## 4. Start the bot
+
+**Double-click `start.bat`.**
+
+Two windows appear:
+
+- a **black text window** showing what the bot is doing
+- a **browser window** — this one **stays open the whole time**
+
+> ### Leave the browser window alone
+>
+> Do not close it, and do not type in it. That window is where you will finish
+> the booking later. If you close it, the bot loses the appointment.
+>
+> You can minimise it.
+
+The bot now checks for appointments over and over, day and night.
+
+---
+
+## 5. What happens next
+
+Everything arrives on Telegram. You do not need to watch the screen.
+
+| Message | What it means | What to do |
+|---|---|---|
+| 🤖 **Bot started** | It is running | Nothing |
+| 🟢 **Slot Found** | An appointment is free and it is taking it | Nothing — but stay near your phone |
+| ✅ **Application submitted** | The form went through. The appointment is being held for you | **Get ready — your part is next** |
+| 🎥 **Live video verification** | It needs you now | See [Your two jobs](#6-your-two-jobs) |
+| 💳 **Payment** | It needs you now | See [Your two jobs](#6-your-two-jobs) |
+| ℹ️ **Status** | A "still alive" note every few hours | Nothing |
+| 🔴 **Error** | Something went wrong | Usually nothing — it retries by itself, and the message says so |
+
+A real one looks like this:
+
+```
+🟢 Slot Found
+Location: Cairo
+Category: Normal
+Appointment For: Individual
+Visa type: Schengen visa
+Visa sub type: Airport Transit Visa (TAP)
+
+Booking now…
+```
+
+---
+
+## 6. Your two jobs
+
+The bot does everything up to here by itself. These last two steps are yours —
+it will not do them.
+
+**Be quick.** The BLS website only holds an unfinished appointment for a short
+time. Treat these messages as "do it now", not "do it tonight". Make sure
+Telegram notifications are switched on for this chat.
+
+### Job 1 — the live video check
+
+You get:
+
+> 🎥 The booking has reached the LIVE VIDEO verification step.
+
+1. Go to the computer running the bot.
+2. Find the **browser window** that has been open all along.
+3. Do the camera check in that window. The applicant has to be the one in front
+   of the camera — that is the entire point of this step.
+4. When it is done, send **`/resume`** to the bot on Telegram.
+
+### Job 2 — the payment
+
+You get:
+
+> 💳 The booking has reached the PAYMENT step.
+
+1. Same browser window.
+2. Enter the card details and pay.
+3. Send **`/resume`** on Telegram.
+
+**The bot never spends money.** It stops at the payment page and waits — with
+no time limit — until you tell it to carry on.
+
+---
+
+## 7. Stopping the bot
+
+Any of these:
+
+- **Double-click `stop.bat`**
+- Press **Ctrl+C** in the black text window
+- Send **`/stop`** on Telegram
+- Click **Stop** on the dashboard
+
+To start it again: `start.bat`, or the **Start** button on the dashboard.
+
+---
+
+## 8. The dashboard
+
+A web page showing what the bot is doing. It is optional — Telegram tells you
+everything important — but it is useful.
+
+**Double-click `dashboard.bat`**, then open **http://127.0.0.1:5000**
+
+You get:
+
+- whether the bot is running, and for how long
+- when each city was last checked
+- every setting, editable (changes reach the running bot within seconds)
+- a live list of everything that has happened
+- **Start**, **Pause**, **Resume** and **Stop** buttons
+
+The dashboard is separate from the bot. Closing it does not stop a booking.
+
+> **After updating the bot's files, close the dashboard and open it again.**
+> It keeps running the version it started with. If the page shows a red warning
+> saying exactly that, this is why.
+
+### Opening it from another computer or phone
+
+In the settings, set:
+
+| Setting | Value |
+|---|---|
+| `dashboard.host` | `0.0.0.0` |
+| `dashboard.password` | A long password you choose |
+
+Restart `dashboard.bat`, then browse to `http://<that computer's IP>:5000`.
+
+> It **will not start** on a network address without a password, because the
+> page shows personal data and the account password. Only do this on a network
+> you trust.
+
+---
+
+## 9. Telegram commands
+
+```
+/start    begin or resume checking
+/status   what it is doing right now
+/resume   carry on, after you have done the video check or the payment
+/stop     stop it
+/help     this list
+```
+
+> **`/start` talks to a bot that is already running.** It cannot switch the
+> computer on. If nothing is running, use `start.bat` or the dashboard's Start
+> button first.
+
+---
+
+## 10. If something looks wrong
+
+| What you see | What it means | What to do |
+|---|---|---|
+| "403 Forbidden" | The website is refusing your internet connection | The computer must be in Egypt. If it is, the website has temporarily blocked it for asking too often — the bot waits and retries by itself, waiting longer each time |
+| "no slots" over and over | Normal. There really are none | Nothing. Leave it running |
+| "appointment already initiated … 27 minutes" | An earlier booking was left unfinished | Nothing. It waits and tries again |
+| "required settings are blank" | The application needs something you have not entered | The message names it. Put it in the settings page |
+| "Special Characters and Numbers are not allowed in …" | A BLS rule about what a box may contain | The message names the setting. Fix it in the settings page, or correct it in the open browser window yourself and send `/resume` |
+| 502 / "captcha service" messages | The BLS website's own puzzle service is down | Nothing. It retries |
+| Dashboard says **offline** | No bot is running | Press **Start**, or run `start.bat` |
+| You typed `/start` and nothing happened | Your Telegram chat is not on the allowed list | The bot replies with your chat id — add it to `telegram.chat_id` |
+
+Everything the bot sees is saved in the `logs` folder: a full diary, pictures of
+every unexpected page, and the page contents. **`push_logs.bat`** sends them to
+whoever supports you.
+
+---
+---
+
+# Part 2 — Technical reference
+
+For whoever maintains this. Python 3.11+, Playwright driving a real Chromium,
+Flask for the dashboard.
+
+## The booking journey
+
+Every box is a real page on the portal. The bot identifies which one it is
 looking at by reading the page itself, so a refresh, a logout or an unexpected
-redirect does not derail it — it simply carries on from wherever it lands.
+redirect does not derail it — it carries on from wherever it lands.
 
 ```mermaid
 flowchart TD
@@ -101,9 +329,9 @@ flowchart TD
     style P2 fill:#fff3cd,stroke:#d39e00,color:#000
 ```
 
-The two amber boxes are yours. Everything else runs unattended.
+The two amber boxes are handed to a person. Everything else is unattended.
 
-### When it needs you
+## How a hand-over works
 
 ```mermaid
 sequenceDiagram
@@ -118,14 +346,16 @@ sequenceDiagram
     Bot->>Bot: re-reads the page and<br/>picks up from there
 ```
 
-The bot waits indefinitely. It does not time out and throw the booking away.
+The browser context is never closed at those points — same live Chromium, same
+cookies, same hold on the appointment. `wait_for_resume()` has no timeout.
 
----
+**This is why `start.bat` passes `--headful`**, overriding `headless` in
+`config.yaml`. Run headless and the bot reaches the video page, holds the
+appointment, and waits for a `/resume` nobody can act on. A plain
+`python bot.py` still honours the config setting, for a server run that is not
+expected to finish a booking.
 
-## 3. How the pieces fit together
-
-There are **two programs**, and they are deliberately separate: the dashboard can
-be restarted, or closed entirely, without touching a booking in progress.
+## The two processes
 
 ```mermaid
 flowchart TB
@@ -160,75 +390,65 @@ flowchart TB
     AU <--> BLS((BLS portal))
 ```
 
-Two consequences worth knowing:
+Deliberately separate: the dashboard can be restarted, or closed, without
+touching a booking in progress. Settings edits reach a running bot in about two
+seconds. The dashboard's Start button launches `bot.py` when nothing is running.
 
-- **Settings you change in the dashboard reach a running bot** within a couple of
-  seconds — no restart. (If the bot is halfway through filling a form, the fields
-  already typed keep their old values.)
-- **The dashboard's Start button launches the bot** if none is running, and just
-  resumes it if one is.
-
----
-
-## 4. Installing it (Windows)
-
-You need **Python 3.11 or newer**. If you do not have it, get it from
-[python.org/downloads](https://www.python.org/downloads/) and **tick "Add Python
-to PATH"** during installation — the installer will not work without that.
-
-Then, in the project folder, double-click:
-
-### `install.bat`
-
-That is the whole installation. It creates a private Python environment, installs
-everything, and downloads the browser the bot drives. It takes a few minutes and
-tells you when it is done.
-
-Then two manual steps:
-
-**1. Create your settings file.** Copy `config.example.yaml` to `config.yaml` and
-open it in Notepad:
+## Command line
 
 ```bat
-copy config.example.yaml config.yaml
-notepad config.yaml
+python bot.py                     normal run, honours config headless
+python bot.py --headful           force a visible browser (what start.bat uses)
+python bot.py --once              a single check, then exit
+python bot.py --no-dashboard      do not publish status for the dashboard
+python bot.py --config other.yaml a different settings file
 ```
 
-**2. Put the applicant's documents in the `docs` folder:**
+## The launchers
 
-```
-docs\passport.jpg     the passport scan
-docs\photo.jpg        the applicant's photograph
-```
+| File | What it runs |
+|---|---|
+| `install.bat` | venv, dependencies, Chromium |
+| `start.bat` | `python bot.py --headful` — continuous, visible browser |
+| `start_headful.bat` | `python bot.py --headful --once` — one check, for debugging |
+| `dashboard.bat` | `python -m dashboard.server` |
+| `stop.bat` | terminates the bot process |
+| `push_logs.bat` | commits and pushes `logs/` |
 
-Those filenames come from `config.yaml` — change them there if yours differ.
+## Settings worth knowing
 
-> **The portal only answers from inside Egypt.** From anywhere else every request
-> comes back `403 Forbidden`. Run it on a PC in Egypt, an Egyptian VPS, or through
-> an Egyptian VPN.
+| Setting | Default | Effect |
+|---|---|---|
+| `poll_interval` | `90` | Seconds between checks |
+| `no_slots_wait_minutes` | `5` | Wait after the portal reports no slots. **The main lever on how much traffic you generate** |
+| `min_days_ahead` | `2` | Reject appointments sooner than this; the portal offers dates it will not serve slots for |
+| `combinations_per_cycle` | `1` | Option combinations tried per cycle — each costs a login and two CAPTCHAs |
+| `max_combinations_per_cycle` | `12` | Hard ceiling on the sweep |
+| `block_cooldown_minutes` | `8` | First wait after a 403 |
+| `block_cooldown_max_minutes` | `180` | Ceiling; each consecutive block doubles the wait, and a successful login resets it |
+| `logging.retention_days` | `2` | Days of screenshots and page dumps kept |
+| `debug.keep_browser_open` | `false` | Hold the window open on a failure. Defaults to on when headful |
 
----
+`bls.visa_type`, `visa_sub_type`, `appointment_category` and `appointment_for`
+each accept a **list**, and the cross-product is swept.
 
-## 5. Installing it (Linux server)
+> `visa_type` and `visa_sub_type` decide **which visa is applied for**, not
+> merely which queue is searched. Sweeping them can win an appointment for a
+> visa the applicant does not want. `appointment_category` is the safe one to
+> widen: same visa, different service tier, separate slot pool.
 
-For 24/7 running on a VPS. Use an **Egyptian** host.
+## Installing on a Linux server
+
+Use an **Egyptian** host.
 
 ```bash
 sudo apt update && sudo apt install -y python3 python3-venv python3-pip git
-
-git clone YOUR_REPO_URL bls-egypt-bot
-cd bls-egypt-bot
-
-python3 -m venv .venv
-source .venv/bin/activate
+git clone YOUR_REPO_URL bls-egypt-bot && cd bls-egypt-bot
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m playwright install --with-deps chromium
-
-cp config.example.yaml config.yaml
-nano config.yaml          # set headless: true
+cp config.example.yaml config.yaml && nano config.yaml
 ```
-
-Run it under systemd so it survives a reboot:
 
 ```ini
 # /etc/systemd/system/bls-bot.service
@@ -249,296 +469,20 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl enable --now bls-bot
-sudo journalctl -u bls-bot -f      # watch it
+sudo journalctl -u bls-bot -f
 ```
 
-Do the same with a second unit running `python -m dashboard.server` if you want
-the panel.
-
-> On a headless server the bot cannot show you the live video page. Either do
-> that step over a remote desktop session, or run the final stage of a booking on
-> a PC you can see.
-
----
-
-## 6. Setting it up
-
-Everything lives in **`config.yaml`**. Every setting is also editable from the
-dashboard, which is easier and avoids typos. The file is heavily commented — each
-section explains itself.
-
-These are the ones you must fill in before the first run:
-
-| Setting | What it is |
-|---|---|
-| `bls.email` / `bls.password` | The BLS account the appointment is booked under |
-| `applicant.*` | The applicant's details — around 50 fields, all marked `REQ` if the portal demands them |
-| `applicant.documents` | Paths to the passport scan and photograph |
-| `telegram.token` | From [@BotFather](https://t.me/BotFather) on Telegram |
-| `telegram.chat_id` | Your numeric chat id — ask [@userinfobot](https://t.me/userinfobot) |
-| `openai.api_key` | For reading the CAPTCHA tiles. Without it the bot asks you to solve them by hand |
-| `otp.imap_user` / `otp.imap_pass` | The mailbox that receives the portal's codes. **Gmail needs an [app password](https://myaccount.google.com/apppasswords)**, not the account password |
-| `dashboard.password` | Required if you want to reach the dashboard from another computer |
-
-And the ones worth tuning:
-
-| Setting | Default | What it changes |
-|---|---|---|
-| `poll_interval` | `90` | Seconds between checks |
-| `bls.locations` | Cairo, Alexandria | Which centres to watch |
-| `min_days_ahead` | `2` | Refuse appointments sooner than this — no use booking tomorrow |
-| `combinations_per_cycle` | `1` | How many visa/category combinations to try per cycle |
-| `max_combinations_per_cycle` | `12` | Hard ceiling. Each combination costs a CAPTCHA, and too many requests is what gets you rate-limited |
-| `headless` | `true` | `false` shows the browser window |
-| `logging.retention_days` | `2` | Days of screenshots and page dumps to keep |
-
-### Searching more than one option at a time
-
-Any of these four can be a **single value or a list**. Listing several makes the
-bot sweep every combination, which finds openings a single search would miss:
-
-```yaml
-bls:
-  visa_type:
-    - "Schengen visa"
-    - "National Visa"
-  appointment_category:
-    - "Normal"
-    - "Premium"
-```
-
-> **Careful.** `visa_type` and `visa_sub_type` decide **which visa is applied
-> for** — not merely which queue is searched. Sweeping them can win an
-> appointment for a visa the applicant does not want. `appointment_category` is
-> the safe one to widen: same visa, different service tier, separate slot pool.
-
----
-
-## 7. Day-to-day use
-
-Six files, all double-clickable.
-
-| File | What it does |
-|---|---|
-| **`install.bat`** | Sets everything up. Run once. |
-| **`start.bat`** | Starts the bot. This is the normal one — it runs until you stop it. |
-| **`start_headful.bat`** | One check with a **visible browser**. For trying things out and for seeing what went wrong. |
-| **`dashboard.bat`** | Opens the web panel. Separate from the bot; start and stop it freely. |
-| **`stop.bat`** | Stops the bot. |
-| **`push_logs.bat`** | Sends the log files to GitHub, so whoever is supporting you can read them. |
-
-A normal session:
-
-```
-1. dashboard.bat        (optional — opens the panel)
-2. start.bat            (the bot begins watching)
-3. ... wait for Telegram ...
-4. Do the video step and the payment when it asks
-5. stop.bat             (when you are done)
-```
-
-If you prefer the command line:
-
-```bat
-.venv\Scripts\activate
-
-python bot.py                     the normal run
-python bot.py --headful           visible browser
-python bot.py --once              a single check, then exit
-python bot.py --no-dashboard      do not publish status to the dashboard
-python bot.py --config other.yaml a different settings file
-```
-
-Stop it with **Ctrl+C**, `stop.bat`, the dashboard **Stop** button, or Telegram
-**/stop**.
-
----
-
-## 8. Telegram
-
-Set `telegram.token` and `telegram.chat_id` and you get a message whenever
-anything happens.
-
-| Message | When |
-|---|---|
-| 🤖 **Bot started** | On startup, listing every option it will search |
-| 🟢 **Slot Found** | The moment an opening appears, naming the exact combination |
-| ✅ **Application submitted** | The form went through — with a full summary of what was submitted |
-| 🟠 **Manual step required** | It needs you: video check, payment, or a field it has no value for |
-| 🔴 **Error** | Something failed, and what happens next |
-| ℹ️ **Status** | A heartbeat every `telegram.heartbeat_hours` so you know it is alive |
-
-Commands you can send it:
-
-```
-/start    begin or resume monitoring
-/status   what it is doing right now
-/resume   carry on after you have done a manual step
-/stop     shut down cleanly
-/help     this list
-```
-
-Commands only work from a chat listed in `telegram.chat_id`, which accepts a
-**list** when more than one person uses the bot. A chat that is not on the list
-is refused — and told its own chat id, so you can add it:
-
-```yaml
-telegram:
-  chat_id:
-    - "123456789"      # whoever runs the bot
-    - "987654321"      # whoever the appointment is for
-```
-
-The bot has to be **running** for any of this to work. `/start` tells a running
-bot to begin monitoring; it cannot launch one. Use `start.bat`, or the
-dashboard's Start button, for that.
-
-A real `Slot Found` message looks like this:
-
-```
-🟢 Slot Found
-Location: Cairo
-Category: Normal
-Appointment For: Individual
-Visa type: Schengen visa
-Visa sub type: Airport Transit Visa (TAP)
-
-Booking now…
-```
-
-And the confirmation summarises everything that was submitted:
-
-```
-✅ Application submitted
-
-The applicant form was accepted and the appointment is held.
-
-👤 APPLICANT
-Name: …
-Date of birth: …
-Passport: …
-
-📅 APPOINTMENT
-Centre: Cairo
-Date & time: 2026-10-15 at 09:00-10:00
-Visa: Schengen visa · Airport Transit Visa (TAP)
-
-✈️ TRIP
-Travel date: …
-Arrival → departure: …
-Staying at: …
-
-➡️ NEXT: live video verification — the applicant has to do this one in
-person. The browser is open and waiting; send /resume when it is done.
-```
-
----
-
-## 9. The dashboard
-
-Start it with **`dashboard.bat`**, then open:
-
-```
-http://127.0.0.1:5000
-```
-
-It is a separate program from the bot. Closing it does not stop a booking, and
-you do not need it at all if you are happy with Telegram.
-
-### What is on it
-
-**Overview** — whether the bot is online, what it is doing, how long it has been
-up, each centre's last check, what has been booked, and a live log that refreshes
-every few seconds.
-
-**Settings** — every entry in `config.yaml`, editable in the browser. Changes
-reach a running bot within a couple of seconds; passwords and keys are masked and
-stay masked unless you deliberately replace them. Your comments in the file are
-preserved.
-
-**Controls** — Start, Pause, Resume and Stop. **Start launches the bot** if none
-is running, so you can run the whole thing from the panel.
-
-**Language** — Arabic (right-to-left) and English, switchable with one button.
-Set the default with `dashboard.default_language`.
-
-### Reaching it from another computer
-
-In `config.yaml`:
-
-```yaml
-dashboard:
-  host: "0.0.0.0"              # accept connections from the network
-  password: "something-long"   # mandatory as soon as host is not 127.0.0.1
-  port: 5000
-```
-
-Then restart `dashboard.bat` and browse to `http://THAT-MACHINES-IP:5000`.
-
-> The dashboard **refuses to start** on a network address with no password set.
-> It shows the applicant's personal data and edits the file holding the portal
-> password, the Telegram token and the OpenAI key.
->
-> Traffic is plain HTTP. On anything beyond a trusted local network, put it
-> behind a VPN or an HTTPS reverse proxy — otherwise the password and everything
-> it protects cross the network readable.
-
----
-
-## 10. The two steps you have to do yourself
-
-> **Set `headless: false` before a run that is meant to finish a booking.**
-> Both steps below need a browser window a person can see and use. With
-> `headless: true` the browser runs invisibly: the session stays alive and
-> waiting, but there is nothing on screen to do the step in, and the
-> appointment cannot be completed. The bot warns about this at startup and
-> again in the hand-over message.
-
-### The live video check
-
-The portal asks the applicant to appear on camera. This is an identity check: its
-whole purpose is to confirm the applicant is personally present. The bot does not
-touch it.
-
-What happens: Telegram message with a screenshot, the browser stays open on the
-page, and the bot waits. The applicant does the check in that window, then you
-send **`/resume`**.
-
-### The payment
-
-The bot never spends money. When the booking reaches the payment page it stops,
-messages you, leaves the browser open on that page, and waits — with no time
-limit — for **`/resume`**.
-
-Enter the card details yourself in that window. Then `/resume`, and the bot
-re-reads the page and carries on.
-
-### And if the portal rejects something
-
-The portal has validation rules that are not published — one example it enforces
-is that the employer address may contain no digits or punctuation. If it refuses
-the form, the bot:
-
-1. sends you **exactly what the portal said**, plus the setting it refers to,
-2. leaves the browser open on the filled-in form,
-3. waits for `/resume`.
-
-You can correct the field in that window and press Submit yourself, or fix it in
-the dashboard. The bot then checks the page rather than assuming anything.
-
----
-
-## 11. What the code is made of
-
-Python 3.11+, around 13,900 lines. Playwright drives a real Chromium browser;
-Flask serves the dashboard.
+> A headless server **cannot complete the video check or the payment**. Either
+> do that stage over a remote desktop session, or run the final part of a
+> booking on a machine someone can see.
+
+## The code
 
 ```
 bls-egypt-bot/
 ├── bot.py                    start-up, the main loop, the dashboard bridge
-├── config.yaml               your settings          (never committed)
-├── config.example.yaml       the documented template
-├── requirements.txt          pinned dependencies
+├── config.yaml               settings              (never committed)
+├── config.example.yaml       documented template
 │
 ├── modules/
 │   ├── monitor.py            the booking flow, end to end
@@ -547,7 +491,7 @@ bls-egypt-bot/
 │   ├── booking.py            slot selection helpers
 │   ├── documents.py          file uploads
 │   ├── notifier.py           Telegram out, and commands in
-│   ├── otp.py                reads the portal's code from your inbox
+│   ├── otp.py                reads the portal's code from the inbox
 │   ├── state.py              what the bot is doing, for the dashboard
 │   ├── ipc.py                the two files the bot and panel talk through
 │   └── utils.py              delays, screenshots, page dumps, retries
@@ -559,92 +503,54 @@ bls-egypt-bot/
 │   ├── templates/index.html  the page (Arabic/English, RTL)
 │   └── static/style.css
 │
-├── docs/                     the applicant's documents   (never committed)
-├── session/cookies.json      the saved login             (never committed)
+├── docs/                     applicant documents   (never committed)
+├── session/cookies.json      the saved login       (never committed)
 └── logs/                     log, screenshots, page dumps
 ```
 
-| File | Lines | What it is responsible for |
+| File | Lines | Responsible for |
 |---|---:|---|
-| `modules/monitor.py` | 5,360 | The whole booking journey: the sweep, the calendar, the slot, the two big forms, and working out which page it is on |
-| `modules/auth.py` | 2,880 | Logging in past 10 decoy fields, keeping the session, and solving the three CAPTCHAs |
-| `bot.py` | 691 | Configuration, logging, the main loop, and the bridge to the dashboard |
-| `modules/utils.py` | 683 | Human-like delays, screenshots, page dumps, retries, log pruning |
-| `dashboard/templates/index.html` | 635 | The panel itself |
-| `dashboard/static/style.css` | 622 | Its styling, light and dark, LTR and RTL |
-| `modules/vision.py` | 460 | Nine tile images to GPT-4o at once, and the digits back |
+| `modules/monitor.py` | 5,400 | The whole booking journey: the sweep, the calendar, the slot, both big forms, and working out which page it is on |
+| `modules/auth.py` | 2,900 | Logging in past 10 decoy fields, keeping the session, and the three CAPTCHAs |
+| `bot.py` | 700 | Config, logging, the main loop, the dashboard bridge |
+| `modules/utils.py` | 700 | Human-like delays, screenshots, page dumps, retries, log pruning, block backoff |
+| `dashboard/templates/index.html` | 640 | The panel |
+| `dashboard/static/style.css` | 620 | Light and dark, LTR and RTL |
+| `modules/vision.py` | 460 | Nine tile images to GPT-4o at once, digits back |
+| `modules/notifier.py` | 440 | Every Telegram message, and the command listener |
 | `modules/booking.py` | 425 | Slot selection helpers |
-| `modules/notifier.py` | 415 | Every Telegram message, and the command listener |
-| `modules/state.py` | 303 | The live picture of what the bot is doing |
-| `modules/otp.py` | 293 | IMAP, or asking you on Telegram |
-| `dashboard/server.py` | 266 | The standalone panel, its password gate, and launching the bot |
+| `modules/state.py` | 300 | The live picture of what the bot is doing |
+| `dashboard/server.py` | 300 | The standalone panel, its password gate, launching the bot |
+| `modules/otp.py` | 290 | IMAP, or asking over Telegram |
 | `dashboard/config_api.py` | 233 | Editing `config.yaml` without destroying its comments |
 | `modules/documents.py` | 232 | Uploads, including the awkward widgets |
-| `dashboard/app.py` | 222 | Routes, sessions, the settings API |
+| `dashboard/app.py` | 230 | Routes, sessions, the settings API |
 | `modules/ipc.py` | 121 | `logs/state.json` and `logs/command.json`, written atomically |
 
-### Two things about this portal worth knowing
+### Two things about this portal
 
-**The login page is a trap.** It has ten fields all labelled "Email", nine of
-them hidden decoys. The ids, the names and **which one is real** all change on
-every page load. The bot finds the real one by asking the browser which is
-actually displayed — never by position or name. The appointment form does the
-same thing with five copies of every field.
+**The login page is a trap.** Ten fields all labelled "Email", nine of them
+hidden decoys. The ids, the names and *which one is real* change on every page
+load. The bot asks the browser which one is actually displayed — never position
+or name. The appointment form does the same with five copies of every field.
 
 **It watches how you behave.** The portal records how long you take between
 opening a dropdown and choosing from it, and rejects anything that looks
 mechanical. The bot presses the control, pauses the way a person reading the
-options would, and then presses the choice — the timing it reports is real,
-because it actually happened.
+options would, then presses the choice — the timing it reports is real, because
+it actually happened.
 
----
+## Keeping it safe
 
-## 12. When something goes wrong
+`config.yaml` holds the portal password, the Telegram token, the OpenAI key and
+the applicant's passport details. It is gitignored, along with `docs/`,
+`session/cookies.json`, any `*.bak` or `*.tmp`, and the IPC scratch files.
 
-Everything the bot sees is on disk:
-
-```
-logs/bot.log                     everything, with timestamps
-logs/run_<date>_<time>.txt       one file per run
-logs/screenshots/                a picture of every unexpected page
-logs/dom/                        the page's code, for diagnosis
-```
-
-Only the last `logging.retention_days` days are kept (2 by default) — they add up
-fast. **`push_logs.bat`** sends them to GitHub for whoever is supporting you.
-
-| What you see | What it means | What to do |
-|---|---|---|
-| `403 Forbidden` | The portal is refusing your connection because it is not Egyptian | Run from Egypt, an Egyptian VPS, or an Egyptian VPN |
-| `could not locate the real email field` | Usually the login page never loaded at all | Check the log just above it for a failed or timed-out request |
-| `no slots` repeatedly | Normal. There genuinely are none | Nothing. Leave it running |
-| `appointment already initiated … 27 minutes` | A previous booking was left half-finished; the portal is holding it | Nothing. The bot waits out the hold and retries |
-| `required settings are blank` | The application needs a value you have not given | The message names the setting. Fill it in the dashboard |
-| `Special Characters and Numbers are not allowed in …` | A portal validation rule | The message names the setting. Edit it, or fix it in the open browser and `/resume` |
-| Dashboard says **offline** | No bot is running | Press **Start** in the panel, or run `start.bat` |
-| `Start` does nothing | The bot could not launch | Read `logs/dashboard-launch.log` |
-| Bot stops at a page you were not expecting | It stopped deliberately rather than guess | Read the Telegram message; it says what it was unsure about |
-
-To see what is happening with your own eyes, run **`start_headful.bat`**. It opens
-a real browser window, does one check, and stops. With
-`debug.keep_browser_open: true` in your config it also leaves the window open
-when a step fails, so you can inspect the half-filled page.
-
----
-
-## 13. Keeping it safe
-
-**`config.yaml` holds the portal password, the Telegram token, the OpenAI key and
-the applicant's passport details.** It is listed in `.gitignore` and is never
-committed. The same goes for `docs/` and `session/cookies.json`.
-
-- Keep the repository **private**. The logs that are committed contain the pages
-  the portal served.
-- Only set `dashboard.host: "0.0.0.0"` behind a VPN or an HTTPS proxy. The
-  dashboard will not start on a network address without a password, but HTTP is
-  still HTTP.
+- Keep the repository **private**. The committed logs contain pages the portal
+  served while logged in.
+- Only expose the dashboard beyond loopback behind a VPN or an HTTPS proxy.
 - `session/cookies.json` is a logged-in session. Treat it like the password.
-- No credential appears anywhere in the source code.
+- No credential appears anywhere in the source.
 
 ---
 
@@ -652,8 +558,8 @@ committed. The same goes for `docs/` and `session/cookies.json`.
 
 ```
 install.bat            set everything up (once)
-start.bat              start the bot
-start_headful.bat      one check, visible browser
+start.bat              start the bot (visible browser)
+start_headful.bat      one check, for debugging
 dashboard.bat          open the web panel
 stop.bat               stop the bot
 push_logs.bat          send logs to GitHub

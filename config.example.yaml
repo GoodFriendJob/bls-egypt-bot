@@ -308,7 +308,13 @@ min_days_ahead: 2
 # watching an empty list.
 slot_wait_seconds: 30
 
-# false opens a visible browser window — use while debugging selectors.
+# false opens a visible browser window.
+#
+# NOTE: start.bat passes --headful and OVERRIDES this, because the booking
+# ends in two steps a person has to do -- the live video check and the
+# payment -- and both need a window someone can see. This setting still
+# applies to a plain "python bot.py", for a headless server run that is not
+# expected to finish a booking.
 headless: true
 
 proxy:
