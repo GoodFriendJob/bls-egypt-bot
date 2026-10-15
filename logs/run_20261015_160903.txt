@@ -1,0 +1,35 @@
+BLS appointment bot - run transcript
+started : 2026-10-15T16:09:03
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+16:09:03 | INFO    | __main__ - ==============================================================
+16:09:03 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+16:09:03 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261015_160903.txt
+16:09:03 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+16:09:03 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+16:09:03 | INFO    | __main__ - ==============================================================
+16:09:03 | INFO    | modules.utils - logs: pruned 52 file(s) older than 2 day(s), freed 16 MB — {'logs\\screenshots': 35, 'logs\\dom': 15, 'logs': 2}
+16:09:04 | INFO    | modules.notifier - notifier: telegram listener started
+16:09:04 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+16:09:04 | INFO    | __main__ - single-cycle mode (--once)
+16:09:04 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+16:09:05 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+16:09:05 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+16:09:05 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+16:09:05 | INFO    | modules.auth - auth: browser launched
+16:09:05 | INFO    | modules.auth - auth: no saved session — going straight to the login page
+16:09:05 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+16:09:06 | INFO    | modules.auth - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+16:09:06 | ERROR   | modules.auth - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+16:09:06 | WARNING | modules.utils - block recorded in logs\cooldown.json (#2 in a row)
+16:09:06 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261015-160906_http-403.png
+16:09:06 | ERROR   | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:09:06 | INFO    | modules.auth - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:09:07 | ERROR   | __main__ - portal unreachable: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+16:09:07 | INFO    | __main__ - the cooldown is recorded — a normal run would wait it out and carry on by itself
+16:09:08 | INFO    | modules.auth - auth: browser closed
+16:09:08 | INFO    | modules.notifier - notifier: telegram listener stopped
+16:09:08 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-15T16:09:08

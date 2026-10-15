@@ -17654,3 +17654,65 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 2026-10-15 15:27:02.295 | INFO     | modules.auth:stop:863 - auth: browser closed
 2026-10-15 15:27:05.789 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
 2026-10-15 15:27:05.789 | INFO     | __main__:_run_with_state:686 - shutdown complete
+2026-10-15 16:09:03.382 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 16:09:03.382 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 16:09:03.382 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_160903.txt
+2026-10-15 16:09:03.383 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 16:09:03.383 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 16:09:03.383 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 16:09:03.448 | INFO     | modules.utils:prune_logs:761 - logs: pruned 52 file(s) older than 2 day(s), freed 16 MB — {'logs\\screenshots': 35, 'logs\\dom': 15, 'logs': 2}
+2026-10-15 16:09:04.360 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-15 16:09:04.570 | INFO     | modules.monitor:warn_about_missing_settings:2953 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 16:09:04.570 | INFO     | __main__:_run_with_state:618 - single-cycle mode (--once)
+2026-10-15 16:09:04.571 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 16:09:05.324 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 16:09:05.337 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 16:09:05.348 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 16:09:05.799 | INFO     | modules.auth:_log:3013 - auth: browser launched
+2026-10-15 16:09:05.800 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 16:09:05.801 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 16:09:06.550 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 16:09:06.552 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 16:09:06.555 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#2 in a row)
+2026-10-15 16:09:06.858 | INFO     | modules.utils:screenshot:676 - screenshot saved: logs\screenshots\20261015-160906_http-403.png
+2026-10-15 16:09:06.858 | ERROR    | modules.auth:_goto:2936 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:09:06.859 | INFO     | modules.auth:_log:3013 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:09:07.623 | ERROR    | __main__:_run_with_state:634 - portal unreachable: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:09:07.624 | INFO     | __main__:_run_with_state:635 - the cooldown is recorded — a normal run would wait it out and carry on by itself
+2026-10-15 16:09:08.007 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 16:09:08.445 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-15 16:09:08.446 | INFO     | __main__:_run_with_state:686 - shutdown complete
+2026-10-15 16:09:18.874 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 16:09:18.875 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 16:09:18.875 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_160918.txt
+2026-10-15 16:09:18.875 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 16:09:18.876 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 16:09:18.876 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 16:09:18.886 | WARNING  | __main__:_main_inner:546 - portal blocked us recently — the loop will wait 16 min before its first attempt.
+2026-10-15 16:09:19.954 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-15 16:09:20.175 | INFO     | modules.monitor:warn_about_missing_settings:2953 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 16:09:20.177 | INFO     | modules.monitor:run:1445 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-15 16:09:20.180 | WARNING  | modules.monitor:run:1459 - monitor: portal blocked — waiting 16 more minutes before the next login attempt
+2026-10-15 16:09:20.183 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 16:25:15.234 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 16:25:15.234 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 16:25:15.249 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 16:25:15.351 | INFO     | modules.auth:_log:3013 - auth: browser launched
+2026-10-15 16:25:15.351 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 16:25:15.351 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 16:25:27.603 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 16:25:27.604 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 16:25:27.605 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#3 in a row)
+2026-10-15 16:25:27.921 | INFO     | modules.utils:screenshot:676 - screenshot saved: logs\screenshots\20261015-162527_http-403.png
+2026-10-15 16:25:27.921 | ERROR    | modules.auth:_goto:2936 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:25:27.921 | INFO     | modules.auth:_log:3013 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:25:28.669 | ERROR    | modules.monitor:_handle_portal_block:5278 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 16:25:28.669 | WARNING  | modules.monitor:_handle_portal_block:5279 - monitor: sleeping 32 min, then logging in from scratch
+2026-10-15 16:25:28.965 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 16:25:28.965 | INFO     | modules.monitor:_reset_session:5398 - monitor: browser closed without saving the session
+2026-10-15 16:25:28.965 | INFO     | modules.monitor:_reset_session:5403 - monitor: stored cookies cleared — next login is clean
+2026-10-15 16:31:48.426 | INFO     | modules.notifier:_cmd_stop:399 - notifier: /stop command received
+2026-10-15 16:31:49.196 | INFO     | __main__:dashboard_bridge:437 - dashboard bridge: stopped
+2026-10-15 16:31:49.198 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 16:31:52.634 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-15 16:31:52.636 | INFO     | __main__:_run_with_state:686 - shutdown complete
