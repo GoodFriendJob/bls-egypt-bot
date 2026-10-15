@@ -17716,3 +17716,40 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 2026-10-15 16:31:49.198 | INFO     | modules.auth:stop:863 - auth: browser closed
 2026-10-15 16:31:52.634 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
 2026-10-15 16:31:52.636 | INFO     | __main__:_run_with_state:686 - shutdown complete
+2026-10-15 16:32:32.882 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 16:32:32.882 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 16:32:32.882 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_163232.txt
+2026-10-15 16:32:32.883 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 16:32:32.883 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 16:32:32.883 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 16:32:32.884 | WARNING  | __main__:_main_inner:546 - portal blocked us recently — the loop will wait 25 min before its first attempt.
+2026-10-15 16:32:32.942 | INFO     | modules.utils:prune_logs:761 - logs: pruned 29 file(s) older than 2 day(s), freed 10 MB — {'logs\\screenshots': 18, 'logs\\dom': 10, 'logs': 1}
+2026-10-15 16:32:33.865 | INFO     | modules.notifier:start:112 - notifier: telegram listener started
+2026-10-15 16:32:34.076 | INFO     | modules.monitor:warn_about_missing_settings:2953 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 16:32:34.077 | INFO     | modules.monitor:run:1445 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-15 16:32:34.078 | WARNING  | modules.monitor:run:1459 - monitor: portal blocked — waiting 25 more minutes before the next login attempt
+2026-10-15 16:32:34.080 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 16:32:50.727 | INFO     | modules.notifier:_cmd_stop:485 - notifier: /stop command received
+2026-10-15 16:32:51.239 | INFO     | modules.monitor:run:1516 - monitor: loop ended
+2026-10-15 16:32:51.239 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 16:32:54.695 | INFO     | modules.notifier:stop:126 - notifier: telegram listener stopped
+2026-10-15 16:32:54.696 | INFO     | __main__:_run_with_state:686 - shutdown complete
+2026-10-15 16:33:17.539 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 16:33:17.540 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 16:33:17.540 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_163317.txt
+2026-10-15 16:33:17.540 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 16:33:17.540 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 16:33:17.540 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 16:33:17.541 | WARNING  | __main__:_main_inner:546 - portal blocked us recently — the loop will wait 24 min before its first attempt.
+2026-10-15 16:33:18.507 | INFO     | modules.notifier:start:112 - notifier: telegram listener started
+2026-10-15 16:33:18.920 | INFO     | modules.monitor:warn_about_missing_settings:2953 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 16:33:18.920 | INFO     | modules.monitor:run:1445 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-15 16:33:18.921 | WARNING  | modules.monitor:run:1459 - monitor: portal blocked — waiting 24 more minutes before the next login attempt
+2026-10-15 16:33:18.922 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 16:34:38.851 | INFO     | modules.notifier:_cmd_start:449 - notifier: /start command received
+2026-10-15 16:34:49.142 | INFO     | modules.notifier:_cmd_start:449 - notifier: /start command received
+2026-10-15 16:53:41.483 | INFO     | modules.notifier:_cmd_stop:485 - notifier: /stop command received
+2026-10-15 16:53:41.493 | INFO     | __main__:dashboard_bridge:437 - dashboard bridge: stopped
+2026-10-15 16:53:41.497 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 16:53:45.295 | INFO     | modules.notifier:stop:126 - notifier: telegram listener stopped
+2026-10-15 16:53:45.296 | INFO     | __main__:_run_with_state:686 - shutdown complete
