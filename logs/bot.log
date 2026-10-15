@@ -17242,3 +17242,415 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 2026-10-15 05:04:30.226 | INFO     | modules.utils:dump_page_html:545 - DOM dumped: logs\dom\20261015-050430_verify-failed.html
 2026-10-15 05:04:30.579 | INFO     | modules.monitor:_gate_state:4953 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
 2026-10-15 05:04:30.580 | ERROR    | modules.monitor:run_once:1518 - monitor: visa-type verification not cleared — skipping cycle
+2026-10-15 12:46:40.946 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 12:46:40.947 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 12:46:40.947 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_124640.txt
+2026-10-15 12:46:40.948 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 12:46:40.948 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 12:46:40.948 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 12:46:41.002 | INFO     | modules.utils:prune_logs:722 - logs: pruned 20 file(s) older than 2 day(s), freed 7 MB — {'logs\\screenshots': 12, 'logs\\dom': 7, 'logs': 1}
+2026-10-15 12:46:41.918 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-15 12:46:42.143 | INFO     | modules.monitor:warn_about_missing_settings:2945 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 12:46:42.145 | INFO     | modules.monitor:run:1439 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-15 12:46:42.150 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 12:46:42.696 | INFO     | modules.auth:start:544 - auth: restoring session from session\cookies.json
+2026-10-15 12:46:42.782 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 12:46:42.788 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 12:46:42.792 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 12:46:42.908 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 12:46:55.269 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-15 12:46:55.270 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-15 12:46:55.271 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 12:46:55.565 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-124655_http-403.png
+2026-10-15 12:46:55.566 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:46:55.566 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:46:56.435 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:46:56.436 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 12:46:56.732 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 12:46:56.733 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 12:46:56.733 | INFO     | modules.auth:_clear_saved_session:2813 - auth: stored session discarded
+2026-10-15 12:46:56.734 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 12:48:16.799 | INFO     | __main__:dashboard_bridge:423 - dashboard bridge: config.yaml changed — reloading
+2026-10-15 12:48:16.827 | INFO     | modules.monitor:reload_config:1431 - monitor: config reloaded — locations=['cairo', 'alexandria'] poll=90.0s lead=1d combos<=12
+2026-10-15 12:48:16.827 | INFO     | modules.state:reload_config:230 - state: live config reloaded
+2026-10-15 12:52:00.220 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 12:52:00.230 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 12:52:00.238 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 12:52:00.343 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 12:52:00.344 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 12:52:00.344 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 12:52:02.181 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 12:52:02.181 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 12:52:02.183 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 12:52:02.412 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-125202_http-403.png
+2026-10-15 12:52:02.413 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:52:02.413 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:52:03.041 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:52:03.043 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 12:52:03.133 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 12:52:03.134 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 12:52:03.134 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 12:57:06.980 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 12:57:06.990 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 12:57:06.999 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 12:57:07.164 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 12:57:07.165 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 12:57:07.165 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 12:57:07.392 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 12:57:07.392 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 12:57:07.394 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 12:57:07.659 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-125707_http-403.png
+2026-10-15 12:57:07.659 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:57:07.660 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:57:08.310 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 12:57:08.311 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 12:57:08.392 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 12:57:08.392 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 12:57:08.392 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:02:11.857 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:02:11.867 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:02:11.873 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:02:12.017 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:02:12.017 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:02:12.018 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:02:21.565 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:02:21.565 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:02:21.566 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:02:21.794 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-130221_http-403.png
+2026-10-15 13:02:21.795 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:02:21.796 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:02:22.461 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:02:22.463 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 13:02:22.522 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:02:22.522 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:02:22.522 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:07:26.142 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:07:26.151 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:07:26.156 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:07:26.258 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:07:26.258 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:07:26.258 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:07:26.482 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:07:26.483 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:07:26.484 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:07:26.712 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-130726_http-403.png
+2026-10-15 13:07:26.713 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:07:26.713 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:07:27.365 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:07:27.367 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 13:07:27.443 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:07:27.443 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:07:27.443 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:12:30.975 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:12:30.984 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:12:30.992 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:12:31.116 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:12:31.117 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:12:31.117 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:12:31.337 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:12:31.337 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:12:31.339 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:12:31.638 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-131231_http-403.png
+2026-10-15 13:12:31.638 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:12:31.639 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:12:32.262 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:12:32.263 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 5 min, then logging in from scratch
+2026-10-15 13:12:32.346 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:12:32.346 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:12:32.346 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:19:33.204 | INFO     | __main__:_main_inner:526 - ==============================================================
+2026-10-15 13:19:33.205 | INFO     | __main__:_main_inner:527 - BLS Spain Egypt appointment bot starting
+2026-10-15 13:19:33.205 | INFO     | __main__:_main_inner:528 - run transcript: D:\bls-egypt-bot\logs\run_20261015_131933.txt
+2026-10-15 13:19:33.206 | INFO     | __main__:_main_inner:529 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-15 13:19:33.206 | INFO     | __main__:_main_inner:530 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-15 13:19:33.206 | INFO     | __main__:_main_inner:531 - ==============================================================
+2026-10-15 13:19:33.220 | WARNING  | __main__:_main_inner:546 - portal blocked us recently — the loop will wait 1 min before its first attempt.
+2026-10-15 13:19:34.194 | INFO     | modules.notifier:start:84 - notifier: telegram listener started
+2026-10-15 13:19:34.406 | INFO     | modules.monitor:warn_about_missing_settings:2945 - config: all 55 applicant field(s) the form requires have values
+2026-10-15 13:19:34.408 | INFO     | modules.monitor:run:1439 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-15 13:19:34.411 | WARNING  | modules.monitor:run:1451 - monitor: portal blocked — waiting 1 more minutes before the next login attempt
+2026-10-15 13:19:34.418 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot\logs\state.json
+2026-10-15 13:20:32.745 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:20:32.758 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:20:32.766 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:20:32.880 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:20:32.883 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:20:32.883 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:20:45.163 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:20:45.164 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:20:45.165 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:20:45.516 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-132045_http-403.png
+2026-10-15 13:20:45.516 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:20:45.517 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:20:46.220 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:20:46.222 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 13:20:46.548 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:20:46.548 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:20:46.549 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:28:51.374 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:28:51.374 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:28:51.374 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:28:51.492 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:28:51.493 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:28:51.493 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:29:03.713 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:29:03.716 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:29:03.716 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:29:03.952 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-132903_http-403.png
+2026-10-15 13:29:03.955 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:29:03.955 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:29:04.703 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:29:04.703 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 13:29:04.765 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:29:04.765 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:29:04.765 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:37:09.218 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:37:09.218 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:37:09.234 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:37:09.333 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:37:09.333 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:37:09.333 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:37:09.547 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:37:09.560 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:37:09.560 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:37:09.784 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-133709_http-403.png
+2026-10-15 13:37:09.785 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:37:09.785 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:37:10.573 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:37:10.573 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 13:37:10.644 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:37:10.644 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:37:10.644 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:45:15.391 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:45:15.391 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:45:15.407 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:45:15.517 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:45:15.517 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:45:15.518 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:45:27.549 | WARNING  | modules.auth:_on_failed:817 - auth: [net] FAILED https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification — net::ERR_NAME_NOT_RESOLVED
+2026-10-15 13:45:27.553 | WARNING  | modules.auth:ensure_logged_in:929 - auth: login attempt failed: Page.goto: net::ERR_NAME_NOT_RESOLVED at https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification", waiting until "domcontentloaded"
+
+2026-10-15 13:45:27.850 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-134527_login-failed-attempt1.png
+2026-10-15 13:45:32.851 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 2/2)
+2026-10-15 13:45:33.060 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:45:33.061 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:45:33.063 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:45:33.304 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-134533_http-403.png
+2026-10-15 13:45:33.305 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:45:33.305 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:45:33.954 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:45:33.954 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 13:45:34.032 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:45:34.032 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:45:34.032 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 13:53:38.445 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 13:53:38.445 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 13:53:38.445 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 13:53:38.552 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 13:53:38.552 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 13:53:38.553 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 13:53:38.782 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 13:53:38.782 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 13:53:38.782 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 13:53:39.014 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-135338_http-403.png
+2026-10-15 13:53:39.015 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:53:39.015 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:53:39.651 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 13:53:39.651 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 13:53:39.716 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 13:53:39.716 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 13:53:39.716 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:01:44.349 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:01:44.349 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:01:44.365 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:01:44.466 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:01:44.467 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:01:44.467 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:01:44.689 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:01:44.691 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:01:44.691 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:01:44.929 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-140144_http-403.png
+2026-10-15 14:01:44.929 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:01:44.929 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:01:45.562 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:01:45.562 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:01:45.632 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:01:45.632 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:01:45.632 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:09:50.075 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:09:50.090 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:09:50.090 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:09:50.201 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:09:50.201 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:09:50.202 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:10:02.425 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:10:02.434 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:10:02.434 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:10:02.656 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-141002_http-403.png
+2026-10-15 14:10:02.656 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:10:02.659 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:10:03.282 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:10:03.282 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:10:03.342 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:10:03.342 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:10:03.342 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:18:07.713 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:18:07.729 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:18:07.729 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:18:07.833 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:18:07.833 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:18:07.834 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:18:08.050 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:18:08.062 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:18:08.062 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:18:08.290 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-141808_http-403.png
+2026-10-15 14:18:08.290 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:18:08.291 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:18:08.933 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:18:08.933 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:18:09.011 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:18:09.011 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:18:09.011 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:26:13.494 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:26:13.494 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:26:13.510 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:26:13.607 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:26:13.607 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:26:13.607 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:26:25.833 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:26:25.845 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:26:25.845 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:26:26.066 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-142625_http-403.png
+2026-10-15 14:26:26.066 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:26:26.067 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:26:26.687 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:26:26.687 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:26:26.807 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:26:26.807 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:26:26.807 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:34:31.253 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:34:31.268 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:34:31.268 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:34:31.373 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:34:31.374 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:34:31.374 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:34:43.594 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:34:43.605 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:34:43.605 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:34:43.833 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-143443_http-403.png
+2026-10-15 14:34:43.834 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:34:43.835 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:34:44.468 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:34:44.468 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:34:44.538 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:34:44.538 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:34:44.538 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:42:48.948 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:42:48.948 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:42:48.948 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:42:49.057 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:42:49.058 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:42:49.058 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:42:49.289 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:42:49.289 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:42:49.293 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:42:49.519 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-144249_http-403.png
+2026-10-15 14:42:49.519 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:42:49.519 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:42:50.177 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:42:50.193 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:42:50.241 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:42:50.241 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:42:50.241 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:50:54.452 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:50:54.452 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:50:54.467 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:50:54.571 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:50:54.571 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:50:54.571 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:51:06.791 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:51:06.797 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:51:06.797 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:51:07.023 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-145106_http-403.png
+2026-10-15 14:51:07.026 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:51:07.026 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:51:07.749 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:51:07.750 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:51:07.810 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:51:07.810 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:51:07.810 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 14:59:12.147 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 14:59:12.147 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 14:59:12.163 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 14:59:12.260 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 14:59:12.260 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 14:59:12.261 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 14:59:24.486 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 14:59:24.492 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 14:59:24.494 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 14:59:24.721 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-145924_http-403.png
+2026-10-15 14:59:24.722 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:59:24.722 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:59:25.346 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 14:59:25.346 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 14:59:25.419 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 14:59:25.419 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 14:59:25.419 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 15:07:30.148 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 15:07:30.148 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 15:07:30.148 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 15:07:30.255 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 15:07:30.255 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 15:07:30.256 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 15:07:30.465 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 15:07:30.479 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 15:07:30.479 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 15:07:30.708 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-150730_http-403.png
+2026-10-15 15:07:30.708 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:07:30.710 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:07:31.354 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:07:31.354 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 15:07:31.431 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 15:07:31.431 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 15:07:31.431 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 15:15:35.639 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 15:15:35.639 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 15:15:35.654 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 15:15:35.750 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 15:15:35.750 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 15:15:35.751 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 15:15:47.979 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 15:15:47.990 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 15:15:47.990 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 15:15:48.218 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-151548_http-403.png
+2026-10-15 15:15:48.218 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:15:48.219 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:15:48.878 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:15:48.878 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 15:15:48.941 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 15:15:48.941 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 15:15:48.941 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 15:23:53.394 | INFO     | modules.auth:start:583 - auth: stealth disabled (recommended for this portal)
+2026-10-15 15:23:53.394 | INFO     | modules.auth:_install_https_upgrade:734 - auth: http->https upgrade route installed (regex)
+2026-10-15 15:23:53.410 | INFO     | modules.auth:_install_https_upgrade:742 - auth: captcha frame route installed (redirects followed here)
+2026-10-15 15:23:53.506 | INFO     | modules.auth:_log:3008 - auth: browser launched
+2026-10-15 15:23:53.507 | INFO     | modules.auth:ensure_logged_in:896 - auth: no saved session — going straight to the login page
+2026-10-15 15:23:53.507 | INFO     | modules.auth:ensure_logged_in:913 - auth: logging in (attempt 1/2)
+2026-10-15 15:23:53.727 | INFO     | modules.auth:_on_response:757 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-15 15:23:53.727 | ERROR    | modules.auth:_on_response:786 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverificati
+2026-10-15 15:23:53.727 | WARNING  | modules.utils:record_block:513 - block recorded in logs\cooldown.json
+2026-10-15 15:23:53.965 | INFO     | modules.utils:screenshot:637 - screenshot saved: logs\screenshots\20261015-152353_http-403.png
+2026-10-15 15:23:53.966 | ERROR    | modules.auth:_goto:2931 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:23:53.967 | INFO     | modules.auth:_log:3008 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:23:54.601 | ERROR    | modules.monitor:_handle_portal_block:5263 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-15 15:23:54.601 | WARNING  | modules.monitor:_handle_portal_block:5264 - monitor: sleeping 8 min, then logging in from scratch
+2026-10-15 15:23:54.652 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 15:23:54.652 | INFO     | modules.monitor:_reset_session:5381 - monitor: browser closed without saving the session
+2026-10-15 15:23:54.652 | INFO     | modules.monitor:_reset_session:5386 - monitor: stored cookies cleared — next login is clean
+2026-10-15 15:27:01.936 | INFO     | modules.notifier:_cmd_stop:399 - notifier: /stop command received
+2026-10-15 15:27:02.295 | INFO     | modules.monitor:run:1508 - monitor: loop ended
+2026-10-15 15:27:02.295 | INFO     | modules.auth:stop:863 - auth: browser closed
+2026-10-15 15:27:05.789 | INFO     | modules.notifier:stop:98 - notifier: telegram listener stopped
+2026-10-15 15:27:05.789 | INFO     | __main__:_run_with_state:686 - shutdown complete
