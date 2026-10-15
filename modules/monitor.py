@@ -3082,6 +3082,23 @@ class Monitor:
         await self._settle(page)
         return True
 
+    def _headless_warning(self) -> str:
+        """The line to add to a hand-over message when there is no window.
+
+        A manual step needs a browser the person can actually see. With
+        headless: true the session is alive and waiting and completely
+        unreachable, so the hand-over has to say that rather than ask someone
+        to use a window that does not exist.
+        """
+        if not self.config.get("headless", True):
+            return ""
+        return (
+            "\n\n⚠️ The browser is running INVISIBLY (headless: true in "
+            "config.yaml), so there is no window to do this in. Set "
+            "headless: false and restart the bot — this appointment cannot be "
+            "finished otherwise."
+        )
+
     async def _pause_for_liveness(self, page: Any) -> bool:
         """Hand the live video check to the applicant. Not automatable by design.
 
@@ -3105,7 +3122,7 @@ class Monitor:
             "This one confirms the applicant is personally present, so it has "
             "to be done by them, on this machine — the browser is open and "
             "waiting.\n\n"
-            f"Page: {page.url[:120]}",
+            f"Page: {page.url[:120]}" + self._headless_warning(),
             screenshot=shot,
         )
 
@@ -3204,7 +3221,7 @@ class Monitor:
             "💳 The booking has reached the PAYMENT step.\n\n"
             "The browser window is still open on the payment page. Pay there "
             "by hand — the bot will not touch it.\n\n"
-            f"Page: {page.url[:120]}",
+            f"Page: {page.url[:120]}" + self._headless_warning(),
             screenshot=shot,
         )
 

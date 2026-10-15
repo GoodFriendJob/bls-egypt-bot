@@ -611,6 +611,17 @@ async def _run_with_state(
     # portal cooldown.
     await monitor.warn_about_missing_settings()
 
+    # A 24/7 run WILL reach the video check and the payment, and both need a
+    # browser a person can see. Saying so now beats saying it when a slot is
+    # already held and the clock is running.
+    if config.get("headless", True):
+        logger.warning(
+            "config: headless is true — the browser runs invisibly, so the "
+            "live video check and the payment CANNOT be completed. Set "
+            "headless: false for an unattended run that is meant to finish a "
+            "booking."
+        )
+
     tasks: list[asyncio.Task[Any]] = []
     exit_code = 0
     try:

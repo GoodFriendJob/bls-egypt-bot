@@ -487,6 +487,13 @@ Then restart `dashboard.bat` and browse to `http://THAT-MACHINES-IP:5000`.
 
 ## 10. The two steps you have to do yourself
 
+> **Set `headless: false` before a run that is meant to finish a booking.**
+> Both steps below need a browser window a person can see and use. With
+> `headless: true` the browser runs invisibly: the session stays alive and
+> waiting, but there is nothing on screen to do the step in, and the
+> appointment cannot be completed. The bot warns about this at startup and
+> again in the hand-over message.
+
 ### The live video check
 
 The portal asks the applicant to appear on camera. This is an identity check: its
