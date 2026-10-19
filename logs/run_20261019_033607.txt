@@ -1,0 +1,11 @@
+BLS appointment bot - run transcript
+started : 2026-10-19T03:36:07
+command : bot.py --headful --once
+python  : 3.11.9
+======================================================================
+03:36:07 | INFO    | __main__ - ==============================================================
+03:36:07 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+03:36:07 | INFO    | __main__ - run transcript: D:\bls-egypt-bot\logs\run_20261019_033607.txt
+03:36:07 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+03:36:07 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+03:36:07 | INFO    | __main__ - ==============================================================
