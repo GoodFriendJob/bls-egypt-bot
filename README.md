@@ -626,6 +626,7 @@ python bot.py --config other.yaml a different settings file
 | `poll_interval` | `90` | Seconds between checks |
 | `no_slots_wait_minutes` | `5` | Wait after the portal reports no slots. **The main lever on how much traffic you generate** |
 | `min_days_ahead` | `2` | Reject appointments sooner than this; the portal offers dates it will not serve slots for |
+| `max_months_ahead` | `3` | How many months the date picker may walk forward. The calendar shows one month at a time, so a long `min_days_ahead` can put the earliest acceptable date past it |
 | `combinations_per_cycle` | `1` | Option combinations tried per cycle — each costs a login and two CAPTCHAs |
 | `max_combinations_per_cycle` | `12` | Hard ceiling on the sweep |
 | `block_cooldown_minutes` | `8` | First wait after a 403 |

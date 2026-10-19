@@ -300,6 +300,14 @@ combinations_per_cycle: 1
 # it will not actually serve slots for: picking tomorrow left the Time Slot
 # list permanently empty. A green day inside this window is skipped.
 min_days_ahead: 2
+# How many months forward the date picker may walk when looking for a free
+# day. The calendar renders ONE month at a time, so with a long
+# min_days_ahead the earliest acceptable date can be past the end of the
+# month on screen -- on the 19th with min_days_ahead: 15 the cutoff is in
+# November, and every day visible is "too soon". The bot clicks the
+# calendar's next-month arrow up to this many times, and stops early as soon
+# as it finds a bookable day or the portal disables the arrow.
+max_months_ahead: 3
 
 # Seconds to wait for the Time Slot list after a date is chosen. The options
 # arrive by AJAX, and Kendo builds the dropdown's items from whatever data it

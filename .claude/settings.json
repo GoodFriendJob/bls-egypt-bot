@@ -165,7 +165,8 @@
       "Bash(PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_pwfields.py\")",
       "Bash(PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_sweep.py\")",
       "Bash(timeout 180 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_settings_page.py\")",
-      "Bash(timeout 180 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_settings_page.py\" --live)"
+      "Bash(timeout 180 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_settings_page.py\" --live)",
+      "Bash(timeout 150 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_calendar.py\")"
     ],
     "additionalDirectories": [
       "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"

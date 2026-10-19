@@ -720,6 +720,55 @@ _CONTROL_VISIBLE_JS = r"""
 }
 """
 
+# Move the open Kendo calendar on by one month.
+#
+# CONFIRMED markup, from the calendar the portal renders:
+#   <a href="#" data-action="next" role="button" class="k-link k-nav-next"
+#      aria-label="Next" aria-disabled="true">
+#
+# The disabled state is real and must be obeyed: it is the portal saying there
+# is nothing further forward to book, not a control that needs a harder click.
+_CALENDAR_NEXT_JS = r"""
+() => {
+  const vis = (el) => {
+    if (!el) return false;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  const cal = Array.prototype.find.call(
+    document.querySelectorAll('.k-calendar'), vis);
+  if (!cal) return { ok: false, reason: 'no calendar on screen' };
+
+  const title = (cal.querySelector('.k-nav-fast')?.innerText || '').trim();
+  const next = cal.querySelector('.k-nav-next, [data-action="next"]');
+  if (!next) return { ok: false, reason: 'no next-month control', title };
+  if (next.classList.contains('k-state-disabled') ||
+      next.getAttribute('aria-disabled') === 'true') {
+    return { ok: false, reason: 'the portal offers nothing further ahead', title };
+  }
+  next.click();
+  return { ok: true, title };
+}
+"""
+
+# What month is the calendar showing right now?
+_CALENDAR_TITLE_JS = r"""
+() => {
+  const vis = (el) => {
+    if (!el) return false;
+    const s = getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 2 && r.height > 2;
+  };
+  const cal = Array.prototype.find.call(
+    document.querySelectorAll('.k-calendar'), vis);
+  return cal ? (cal.querySelector('.k-nav-fast')?.innerText || '').trim() : '';
+}
+"""
+
 _UNFILLED_REQUIRED_JS = r"""
 () => {
   const form = document.getElementById('visaForm');
@@ -1324,6 +1373,10 @@ class Monitor:
         # green. Confirmed by run 20261013_155949: tomorrow was offered and
         # accepted, and the time-slot list then stayed empty forever.
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
+        # How many months forward the date picker may walk. With a long
+        # min_days_ahead the cutoff can land past the end of the month on
+        # screen, and the calendar only ever renders one.
+        self.max_months_ahead = int(config.get("max_months_ahead", 3))
         # How long to wait for the AJAX-loaded time-slot list after a date is
         # chosen. The box is re-opened every second until the options render.
         self.slot_wait_seconds = float(config.get("slot_wait_seconds", 30))
@@ -1469,6 +1522,10 @@ class Monitor:
         self.session_recycle_wait = int(config.get("session_recycle_wait", 45))
         self.combos_per_cycle = max(1, int(config.get("combinations_per_cycle", 1)))
         self.min_days_ahead = int(config.get("min_days_ahead", 2))
+        # How many months forward the date picker may walk. With a long
+        # min_days_ahead the cutoff can land past the end of the month on
+        # screen, and the calendar only ever renders one.
+        self.max_months_ahead = int(config.get("max_months_ahead", 3))
         self.slot_wait_seconds = float(config.get("slot_wait_seconds", 30))
 
         retry = config.get("retry", {}) or {}
@@ -4332,9 +4389,7 @@ class Monitor:
             f"  earliest allowed date : {cutoff.isoformat()} "
             f"({self.min_days_ahead} day(s) ahead)"
         )
-        try:
-            picked = await page.evaluate(
-                """
+        scan_js = """
                 ({ pickerId, minStamp, wantIso }) => {
                   const green = (el) => {
                     const bg = getComputedStyle(el).backgroundColor || '';
@@ -4390,22 +4445,74 @@ class Monitor:
                   }
                   return { clicked: null, offered: options };
                 }
-                """,
-                {"pickerId": opened, "minStamp": min_stamp, "wantIso": want_iso},
-            )
-        except Exception as exc:
-            logger.warning(f"monitor: date selection failed: {exc}")
-            return {"ok": False, "offered": []}
+                """
 
-        offered = picked.get("offered") or []
-        logger.info(
-            "  days offered          : "
-            + ", ".join(
-                f"{d['text']}{'*' if d['green'] else ''}{'(too soon)' if d.get('soon') else ''}"
-                for d in offered[:31]
+        # The calendar only ever renders ONE month, and the scan deliberately
+        # skips .k-other-month, so everything past the 31st was invisible to
+        # it. With min_days_ahead at 15 that is fatal rather than merely
+        # limiting: on the 19th the cutoff is in NOVEMBER, so every day on
+        # screen is "too soon" and the bot concluded there was nothing to
+        # book. So walk forward a month at a time, up to max_months_ahead.
+        offered: list[dict[str, Any]] = []
+        seen_iso: set[str] = set()
+        picked: dict[str, Any] = {}
+        for month in range(max(1, self.max_months_ahead + 1)):
+            try:
+                picked = await page.evaluate(
+                    scan_js,
+                    {"pickerId": opened, "minStamp": min_stamp, "wantIso": want_iso},
+                )
+            except Exception as exc:
+                logger.warning(f"monitor: date selection failed: {exc}")
+                return {"ok": False, "offered": offered}
+
+            try:
+                title = await page.evaluate(_CALENDAR_TITLE_JS)
+            except Exception:
+                title = ""
+
+            this_month = picked.get("offered") or []
+            fresh = [d for d in this_month if d.get("iso") not in seen_iso]
+            seen_iso.update(d["iso"] for d in this_month if d.get("iso"))
+            offered.extend(fresh)
+            logger.info(
+                f"  days offered          : {title or 'this month'} — "
+                + (
+                    ", ".join(
+                        f"{d['text']}{'*' if d['green'] else ''}"
+                        f"{'(too soon)' if d.get('soon') else ''}"
+                        for d in this_month[:31]
+                    )
+                    or "nothing"
+                )
+                + "   (* = available)"
             )
-            + "   (* = available)"
+
+            if picked.get("clicked"):
+                break
+
+            # Stop as soon as something is actually bookable: every extra month
+            # is another interaction with a portal that counts them.
+            if any(d.get("green") and not d.get("soon") for d in offered):
+                break
+
+            if month >= self.max_months_ahead:
+                logger.info(
+                    f"  calendar              : stopping after "
+                    f"{self.max_months_ahead} month(s) ahead "
+                    "(max_months_ahead)"
+                )
+                break
+
+            moved = await self._calendar_next_month(page, title)
+            if not moved:
+                break
+
+        logger.info(
+            f"  dates considered      : {len(offered)} day(s) across the "
+            "months checked"
         )
+
         if not picked.get("clicked"):
             return {"ok": True, "offered": offered, "clicked": None}
 
@@ -4413,6 +4520,39 @@ class Monitor:
         await self._settle(page)
         await asyncio.sleep(1.5)
         return {"ok": True, "offered": offered, "clicked": picked["clicked"]}
+
+    async def _calendar_next_month(self, page: Any, from_title: str = "") -> bool:
+        """Click the calendar's next-month arrow and wait for it to redraw.
+
+        Waits on the header TEXT rather than a fixed sleep: Kendo re-renders
+        the day table asynchronously, and scanning before it has means reading
+        the month we just left and concluding, wrongly, that it offers the
+        same nothing twice.
+        """
+        try:
+            moved = await page.evaluate(_CALENDAR_NEXT_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: could not move the calendar on: {exc}")
+            return False
+
+        if not moved.get("ok"):
+            logger.info(
+                f"  calendar              : {moved.get('reason')} — "
+                "no later month to look at"
+            )
+            return False
+
+        for _ in range(12):
+            await asyncio.sleep(0.25)
+            try:
+                title = await page.evaluate(_CALENDAR_TITLE_JS)
+            except Exception:
+                break
+            if title and title != from_title:
+                logger.info(f"  calendar              : moved on to {title}")
+                return True
+        logger.info("  calendar              : next month did not render in time")
+        return False
 
     async def _pick_green_slot(self, page: Any, date_id: str = "") -> bool:
         """Wait for the slot list to arrive, then click a free (green) option.
