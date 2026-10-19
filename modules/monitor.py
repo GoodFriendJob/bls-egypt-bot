@@ -1353,6 +1353,8 @@ class Monitor:
         self._block_alerted = False
         self._last_form_result: str | None = None
         self._option_unavailable: str | None = None
+        # (visa_type, visa_sub_type) pairs the portal has told us do not exist.
+        self._invalid_pairings: set[tuple[str, str]] = set()
         self._last_visatype_status: int | None = None
         self._form_hooked: set[int] = set()
         # Live page-stage tracking, fed by the navigation watcher.
@@ -1379,6 +1381,55 @@ class Monitor:
     # ------------------------------------------------------------------ #
     # Loop
     # ------------------------------------------------------------------ #
+    def _remember_invalid_pairing(self, combo: dict[str, Any]) -> None:
+        """Note a visa type / sub type pair the portal does not offer.
+
+        Visa Sub Type cascades from Visa Type, so several configured
+        combinations simply cannot exist -- National Visa has no "Airport
+        Transit Visa (TAP)". Learning that once stops the sweep rediscovering
+        it every time round, at the cost of a login and two captchas each.
+        """
+        key = (
+            str(combo.get("visa_type", "")).strip().lower(),
+            str(combo.get("visa_sub_type", "")).strip().lower(),
+        )
+        if not key[0] or not key[1] or key in self._invalid_pairings:
+            return
+        self._invalid_pairings.add(key)
+        logger.info(
+            f"monitor: remembering that '{combo.get('visa_sub_type')}' is not "
+            f"offered under '{combo.get('visa_type')}' — it will be skipped "
+            "from now on"
+        )
+
+    def _pairing_is_known_bad(self, combo: dict[str, Any]) -> bool:
+        return (
+            str(combo.get("visa_type", "")).strip().lower(),
+            str(combo.get("visa_sub_type", "")).strip().lower(),
+        ) in self._invalid_pairings
+
+    def _next_valid_combo(
+        self, everything: list[dict[str, Any]], already: list[dict[str, Any]]
+    ) -> dict[str, Any] | None:
+        """The next combination worth trying on the session already open.
+
+        Skips anything this cycle has covered and anything already known not to
+        exist, and advances the cursor so the next cycle carries on from here
+        rather than repeating what this one just did.
+        """
+        if not everything:
+            return None
+        seen = {self.describe_combo(c) for c in already}
+        for _ in range(len(everything)):
+            candidate = everything[self._combo_cursor % len(everything)]
+            self._combo_cursor = (self._combo_cursor + 1) % len(everything)
+            if self.describe_combo(candidate) in seen:
+                continue
+            if self._pairing_is_known_bad(candidate):
+                continue
+            return candidate
+        return None
+
     def _cycle_slice(self, combos: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """The combinations this cycle will try, continuing where the last left off."""
         if not combos:
@@ -1554,6 +1605,10 @@ class Monitor:
                 "refusing requests at roughly two logins per few minutes"
             )
         checked: list[str] = []
+        # Combinations appended mid-cycle because the previous one turned out
+        # not to exist. They reuse the session that is already open: nothing
+        # was submitted, so the gate is still cleared and no new login is owed.
+        free_retries: set[int] = set()
         for index, combo in enumerate(combos):
             if self.state.stop_requested or not self.state.running:
                 return
@@ -1562,7 +1617,7 @@ class Monitor:
                 f"monitor: [{index + 1}/{len(combos)}] {self.describe_combo(combo)}"
             )
 
-            if index > 0:
+            if index > 0 and index not in free_retries:
                 # MEASURED: the portal allows exactly ONE visa-type verification
                 # per browser session. The second SubmitCaptcha always answers
                 # 403 + "Your session has been expired", regardless of how fresh
@@ -1653,7 +1708,28 @@ class Monitor:
                 return
 
             if self._last_form_result == "option_unavailable":
-                logger.info("monitor: combination not offered — moving to the next")
+                # The pairing does not exist -- National Visa has no "Airport
+                # Transit Visa (TAP)" sub type, and so on. Four of the eight
+                # combinations configured here are impossible, so with
+                # combinations_per_cycle=1 HALF of all cycles used to end right
+                # here, each having spent a login and two captcha solves to
+                # learn nothing (run 20261019_131254: five cycles reporting
+                # "no slots for any of the 0 combination(s)"). That request
+                # rate is what earns the 403s.
+                #
+                # The session is still live and the form is still on screen, so
+                # take the next combination now instead of waiting five minutes
+                # for a fresh cycle to try it.
+                self._remember_invalid_pairing(combo)
+                logger.info("monitor: combination not offered — taking the next one now")
+                extra = self._next_valid_combo(everything, combos)
+                if extra is not None:
+                    combos.append(extra)
+                    free_retries.add(len(combos) - 1)
+                    logger.info(
+                        f"monitor: trying {self.describe_combo(extra)} in this "
+                        "same cycle — no new login needed"
+                    )
                 continue
 
             checked.append(self.describe_combo(combo))
@@ -2215,7 +2291,11 @@ class Monitor:
         if held:
             self._appointment_cooldown_minutes = held
             self._last_form_result = "appointment_in_progress"
-            await self._hold_for_debug(page, "an appointment is already in progress")
+            # NOT _hold_for_debug. This is a known, handled condition with a
+            # wait of its own, not a failure anyone needs to look at -- and the
+            # hold is thirty minutes. Run 20261019_131254 spent 14:12 to 14:42
+            # parked on the booking page for a two-minute cooldown, which from
+            # the outside looks exactly like a bot that has died.
             return True
 
         # CONFIRMED: when nothing is free the portal answers with a modal —
@@ -2505,6 +2585,18 @@ class Monitor:
                                     "_swept": swept,
                                 }
                             )
+
+        # Drop pairings the portal has already said do not exist. Never drop
+        # everything: if the learning went wrong somehow, a sweep that checks
+        # the wrong thing still beats one that checks nothing.
+        if self._invalid_pairings:
+            viable = [c for c in combos if not self._pairing_is_known_bad(c)]
+            if viable and len(viable) < len(combos):
+                logger.info(
+                    f"monitor: {len(combos) - len(viable)} combination(s) the "
+                    "portal does not offer — skipping them this cycle"
+                )
+                combos = viable
 
         if len(combos) > self.max_combinations:
             logger.warning(

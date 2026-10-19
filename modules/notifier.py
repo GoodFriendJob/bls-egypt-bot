@@ -115,6 +115,55 @@ class Notifier:
             self.enabled = False
             self._app = None
 
+    def listening(self) -> bool:
+        """Is the command listener actually polling right now?"""
+        if not self.enabled or self._app is None:
+            return False
+        try:
+            updater = self._app.updater
+            return bool(updater is not None and updater.running)
+        except Exception:
+            return False
+
+    async def ensure_listening(self) -> bool:
+        """Restart the Telegram listener if its polling has died.
+
+        python-telegram-bot retries a failed getUpdates for a while and then
+        gives up for good. A DNS outage on the host is enough -- run
+        20261018_201235 filled the log with
+
+            telegram.error.NetworkError: httpx.ConnectError:
+            [Errno 11001] getaddrinfo failed
+
+        and after that nothing reached the bot. For something meant to run
+        unattended that is worse than the outage: every alert is lost and
+        /resume cannot be delivered, so a booking waiting on a manual step
+        waits forever.
+
+        Returns True if it is listening when this returns.
+        """
+        if not self.enabled:
+            return False
+        if self.listening():
+            return True
+
+        logger.warning("notifier: the telegram listener has stopped — restarting it")
+        try:
+            await self.stop()
+        except Exception as exc:
+            logger.debug(f"notifier: shutdown before restart failed: {exc}")
+
+        # start() rebuilds the Application and re-registers every handler.
+        # enabled is cleared by start() if it fails, which would stop this
+        # trying forever, so it is restored first.
+        self.enabled = bool(self.token and self.chat_ids and TELEGRAM_AVAILABLE)
+        await self.start()
+        if self.listening():
+            logger.success("notifier: telegram listener is back")
+            return True
+        logger.warning("notifier: telegram listener could not be restarted yet")
+        return False
+
     async def stop(self) -> None:
         if self._app is None:
             return

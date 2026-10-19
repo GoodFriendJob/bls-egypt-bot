@@ -458,6 +458,29 @@ def start_dashboard(
     return thread
 
 
+async def telegram_watchdog(state: BotState, notifier: Notifier) -> None:
+    """Keep the Telegram listener alive for as long as the bot runs.
+
+    python-telegram-bot stops polling for good after enough consecutive
+    network errors, and a DNS blip on the host is enough to get there. Once
+    that happens the bot is deaf: no alerts go out and /resume cannot arrive,
+    so a booking paused for the video check or the payment waits forever.
+
+    Checked every 60s, which is cheap -- it is a property read unless
+    something is actually wrong.
+    """
+    if not notifier.enabled:
+        return
+    while not state.stop_requested:
+        await interruptible_sleep(60, state)
+        if state.stop_requested:
+            return
+        try:
+            await notifier.ensure_listening()
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.debug(f"telegram watchdog: {exc}")
+
+
 async def heartbeat_task(config: dict[str, Any], state: BotState, notifier: Notifier) -> None:
     """Periodic STATUS alert so the client knows the bot is alive."""
     hours = float((config.get("telegram") or {}).get("heartbeat_hours", 6) or 0)
@@ -661,6 +684,11 @@ async def _run_with_state(
             tasks.append(asyncio.create_task(monitor.run(), name="monitor"))
             tasks.append(
                 asyncio.create_task(heartbeat_task(config, state, notifier), name="heartbeat")
+            )
+            tasks.append(
+                asyncio.create_task(
+                    telegram_watchdog(state, notifier), name="telegram-watchdog"
+                )
             )
             if (config.get("dashboard", {}) or {}).get("enabled", True):
                 tasks.append(
