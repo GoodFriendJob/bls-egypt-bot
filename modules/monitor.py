@@ -3191,6 +3191,20 @@ class Monitor:
         await self._settle(page)
         return True
 
+    def _my_appointments_url(self) -> str:
+        """The portal's own list of this account's bookings.
+
+        CONFIRMED in the page survey's links on every booking page. Offered as
+        a second route for the manual steps: the appointment is held against
+        the ACCOUNT, not the browser, so signing in from elsewhere may reach
+        it. Unverified against a real booking -- it is a suggestion, not a
+        promise, and the open browser remains the route that is known to work.
+        """
+        base = (self.config.get("bls", {}) or {}).get(
+            "url", "https://egypt.blsspainglobal.com/"
+        )
+        return base.rstrip("/") + "/Global/blsappointment/MyAppointments"
+
     def _headless_warning(self) -> str:
         """The line to add to a hand-over message when there is no window.
 
@@ -3235,7 +3249,11 @@ class Monitor:
             "Confirm. Repeat lets you try again.\n\n"
             "⏱️ Do it now — the portal only holds an unfinished appointment "
             "for a short time.\n\n"
-            f"Page: {page.url[:120]}" + self._headless_warning(),
+            f"Page: {page.url[:120]}\n\n"
+            "If you cannot reach that computer, try signing in to the portal "
+            "yourself and opening My Appointments — the booking is held "
+            "against the account, so it may be possible to finish it there:\n"
+            f"{self._my_appointments_url()}" + self._headless_warning(),
             screenshot=shot,
         )
 

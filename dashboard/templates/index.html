@@ -149,6 +149,7 @@ const I18N = {
     title: "لوحة متابعة مواعيد BLS", stop: "إيقاف", resume: "استئناف",
     start: "تشغيل", pause: "إيقاف مؤقت",
     offline: "البوت غير متصل — شغّله عبر start.bat", online: "متصل",
+    fieldBroken: "تعذّر عرض هذا الإعداد — راجع السجل.",
     stale: "لوحة التحكم تعمل بإصدار أقدم من الموجود على القرص — أغلق النافذة وشغّل dashboard.bat من جديد.",
     tabOverview: "نظرة عامة", tabSettings: "الإعدادات",
     botState: "حالة البوت", uptime: "التشغيل", interval: "الفحص",
@@ -177,6 +178,7 @@ const I18N = {
     title: "BLS Appointment Bot", stop: "Stop", resume: "Resume",
     start: "Start", pause: "Pause",
     offline: "Bot offline — start it with start.bat", online: "online",
+    fieldBroken: "This setting could not be displayed — see the log.",
     stale: "This dashboard is running older code than is on disk — close it and run dashboard.bat again.",
     tabOverview: "Overview", tabSettings: "Settings",
     botState: "Bot state", uptime: "Uptime", interval: "Interval",
@@ -407,13 +409,27 @@ function renderSettings() {
   const q = settingsQuery.trim().toLowerCase();
   const host = $("settings-sections");
 
+  // One field that will not render must never take the page with it. Before
+  // this, a single bad value threw out of the whole map and left Settings
+  // blank -- and because filtering it out made the rest render, the page
+  // looked like it only worked when you searched.
+  const safeField = (f) => {
+    try {
+      return renderField(f);
+    } catch (e) {
+      console.error("settings: could not render", f && f.path, e);
+      return `<div class="field"><label>${esc((f && f.path) || "?")}</label>
+                <div class="empty">${esc(t("fieldBroken"))}</div></div>`;
+    }
+  };
+
   host.innerHTML = settings.sections.map(section => {
     const fields = section.fields.filter(f => !q || f.path.toLowerCase().includes(q));
     if (!fields.length) return "";
     return `
       <section class="card">
         <h2>${esc(section.name)}</h2>
-        <div class="fields">${fields.map(renderField).join("")}</div>
+        <div class="fields">${fields.map(safeField).join("")}</div>
       </section>`;
   }).join("") || `<section class="card"><div class="empty">—</div></section>`;
 
@@ -440,9 +456,15 @@ function renderField(f) {
                  <span class="on-label">${f.value ? "on" : "off"}</span>
                </label>`;
   } else if (f.kind === "list") {
+    // Never assume the value is an array just because the kind says list. It
+    // was not once -- a masked secret arrived as a string under kind "list",
+    // join() threw, and the whole Settings page rendered empty.
+    const lines = Array.isArray(f.value) ? f.value
+                : (f.value === null || f.value === undefined) ? []
+                : String(f.value).split("\n");
     control = `<textarea class="input" id="${id}" data-path="${esc(f.path)}" data-kind="list"
-                 rows="${Math.min(8, Math.max(2, (f.value || []).length))}"
-                 >${esc((f.value || []).join("\n"))}</textarea>`;
+                 rows="${Math.min(8, Math.max(2, lines.length))}"
+                 >${esc(lines.join("\n"))}</textarea>`;
   } else if (f.kind === "number") {
     control = `<input class="input" type="number" step="any" id="${id}"
                  data-path="${esc(f.path)}" data-kind="number" value="${esc(f.value)}">`;

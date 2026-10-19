@@ -43,6 +43,20 @@ def is_secret(path: str) -> bool:
     return any(hint in low for hint in SECRET_HINTS)
 
 
+def _is_mask(raw: Any) -> bool:
+    """Is this value entirely the placeholder, i.e. 'leave the secret alone'?
+
+    Covers the three shapes the page can post one back in: the bare string, a
+    list of them, and a textarea's worth of them separated by newlines.
+    """
+    if isinstance(raw, (list, tuple)):
+        items = [str(v).strip() for v in raw]
+    else:
+        items = [line.strip() for line in str(raw).splitlines()]
+    items = [i for i in items if i]
+    return bool(items) and all(i == MASK for i in items)
+
+
 def flatten(node: Any, prefix: str = "") -> list[dict[str, Any]]:
     """Turn the config tree into an ordered list of editable leaves.
 
@@ -71,8 +85,16 @@ def _leaf(path: str, value: Any) -> dict[str, Any]:
     else:
         kind = "text"
 
-    if secret:
-        shown: Any = MASK if (value not in (None, "")) else ""
+    if secret and kind == "list":
+        # A masked LIST must still be a list. chat_id is both a secret and,
+        # since it started accepting several ids, a list -- so it arrived at
+        # the page as kind "list" holding the mask STRING, and the page's
+        # value.join() threw. One bad field took the whole Settings view down
+        # with it: blank until something was typed in the filter, because a
+        # search that excluded this field rendered fine.
+        shown: Any = [MASK] * len(value) if value else []
+    elif secret:
+        shown = MASK if (value not in (None, "")) else ""
     elif kind == "list":
         shown = [str(v) for v in value]
     else:
@@ -150,7 +172,10 @@ def apply_changes(
                 rejected.append(f"{path} (no such setting)")
                 continue
             # An untouched secret comes back as the mask; never store that.
-            if is_secret(path) and str(raw) == MASK:
+            # A masked LIST comes back as lines of masks, or as one multi-line
+            # string of them, and str() on either never equals MASK -- so the
+            # mask itself would have been written over the real chat ids.
+            if is_secret(path) and _is_mask(raw):
                 continue
             node[leaf] = _coerce(node[leaf], raw)
             applied.append(path)
