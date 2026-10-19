@@ -838,9 +838,14 @@ _PAGE_STAGE_JS = r"""
   // A live video / webcam identity check. Judged on the MEDIA, not on words:
   // a <video> element or a camera permission prompt is what makes this page
   // what it is, and the bot has no business driving it either way.
-  const media = anyVis('video') || !!document.querySelector('video[autoplay]');
+  // The widget injects its <video> long after load, so the element alone is
+  // not enough to go on -- the wording is what identifies the page early.
+  // These are the portal's own strings, read off the captured page.
+  const media = anyVis('video') || !!document.querySelector('video[autoplay]')
+    || !!document.querySelector('[class*="ozliveness"], [id*="ozliveness"]');
   if (media || /live video|video call|webcam|turn on your camera|allow camera/i
-                 .test(text)) {
+                 .test(text)
+      || /accessing camera|switch camera|take photo/i.test(text)) {
     return { stage: 'liveness' };
   }
 
@@ -2922,6 +2927,18 @@ class Monitor:
         # run ended one click short (run 20261014_234430).
         if "livenessview" in url:
             return "liveness-consent"
+
+        # CONFIRMED: pressing Accept goes to /Global/liveness/liveness, the
+        # camera check itself. Judged on the url because the DOM cannot be
+        # trusted here -- it is an OZ Liveness widget that injects everything
+        # later, so seven seconds after arriving the page held one <canvas>,
+        # three <iframe>s and NO <video> at all. The phrase list missed it too
+        # ("Accessing camera", "Take photo", "Switch camera"), so the page
+        # classified as 'other', the walk decided there was nothing to do, and
+        # the browser was closed on a held appointment without so much as a
+        # Telegram message (run 20261019_043450, 04:37:53).
+        if "/liveness/" in url:
+            return "liveness"
         # These are unambiguous from the URL alone.
         if url_stage in ("login", "login-captcha", "browser-error"):
             return url_stage
@@ -3214,6 +3231,10 @@ class Monitor:
             "This one confirms the applicant is personally present, so it has "
             "to be done by them, on this machine — the browser is open and "
             "waiting.\n\n"
+            "On screen you will see: allow the camera, then Take photo → "
+            "Confirm. Repeat lets you try again.\n\n"
+            "⏱️ Do it now — the portal only holds an unfinished appointment "
+            "for a short time.\n\n"
             f"Page: {page.url[:120]}" + self._headless_warning(),
             screenshot=shot,
         )
