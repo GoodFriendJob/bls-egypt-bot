@@ -72,6 +72,14 @@ COOKIE_ACCEPT_TEXTS = ("accept", "agree", "got it", "ok", "موافق")
 CAPTCHA_FRAME_TRIES = 3
 CAPTCHA_FRAME_RETRY_WAIT = 1.2
 
+# The login challenge page itself — /Global/NewCaptcha/LoginCaptcha, with or
+# without its ?data= payload. Landing back here after submitting an answer is
+# the portal refusing it.
+#
+# The trailing guard matters: /NewCaptcha/LoginCaptchaSubmit starts with the
+# same path, and that one is the POST, not a refusal.
+_CAPTCHA_PAGE_RE = re.compile(r"/newcaptcha/logincaptcha(?:\?|#|$)", re.IGNORECASE)
+
 LOGGED_IN_MARKERS = ("logout", "log out", "sign out", "my account", "تسجيل الخروج")
 
 # CONFIRMED: a successful login lands on /Global/bls/visatypeverification.
@@ -1616,6 +1624,7 @@ class BLSAuth:
             # blank password and the portal answers "Please enter your account
             # password" — which looks like a captcha rejection but is not.
             await self._ensure_password_filled(ctx)
+            await self._report_password_fields(ctx, "about to submit the captcha")
 
             # Do not submit against a dead token. The portal answers 403 and
             # pops "Your session has been expired", which the caller then has
@@ -1686,6 +1695,45 @@ class BLSAuth:
                 await utils.screenshot(page, f"captcha-rejected-{status}-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
                     await self._reload_captcha(ctx)
+                    continue
+                return False
+
+            # WHERE the submit landed decides this, before anything is asked of
+            # the DOM. A wrong answer is bounced straight back to a fresh
+            # challenge page, and that navigation destroys the execution
+            # context -- so _captcha_present failed with "Execution context was
+            # destroyed", its empty answer was read as "no captcha", and the
+            # bot announced SOLVED. It then walked on to a login form that
+            # never posted, and threw away the three attempts it still had
+            # (run 20261018_201235: 302 LoginCaptchaSubmit -> 200 LoginCaptcha,
+            # then "no /Global/account/LoginSubmit response within 20s").
+            landed = page.url or ""
+            if _CAPTCHA_PAGE_RE.search(landed):
+                logger.warning(
+                    f"  outcome         : REJECTED - the portal bounced us back "
+                    f"to a fresh challenge ({landed[:90]})"
+                )
+                self._log(f"captcha attempt {attempt} refused", status="warn")
+                await utils.screenshot(page, f"captcha-bounced-attempt{attempt}")
+                # Keep what the model was actually shown. A refusal can mean
+                # the tiles were misread OR the password went into a decoy box,
+                # and those look identical from here: the image settles the
+                # first, the field report above settles the second.
+                if grid_png:
+                    kept = vision.save_sample(
+                        vision.upscale_png(grid_png),
+                        f"{_sample_stamp()}_REJECTED_target{target}_attempt{attempt}",
+                        enabled=True,
+                    )
+                    if kept:
+                        logger.warning(f"  rejected grid   : {kept}")
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    # The bounce already delivered a new grid; asking for
+                    # another would spend a GenerateCaptcha the portal rations.
+                    await utils.human_delay(self.config)
+                    await self._wait_for_captcha_tiles(ctx)
+                    self._captcha_issued_at = time.monotonic()
+                    self._last_captcha_generate_status = None
                     continue
                 return False
 
@@ -2112,6 +2160,76 @@ class BLSAuth:
             await self._wait_for_captcha_tiles(ctx)
         await utils.human_delay(self.config)
         return requested
+
+    # What the page is ACTUALLY about to post. onSubmit() reads every one of
+    # the ten password boxes by id and ships them all:
+    #
+    #   var submittedData = { hqqrfr: $("#hqqrfr").val(), jxehzjs: ... };
+    #   $("#ResponseData").val(JSON.stringify(submittedData));
+    #
+    # So the server sees all ten and knows which one should hold the password.
+    # If the bot filled a decoy, the post is well-formed and simply wrong --
+    # indistinguishable, from outside, from a wrong set of tiles. This reports
+    # which boxes are filled and which the page is displaying, so the two can
+    # be told apart from the log instead of guessed at.
+    _PASSWORD_FIELD_REPORT_JS = r"""
+    () => {
+      const out = [];
+      for (const el of document.querySelectorAll('input[type="password"]')) {
+        const wrap = el.closest('div.mb-3') || el.parentElement;
+        let display = '';
+        try { display = getComputedStyle(wrap).display; } catch (e) { }
+        const r = el.getBoundingClientRect();
+        out.push({
+          id: el.id || '(no id)',
+          filled: !!(el.value && el.value.length),
+          length: (el.value || '').length,
+          display,
+          onScreen: r.width > 2 && r.height > 2,
+        });
+      }
+      const resp = document.getElementById('ResponseData');
+      const sel = document.getElementById('SelectedImages');
+      return {
+        fields: out,
+        responseData: resp ? (resp.value || '').length : null,
+        selectedImages: sel ? (sel.value || '') : null,
+      };
+    }
+    """
+
+    async def _report_password_fields(self, page: Page, when: str) -> None:
+        """Log which of the ten password boxes is filled, and which is shown."""
+        try:
+            report = await page.evaluate(self._PASSWORD_FIELD_REPORT_JS)
+        except Exception as exc:
+            logger.debug(f"auth: password field report failed: {exc}")
+            return
+
+        fields = report.get("fields") or []
+        if not fields:
+            return
+        filled = [f for f in fields if f["filled"]]
+        shown = [f for f in fields if f["display"] == "block"]
+        logger.info(
+            f"  password boxes  : {len(filled)} of {len(fields)} filled "
+            f"({when})"
+        )
+        for f in fields:
+            if f["filled"] or f["display"] == "block":
+                logger.info(
+                    f"      {f['id']:<12} filled={str(f['filled']):<5} "
+                    f"len={f['length']:<3} display={f['display']:<6} "
+                    f"onScreen={f['onScreen']}"
+                )
+        # The one that matters: the box the page is showing must be the box
+        # that holds the password. Anything else is posted as a decoy.
+        if shown and filled and {f["id"] for f in shown} != {f["id"] for f in filled}:
+            logger.error(
+                f"  password MISMATCH: the page is showing "
+                f"{[f['id'] for f in shown]} but the password is in "
+                f"{[f['id'] for f in filled]} — the portal will refuse this"
+            )
 
     async def _ensure_password_filled(self, page: Page) -> bool:
         """Refill the password box if the page cleared it.
