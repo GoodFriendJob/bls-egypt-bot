@@ -1577,7 +1577,7 @@ class Monitor:
                     self.state.set_location_status(
                         location, STATUS_PAUSED, f"blocked — {remaining:.0f} min left"
                     )
-                await utils.interruptible_sleep(remaining * 60, self.state)
+                await self._wait_visibly(remaining, "a recorded block")
                 continue
 
             try:
@@ -5548,6 +5548,49 @@ class Monitor:
             await self.notifier.send_photo(shot, f"Monitor error — {location.title()}")
         await utils.interruptible_sleep(wait, self.state)
 
+    async def _wait_visibly(self, minutes: float, reason: str) -> None:
+        """Wait, saying so often enough that the bot still looks alive.
+
+        A long wait used to be one log line and then nothing. After a third
+        block in a row that is 32 minutes of total silence with the browser
+        shut, which is indistinguishable from a bot that has died -- and gets
+        reported as one. The countdown also lands on the dashboard, so the
+        panel shows the time left rather than a stale "blocked".
+        """
+        total = max(0.0, float(minutes))
+        if total <= 0:
+            return
+
+        finish = datetime.now() + timedelta(minutes=total)
+        logger.warning(
+            f"monitor: {reason} — waiting {total:.0f} min, back at "
+            f"{finish.strftime('%H:%M')}"
+        )
+        self.state.log_event(
+            "bot", f"{reason} — waiting {total:.0f} min", status="warn"
+        )
+
+        step = 5.0 if total > 10 else 2.0
+        waited = 0.0
+        while waited < total and not self.state.stop_requested:
+            chunk = min(step, total - waited)
+            await utils.interruptible_sleep(chunk * 60, self.state)
+            waited += chunk
+            left = total - waited
+            if left <= 0 or self.state.stop_requested:
+                break
+            logger.info(
+                f"monitor: still waiting — {left:.0f} min to go "
+                f"(back at {finish.strftime('%H:%M')})"
+            )
+            for location in self.locations:
+                self.state.set_location_status(
+                    location, STATUS_PAUSED, f"waiting — {left:.0f} min left"
+                )
+
+        if not self.state.stop_requested:
+            logger.info(f"monitor: the wait is over — {reason} ended, trying again")
+
     async def _handle_portal_block(self, exc: Exception) -> None:
         """403 / blocked: wait out the cooldown, then log in again from scratch.
 
@@ -5587,7 +5630,7 @@ class Monitor:
             )
 
         await self._reset_session()
-        await utils.interruptible_sleep(wait_minutes * 60, self.state)
+        await self._wait_visibly(wait_minutes, "the portal is blocking us")
 
     async def _handle_login_failure(self, exc: Exception) -> None:
         """Login failed for a non-block reason: back off, then try again.
@@ -5650,7 +5693,9 @@ class Monitor:
                 retry_info=f"retrying automatically in {wait_minutes} min",
             )
 
-        await utils.interruptible_sleep(wait_minutes * 60, self.state)
+        await self._wait_visibly(
+            wait_minutes, f"{self._login_failures} login failure(s) in a row"
+        )
 
     async def _relogin_and_clear_gate(self) -> Any | None:
         """Rebuild the session and clear the verification gate.
