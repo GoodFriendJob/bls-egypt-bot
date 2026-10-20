@@ -59,6 +59,11 @@ if /i "%~1"=="all" (
     echo Adding log files ^(text only - use "push_logs.bat all" for pictures^) ...
     git add "logs/*.txt" "logs/*.log"
     git add "logs/captcha_samples/*_REJECTED_*.png" 2>nul
+    REM  Record files the bot has PRUNED. Log retention deletes screenshots
+    REM  and page dumps that are already tracked, and leaving those deletions
+    REM  unstaged keeps the working tree permanently dirty. A deletion costs
+    REM  nothing to upload - it is metadata, not content.
+    git add -u logs/
 )
 if errorlevel 1 (
     echo [ERROR] git add failed.
@@ -96,8 +101,14 @@ git config http.lowSpeedTime 999999
 REM  The other machine pushes here too, so the branch is usually behind by
 REM  the time this runs. Rebase first; without it every push is rejected as
 REM  non-fast-forward and the logs never arrive.
+REM  --autostash because the bot DELETES tracked files as it runs: log
+REM  pruning removes screenshots and page dumps older than
+REM  logging.retention_days, and git sees those as unstaged deletions. A plain
+REM  rebase refuses to start with "cannot pull with rebase: You have unstaged
+REM  changes", and the run logs never leave the machine. The deletions are set
+REM  aside, the rebase runs, and they are put straight back.
 echo Checking for other changes first ...
-git pull --rebase
+git pull --rebase --autostash
 if errorlevel 1 (
     echo.
     echo [ERROR] could not merge the remote changes. Resolve them, then run
