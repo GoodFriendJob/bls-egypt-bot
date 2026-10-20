@@ -1,0 +1,523 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T18:26:08
+command : bot.py --headful
+python  : 3.12.7
+======================================================================
+18:26:08 | INFO    | __main__ - ==============================================================
+18:26:08 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+18:26:08 | INFO    | __main__ - run transcript: D:\bls-egypt-bot-master\logs\run_20261020_182608.txt
+18:26:08 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+18:26:08 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+18:26:08 | INFO    | __main__ - ==============================================================
+18:26:08 | WARNING | __main__ - config: document 'passport_scan' not found at D:\bls-egypt-bot-master\docs\passport.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean passport.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+18:26:08 | WARNING | __main__ - config: document 'photo' not found at D:\bls-egypt-bot-master\docs\photo.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean photo.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+18:26:12 | INFO    | modules.notifier - notifier: telegram listener started
+18:26:13 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+18:26:13 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+18:26:13 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot-master\logs\state.json
+18:26:16 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+18:26:16 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+18:26:16 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+18:26:18 | INFO    | modules.auth - auth: browser launched
+18:26:18 | INFO    | modules.auth - auth: no saved session — going straight to the login page
+18:26:18 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+18:26:32 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:26:54 | INFO    | modules.utils - find_real_input: real 'text' field is index 3 of 10 (parent div.mb-3 display:block)
+18:26:58 | INFO    | modules.auth - auth: email filled
+18:26:58 | INFO    | modules.auth - auth: email submitted
+18:27:04 | WARNING | modules.auth - auth: #btnVerify not clickable — falling back to text match
+18:27:30 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:27:35 | INFO    | modules.utils - find_real_input: real 'password' field is index 2 of 10 (parent div.mb-3 display:block)
+18:27:38 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+18:27:38 | INFO    | modules.auth - auth: password filled
+18:27:38 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZua415Gn2g9KuQhXDRkPq34gGKQr2inNvP9NsB3bhH4Io1rnkG06%2B3%2F%2FkVyJ7tJOV5N2jZl934OatorVkw0qctK5mRnqQ5kYtC7yVPrlU33%2F5NuKabSKT2NRkU144No5uI%3D
+18:27:41 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-182738_password-page-filled.png
+18:27:42 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-182741_password-page-filled.html
+18:27:42 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+18:27:42 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=40
+18:27:42 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:27:42 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:27:46 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-182742_captcha-before.png
+18:27:46 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-182746_captcha-detected.html
+18:27:46 | INFO    | modules.auth - auth: 40 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:27:46 | INFO    | modules.auth - auth: prompt 838 chosen (contrast=14.92, z-index=986, color=rgb(33, 37, 41))
+18:27:46 | INFO    | modules.auth - ------------------------------------------------------------
+18:27:46 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:27:46 | INFO    | modules.auth -   target number   : 838
+18:27:46 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+18:27:46 | INFO    | modules.auth -   visible labels  : 40 (of 40 box-labels in the DOM)
+18:27:46 | INFO    | modules.auth - auth: captcha attempt 1: target=838, 9 visible tiles
+18:27:46 | INFO    | modules.auth -   grid order      : 1:ojjty, 2:wctwpgrxr, 3:wnjwscg, 4:mmsfvitj, 5:ibkmese, 6:owdxrg, 7:tzkir, 8:bibmyy, 9:vtpsi
+18:27:46 | INFO    | modules.auth -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:27:46 | INFO    | modules.auth -   grid clip       : x=839.98 y=273.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+18:27:51 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+18:27:51 | INFO    | modules.auth -   grid screenshot : FAILED
+18:28:02 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:28:02 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:03 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:03 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:04 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+18:28:51 | WARNING | __main__ - telegram: Exception happened while polling for updates. (Conflict: terminated by other getUpdates request; make sure that only one bot instance is running)
+18:29:32 | INFO    | modules.vision - vision: per-tile reply '838,339,145,838,508,515,544,838,838'
+18:29:32 | INFO    | modules.auth -   tiles read      : 1:838, 2:339, 3:145, 4:838, 5:508, 6:515, 7:544, 8:838, 9:838
+18:29:32 | INFO    | modules.auth -   matching 838      : positions [1, 4, 8, 9]
+18:29:32 | INFO    | modules.auth -   vision positions: [1, 4, 8, 9]
+18:29:32 | INFO    | modules.auth -   matched tiles   : 4 -> ['ojjty', 'mmsfvitj', 'bibmyy', 'vtpsi']
+18:29:35 | INFO    | modules.auth -   click results   :
+18:29:35 | INFO    | modules.auth -       id=ojjty          number=None   clicked=True  img-selected=True
+18:29:35 | INFO    | modules.auth -       id=mmsfvitj       number=None   clicked=True  img-selected=True
+18:29:35 | INFO    | modules.auth -       id=bibmyy         number=None   clicked=True  img-selected=True
+18:29:35 | INFO    | modules.auth -       id=vtpsi          number=None   clicked=True  img-selected=True
+18:29:36 | INFO    | modules.auth -   SelectedImages  : ''
+18:29:36 | INFO    | modules.auth -   expected ids    : ['bibmyy', 'mmsfvitj', 'ojjty', 'vtpsi']
+18:29:36 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:29:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-182936_captcha-attempt1-before-submit.png
+18:29:39 | INFO    | modules.utils - find_real_input: real 'password' field is index 2 of 10 (parent div.mb-3 display:block)
+18:29:39 | INFO    | modules.auth -   password boxes  : 1 of 10 filled (about to submit the captcha)
+18:29:39 | INFO    | modules.auth -       fokhjaj      filled=True  len=12  display=block  onScreen=True
+18:29:39 | WARNING | modules.auth -   outcome         : STALE - grid is 118s old (limit 35s); refreshing instead of submitting a doomed answer
+18:29:39 | INFO    | modules.auth - auth: clearing 4 tile(s) left selected from the last try
+18:29:39 | INFO    | modules.auth - auth: captcha action onUndo() -> called
+18:29:40 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:29:40 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:29:42 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:29:43 | WARNING | modules.auth - auth: captcha DOM scan failed: Page.evaluate: Execution context was destroyed, most likely because of a navigation
+18:29:52 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:29:53 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+18:30:01 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:30:01 | ERROR   | modules.auth - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+18:30:08 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183001_captcha-no-tiles-attempt2.png
+18:30:08 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183008_captcha-no-tiles-attempt2.html
+18:30:08 | INFO    | modules.auth - auth: CAPTCHA grid disappeared — restarting login
+18:30:28 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+18:30:29 | INFO    | modules.auth - auth: password submitted
+18:30:29 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/account/login
+18:30:33 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183029_after-password-submit.png
+18:30:33 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183033_after-password-submit.html
+18:31:04 | WARNING | modules.auth - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/account/login)
+18:31:04 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183104_login-stalled-round1.png
+18:31:04 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183104_login-stalled-round1.html
+18:31:04 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login)
+18:31:05 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183104_login-failed-attempt1.png
+18:31:10 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+18:31:10 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:31:19 | INFO    | modules.utils - find_real_input: real 'text' field is index 7 of 10 (parent div.mb-3 display:block)
+18:31:22 | INFO    | modules.auth - auth: email filled
+18:31:22 | INFO    | modules.auth - auth: email submitted
+18:31:23 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:31:23 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+18:31:25 | INFO    | modules.utils - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+18:31:27 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+18:31:27 | INFO    | modules.auth - auth: password filled
+18:31:27 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZuoNP4YIn6zbaee%2FSRIJiVlzXaBBVFydcb1zaURcoFho88EYs62PcHS6fLu9A4d32Nho5GU7XnBOUYFWDwJJtKZGVZEBPG0T1tKUoO%2BVe%2FVXyoVZn%2BpxLTyHI5BHWCAvtE%3D
+18:31:28 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183127_password-page-filled.png
+18:31:28 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183128_password-page-filled.html
+18:31:28 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+18:31:28 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=28
+18:31:28 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:31:28 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:31:29 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183128_captcha-before.png
+18:31:29 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183129_captcha-detected.html
+18:31:29 | INFO    | modules.auth - auth: 28 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:31:29 | INFO    | modules.auth - auth: prompt 409 chosen (contrast=14.15, z-index=957, color=rgb(33, 37, 41))
+18:31:29 | INFO    | modules.auth - ------------------------------------------------------------
+18:31:29 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:31:29 | INFO    | modules.auth -   target number   : 409
+18:31:29 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+18:31:29 | INFO    | modules.auth -   visible labels  : 28 (of 28 box-labels in the DOM)
+18:31:29 | INFO    | modules.auth - auth: captcha attempt 1: target=409, 9 visible tiles
+18:31:29 | INFO    | modules.auth -   grid order      : 1:ivtheq, 2:qpfmpiza, 3:ixdmbg, 4:acveacsc, 5:gjjvvk, 6:pszguaxa, 7:guhvr, 8:eloroxztu, 9:jvcbgffen
+18:31:29 | INFO    | modules.auth -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:31:29 | INFO    | modules.auth -   grid clip       : x=712.33 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+18:31:31 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+18:31:31 | INFO    | modules.auth -   grid screenshot : FAILED
+18:31:32 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:31:32 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:32 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:32 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:32 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:33 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:33 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:33 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:33 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:31:33 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:32:38 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+18:32:39 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:32:54 | INFO    | modules.vision - vision: per-tile reply '922,610,409,339,409,409,771,409,409'
+18:32:54 | INFO    | modules.auth -   tiles read      : 1:922, 2:610, 3:409, 4:339, 5:409, 6:409, 7:771, 8:409, 9:409
+18:32:54 | INFO    | modules.auth -   matching 409      : positions [3, 5, 6, 8, 9]
+18:32:54 | INFO    | modules.auth -   vision positions: [3, 5, 6, 8, 9]
+18:32:54 | INFO    | modules.auth -   matched tiles   : 5 -> ['ixdmbg', 'gjjvvk', 'pszguaxa', 'eloroxztu', 'jvcbgffen']
+18:32:54 | WARNING | modules.auth - auth: Select('ixdmbg') could not run: no-tile
+18:32:54 | WARNING | modules.auth - auth: Select('gjjvvk') could not run: no-tile
+18:32:54 | WARNING | modules.auth - auth: Select('pszguaxa') could not run: no-tile
+18:32:54 | WARNING | modules.auth - auth: Select('eloroxztu') could not run: no-tile
+18:32:54 | WARNING | modules.auth - auth: Select('jvcbgffen') could not run: no-tile
+18:32:54 | INFO    | modules.auth -   click results   :
+18:32:54 | INFO    | modules.auth -       id=ixdmbg         number=None   clicked=False  img-selected=no-tile
+18:32:54 | INFO    | modules.auth -       id=gjjvvk         number=None   clicked=False  img-selected=no-tile
+18:32:54 | INFO    | modules.auth -       id=pszguaxa       number=None   clicked=False  img-selected=no-tile
+18:32:54 | INFO    | modules.auth -       id=eloroxztu      number=None   clicked=False  img-selected=no-tile
+18:32:54 | INFO    | modules.auth -       id=jvcbgffen      number=None   clicked=False  img-selected=no-tile
+18:32:55 | INFO    | modules.auth -   SelectedImages  : None
+18:32:55 | INFO    | modules.auth -   expected ids    : ['eloroxztu', 'gjjvvk', 'ixdmbg', 'jvcbgffen', 'pszguaxa']
+18:32:55 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:32:56 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183255_captcha-attempt1-before-submit.png
+18:32:56 | WARNING | modules.auth -   outcome         : RETRY - not every tile registered (attempt 1/4)
+18:32:57 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183256_captcha-click-failed-attempt1.png
+18:33:10 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+18:33:19 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:33:19 | ERROR   | modules.auth - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+18:33:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183319_captcha-no-tiles-attempt2.png
+18:33:20 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183320_captcha-no-tiles-attempt2.html
+18:33:20 | INFO    | modules.auth - auth: CAPTCHA grid disappeared — restarting login
+18:33:21 | INFO    | modules.auth - auth: already authenticated after the captcha — skipping resubmit
+18:33:21 | INFO    | modules.auth - auth: password submitted
+18:33:21 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:33:22 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183321_after-password-submit.png
+18:33:22 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183322_after-password-submit.html
+18:33:22 | SUCCESS | modules.auth - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:33:22 | SUCCESS | modules.auth - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:33:22 | INFO    | modules.auth - auth: session saved to session\cookies.json
+18:33:22 | INFO    | modules.auth - auth: login successful
+18:33:22 | INFO    | modules.monitor - monitor: navigation watch installed (now: verification)
+18:33:22 | INFO    | modules.monitor - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+18:33:25 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+18:33:28 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:33:33 | INFO    | modules.monitor - monitor: clicked 'Verify Selection'
+18:33:37 | INFO    | modules.monitor - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:33:39 | INFO    | modules.monitor - monitor: verification attempt 1/5
+18:33:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183339_verify-modal-attempt1.png
+18:33:40 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183339_verify-frame-attempt1.html
+18:33:40 | INFO    | modules.monitor - monitor: captcha frame at x=826 y=319 (397x556)
+18:33:40 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=36
+18:33:40 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:33:40 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:33:40 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183340_captcha-before.png
+18:33:40 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183340_captcha-detected.html
+18:33:41 | INFO    | modules.auth - auth: 36 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:33:41 | INFO    | modules.auth - auth: prompt 981 chosen (contrast=15.02, z-index=967, color=rgb(33, 37, 41))
+18:33:41 | INFO    | modules.auth - ------------------------------------------------------------
+18:33:41 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:33:41 | INFO    | modules.auth -   target number   : 981
+18:33:41 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:33:41 | INFO    | modules.auth -   visible labels  : 36 (of 36 box-labels in the DOM)
+18:33:41 | INFO    | modules.auth - auth: captcha attempt 1: target=981, 9 visible tiles
+18:33:41 | INFO    | modules.auth -   grid order      : 1:brlwvc, 2:dtbrgekn, 3:ipojh, 4:snksyjj, 5:ortlt, 6:qtpwfym, 7:fmhknck, 8:rvyzd, 9:ujjomaz
+18:33:41 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:33:41 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:33:41 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:33:41 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:33:41 | INFO    | modules.auth -   grid screenshot : FAILED
+18:33:43 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:43 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:50 | INFO    | modules.vision - vision: per-tile reply '7,409,7,7,8,7,7,7,7'
+18:33:50 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:7, 5:8, 6:7, 7:7, 8:7, 9:7
+18:33:50 | INFO    | modules.auth -   matching 981      : positions []
+18:33:50 | INFO    | modules.auth -   vision positions: []
+18:33:50 | WARNING | modules.auth -   vision reported no tile shows 981 — treating the reading as wrong and retrying with a fresh grid
+18:33:50 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:33:50 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:33:52 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:33:53 | INFO    | modules.auth - auth: grid rendered after 2.5s
+18:33:56 | INFO    | modules.auth - auth: 25 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:33:56 | INFO    | modules.auth - auth: prompt 108 chosen (contrast=15.43, z-index=954, color=rgb(33, 37, 41))
+18:33:56 | INFO    | modules.auth - ------------------------------------------------------------
+18:33:56 | INFO    | modules.auth - CAPTCHA attempt 2 of 4
+18:33:56 | INFO    | modules.auth -   target number   : 108
+18:33:56 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:33:56 | INFO    | modules.auth -   visible labels  : 25 (of 25 box-labels in the DOM)
+18:33:56 | INFO    | modules.auth - auth: captcha attempt 2: target=108, 9 visible tiles
+18:33:56 | INFO    | modules.auth -   grid order      : 1:qjejohgw, 2:yhaqpqdsx, 3:nriejjx, 4:gikoddxvz, 5:uxeflddtx, 6:optibznm, 7:sbbuzs, 8:lkpzojh, 9:avekxenjf
+18:33:56 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:33:56 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:33:56 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:33:56 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:33:56 | INFO    | modules.auth -   grid screenshot : FAILED
+18:33:58 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:33:58 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:05 | INFO    | modules.vision - vision: per-tile reply '7,409,7,8,8,7,7,8,7'
+18:34:05 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:8, 5:8, 6:7, 7:7, 8:8, 9:7
+18:34:05 | INFO    | modules.auth -   matching 108      : positions []
+18:34:05 | INFO    | modules.auth -   vision positions: []
+18:34:05 | WARNING | modules.auth -   vision reported no tile shows 108 — treating the reading as wrong and retrying with a fresh grid
+18:34:05 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:34:05 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:34:07 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:34:13 | INFO    | modules.auth - auth: grid rendered after 6.5s
+18:34:15 | INFO    | modules.auth - auth: 26 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:34:15 | INFO    | modules.auth - auth: prompt 979 chosen (contrast=15.11, z-index=973, color=rgb(33, 37, 41))
+18:34:15 | INFO    | modules.auth - ------------------------------------------------------------
+18:34:15 | INFO    | modules.auth - CAPTCHA attempt 3 of 4
+18:34:15 | INFO    | modules.auth -   target number   : 979
+18:34:15 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:34:15 | INFO    | modules.auth -   visible labels  : 26 (of 26 box-labels in the DOM)
+18:34:15 | INFO    | modules.auth - auth: captcha attempt 3: target=979, 9 visible tiles
+18:34:15 | INFO    | modules.auth -   grid order      : 1:iiviyoxb, 2:bbbmnfqf, 3:irbqxnq, 4:qbtbwnst, 5:ovhsod, 6:tjypthhg, 7:guwlwqgr, 8:pmshm, 9:gdffhx
+18:34:15 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:34:15 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:34:15 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:34:15 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:34:15 | INFO    | modules.auth -   grid screenshot : FAILED
+18:34:18 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:18 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:19 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:49 | INFO    | modules.vision - vision: per-tile reply '7,409,7,8,7,8,8,7,7'
+18:34:49 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:8, 5:7, 6:8, 7:8, 8:7, 9:7
+18:34:49 | INFO    | modules.auth -   matching 979      : positions []
+18:34:49 | INFO    | modules.auth -   vision positions: []
+18:34:49 | WARNING | modules.auth -   vision reported no tile shows 979 — treating the reading as wrong and retrying with a fresh grid
+18:34:49 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:34:49 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:34:52 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:34:53 | INFO    | modules.auth - auth: grid rendered after 3.0s
+18:34:55 | INFO    | modules.auth - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:34:55 | INFO    | modules.auth - auth: prompt 832 chosen (contrast=14.92, z-index=920, color=rgb(33, 37, 41))
+18:34:55 | INFO    | modules.auth - ------------------------------------------------------------
+18:34:55 | INFO    | modules.auth - CAPTCHA attempt 4 of 4
+18:34:55 | INFO    | modules.auth -   target number   : 832
+18:34:55 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:34:55 | INFO    | modules.auth -   visible labels  : 34 (of 34 box-labels in the DOM)
+18:34:55 | INFO    | modules.auth - auth: captcha attempt 4: target=832, 9 visible tiles
+18:34:55 | INFO    | modules.auth -   grid order      : 1:yjsboanoh, 2:wyybqyncu, 3:fwhuu, 4:qiwqhjjat, 5:eqvmck, 6:xlojxuj, 7:eqwkhpe, 8:bovutqnzi, 9:bloic
+18:34:55 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:34:55 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:34:55 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:34:56 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:34:56 | INFO    | modules.auth -   grid screenshot : FAILED
+18:34:57 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:34:57 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:01 | INFO    | modules.vision - vision: per-tile reply '7,409,7,7,7,8,7,7,8'
+18:35:01 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:7, 5:7, 6:8, 7:7, 8:7, 9:8
+18:35:01 | INFO    | modules.auth -   matching 832      : positions []
+18:35:01 | INFO    | modules.auth -   vision positions: []
+18:35:01 | WARNING | modules.auth -   vision reported no tile shows 832 — treating the reading as wrong and retrying with a fresh grid
+18:35:02 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:35:02 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:35:03 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:35:04 | INFO    | modules.auth - auth: grid rendered after 0.5s
+18:35:07 | INFO    | modules.monitor - monitor: verification attempt 2/5
+18:35:07 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183507_verify-modal-attempt2.png
+18:35:07 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183507_verify-frame-attempt2.html
+18:35:07 | INFO    | modules.monitor - monitor: captcha frame at x=826 y=319 (397x556)
+18:35:07 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=27
+18:35:07 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:35:07 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:35:08 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183507_captcha-before.png
+18:35:08 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183508_captcha-detected.html
+18:35:09 | INFO    | modules.auth - auth: 27 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:35:09 | INFO    | modules.auth - auth: prompt 208 chosen (contrast=14.59, z-index=929, color=rgb(33, 37, 41))
+18:35:09 | INFO    | modules.auth - ------------------------------------------------------------
+18:35:09 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:35:09 | INFO    | modules.auth -   target number   : 208
+18:35:09 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:35:09 | INFO    | modules.auth -   visible labels  : 27 (of 27 box-labels in the DOM)
+18:35:09 | INFO    | modules.auth - auth: captcha attempt 1: target=208, 9 visible tiles
+18:35:09 | INFO    | modules.auth -   grid order      : 1:jnabdrlcg, 2:abukksvw, 3:uwgolydf, 4:erwjxlf, 5:phtfv, 6:nkypciwm, 7:etfvcit, 8:lzbwnc, 9:mzlwvyxhi
+18:35:09 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:35:09 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:35:09 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:35:09 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:35:09 | INFO    | modules.auth -   grid screenshot : FAILED
+18:35:11 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:11 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:17 | INFO    | modules.vision - vision: per-tile reply '7,4,7,8,8,7,7,7,8'
+18:35:17 | INFO    | modules.auth -   tiles read      : 1:7, 2:4, 3:7, 4:8, 5:8, 6:7, 7:7, 8:7, 9:8
+18:35:17 | INFO    | modules.auth -   matching 208      : positions []
+18:35:17 | INFO    | modules.auth -   vision positions: []
+18:35:17 | WARNING | modules.auth -   vision reported no tile shows 208 — treating the reading as wrong and retrying with a fresh grid
+18:35:17 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:35:17 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:35:17 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:35:20 | INFO    | modules.auth - auth: 37 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:35:20 | INFO    | modules.auth - auth: prompt 358 chosen (contrast=14.89, z-index=979, color=rgb(33, 37, 41))
+18:35:20 | INFO    | modules.auth - ------------------------------------------------------------
+18:35:20 | INFO    | modules.auth - CAPTCHA attempt 2 of 4
+18:35:20 | INFO    | modules.auth -   target number   : 358
+18:35:20 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:35:20 | INFO    | modules.auth -   visible labels  : 37 (of 37 box-labels in the DOM)
+18:35:20 | INFO    | modules.auth - auth: captcha attempt 2: target=358, 9 visible tiles
+18:35:20 | INFO    | modules.auth -   grid order      : 1:olnhbzl, 2:eigutoh, 3:yyydu, 4:bslklg, 5:ufgofj, 6:qhjmkkm, 7:nhlgjy, 8:tywxvnq, 9:rqkvdlnmj
+18:35:20 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:35:20 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:35:20 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:35:21 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:35:21 | INFO    | modules.auth -   grid screenshot : FAILED
+18:35:22 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:22 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:23 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:23 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:30 | INFO    | modules.vision - vision: per-tile reply '7,409,7,8,8,8,8,8,8'
+18:35:30 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:8, 5:8, 6:8, 7:8, 8:8, 9:8
+18:35:30 | INFO    | modules.auth -   matching 358      : positions []
+18:35:30 | INFO    | modules.auth -   vision positions: []
+18:35:30 | WARNING | modules.auth -   vision reported no tile shows 358 — treating the reading as wrong and retrying with a fresh grid
+18:35:30 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:35:30 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:35:31 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:35:33 | INFO    | modules.auth - auth: grid rendered after 1.5s
+18:35:34 | INFO    | modules.auth - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:35:34 | INFO    | modules.auth - auth: prompt 329 chosen (contrast=14.83, z-index=902, color=rgb(33, 37, 41))
+18:35:34 | INFO    | modules.auth - ------------------------------------------------------------
+18:35:34 | INFO    | modules.auth - CAPTCHA attempt 3 of 4
+18:35:34 | INFO    | modules.auth -   target number   : 329
+18:35:34 | INFO    | modules.auth -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+18:35:34 | INFO    | modules.auth -   visible labels  : 39 (of 39 box-labels in the DOM)
+18:35:34 | INFO    | modules.auth - auth: captcha attempt 3: target=329, 9 visible tiles
+18:35:34 | INFO    | modules.auth -   grid order      : 1:sqfrlndn, 2:rxkknuh, 3:qlgrhfnwh, 4:qhsyxrdkv, 5:lnvekp, 6:qovgvkufz, 7:xdxquejvt, 8:wncez, 9:daqdp
+18:35:34 | INFO    | modules.auth -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:35:34 | INFO    | modules.auth -   frame moved     : offset (826.0078125, 318.9609375) -> (826.01, 318.96) (scrollIntoView moved the page); using the fresh one
+18:35:34 | INFO    | modules.auth -   grid clip       : x=849.76 y=394.93 w=349.98 h=349.95 (viewport 397x555, 9 tiles)
+18:35:34 | INFO    | modules.vision - vision: upscaled grid 698x698 -> 2094x2094 (x3, LANCZOS)
+18:35:34 | INFO    | modules.auth -   grid screenshot : FAILED
+18:35:36 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:36 | INFO    | modules.vision - vision: upscaled grid 222x222 -> 666x666 (x3, LANCZOS)
+18:35:46 | INFO    | modules.vision - vision: per-tile reply '7,409,7,8,8,8,8,8,8'
+18:35:46 | INFO    | modules.auth -   tiles read      : 1:7, 2:409, 3:7, 4:8, 5:8, 6:8, 7:8, 8:8, 9:8
+18:35:46 | INFO    | modules.auth -   matching 329      : positions []
+18:35:46 | INFO    | modules.auth -   vision positions: []
+18:35:46 | WARNING | modules.auth -   vision reported no tile shows 329 — treating the reading as wrong and retrying with a fresh grid
+18:35:46 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:35:46 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:35:47 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:35:56 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:35:57 | WARNING | modules.auth - auth: no visible tile on attempt 4 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+18:36:06 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:36:06 | ERROR   | modules.auth - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+18:36:07 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183606_captcha-no-tiles-attempt4.png
+18:36:07 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183607_captcha-no-tiles-attempt4.html
+18:36:07 | INFO    | modules.auth - auth: CAPTCHA grid disappeared — restarting login
+18:36:08 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:36:08 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:36:09 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:36:18 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:36:20 | INFO    | modules.monitor - monitor: verification attempt 3/5
+18:36:20 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183620_verify-modal-attempt3.png
+18:36:21 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183620_verify-frame-attempt3.html
+18:36:21 | INFO    | modules.monitor - monitor: captcha frame at x=826 y=319 (397x556)
+18:36:21 | INFO    | modules.auth - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+18:36:21 | INFO    | modules.auth - auth: no CAPTCHA detected
+18:36:23 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+18:36:23 | WARNING | modules.monitor - monitor: submitted but the gate is still closed
+18:36:23 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:36:23 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:36:23 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:36:32 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:36:34 | INFO    | modules.monitor - monitor: verification attempt 4/5
+18:36:35 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-183634_verify-modal-attempt4.png
+18:36:35 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-183635_verify-frame-attempt4.html
+18:36:35 | INFO    | modules.monitor - monitor: captcha frame at x=826 y=319 (397x556)
+18:36:35 | INFO    | modules.auth - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+18:36:35 | INFO    | modules.auth - auth: no CAPTCHA detected
+18:36:37 | INFO    | modules.monitor -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+18:36:37 | WARNING | modules.monitor - monitor: submitted but the gate is still closed
+18:36:37 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:36:37 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:36:38 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+18:36:39 | INFO    | __main__ - cancelled — shutting down
+18:36:39 | INFO    | __main__ - interrupted by user
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\bot.py", line 809, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "D:\bls-egypt-bot-master\bot.py", line 616, in main
+    close_run_log()
+  File "D:\bls-egypt-bot-master\bot.py", line 266, in close_run_log
+    sys.stderr.flush()
+  File "D:\bls-egypt-bot-master\bot.py", line 219, in flush
+    target.flush()
+KeyboardInterrupt
+Exception ignored in: <function _ProactorBasePipeTransport.__del__ at 0x000002C6FCC2D620>
+Traceback (most recent call last):
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 116, in __del__
+    _warn(f"unclosed transport {self!r}", ResourceWarning, source=self)
+                               ^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 80, in __repr__
+    info.append(f'fd={self._sock.fileno()}')
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_utils.py", line 102, in fileno
+    raise ValueError("I/O operation on closed pipe")
+ValueError: I/O operation on closed pipe
+Exception ignored in: <function BaseSubprocessTransport.__del__ at 0x000002C6FCBFFD80>
+Traceback (most recent call last):
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_subprocess.py", line 125, in __del__
+    _warn(f"unclosed transport {self!r}", ResourceWarning, source=self)
+                               ^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_subprocess.py", line 70, in __repr__
+    info.append(f'stdin={stdin.pipe}')
+                        ^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 80, in __repr__
+    info.append(f'fd={self._sock.fileno()}')
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_utils.py", line 102, in fileno
+    raise ValueError("I/O operation on closed pipe")
+ValueError: I/O operation on closed pipe
+Exception ignored in: <function _ProactorBasePipeTransport.__del__ at 0x000002C6FCC2D620>
+Traceback (most recent call last):
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 116, in __del__
+    _warn(f"unclosed transport {self!r}", ResourceWarning, source=self)
+                               ^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 80, in __repr__
+    info.append(f'fd={self._sock.fileno()}')
+                      ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\asyncio\windows_utils.py", line 102, in fileno
+    raise ValueError("I/O operation on closed pipe")
+ValueError: I/O operation on closed pipe
