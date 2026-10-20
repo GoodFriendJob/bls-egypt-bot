@@ -1,0 +1,11 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T15:27:55
+command : bot.py --headful --once
+python  : 3.12.7
+======================================================================
+15:27:55 | INFO    | __main__ - ==============================================================
+15:27:55 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+15:27:55 | INFO    | __main__ - run transcript: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\run_20261020_152755.txt
+15:27:55 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+======================================================================
+finished: 2026-10-20T15:27:55

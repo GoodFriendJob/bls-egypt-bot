@@ -22372,3 +22372,175 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 2026-10-19 18:28:31.311 | INFO     | modules.auth:stop:871 - auth: browser closed
 2026-10-19 18:28:35.087 | INFO     | modules.notifier:stop:175 - notifier: telegram listener stopped
 2026-10-19 18:28:35.089 | INFO     | __main__:_run_with_state:725 - shutdown complete
+2026-10-20 18:02:30.669 | INFO     | __main__:_main_inner:549 - ==============================================================
+2026-10-20 18:02:30.670 | INFO     | __main__:_main_inner:550 - BLS Spain Egypt appointment bot starting
+2026-10-20 18:02:30.671 | INFO     | __main__:_main_inner:551 - run transcript: D:\bls-egypt-bot-master\logs\run_20261020_180230.txt
+2026-10-20 18:02:30.672 | INFO     | __main__:_main_inner:552 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-20 18:02:30.672 | INFO     | __main__:_main_inner:553 - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+2026-10-20 18:02:30.672 | INFO     | __main__:_main_inner:554 - ==============================================================
+2026-10-20 18:02:30.673 | WARNING  | __main__:_main_inner:576 - config: document 'passport_scan' not found at docs/passport.jpg
+2026-10-20 18:02:30.674 | WARNING  | __main__:_main_inner:576 - config: document 'photo' not found at docs/photo.jpg
+2026-10-20 18:02:32.344 | INFO     | modules.notifier:start:112 - notifier: telegram listener started
+2026-10-20 18:02:32.816 | INFO     | modules.monitor:warn_about_missing_settings:3119 - config: all 55 applicant field(s) the form requires have values
+2026-10-20 18:02:32.817 | INFO     | modules.monitor:run:1558 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-20 18:02:32.818 | INFO     | __main__:dashboard_bridge:392 - dashboard bridge: publishing status to D:\bls-egypt-bot-master\logs\state.json
+2026-10-20 18:02:34.208 | INFO     | modules.auth:start:591 - auth: stealth disabled (recommended for this portal)
+2026-10-20 18:02:34.219 | INFO     | modules.auth:_install_https_upgrade:742 - auth: http->https upgrade route installed (regex)
+2026-10-20 18:02:34.237 | INFO     | modules.auth:_install_https_upgrade:750 - auth: captcha frame route installed (redirects followed here)
+2026-10-20 18:02:35.533 | INFO     | modules.auth:_log:3232 - auth: browser launched
+2026-10-20 18:02:35.536 | INFO     | modules.auth:ensure_logged_in:904 - auth: no saved session — going straight to the login page
+2026-10-20 18:02:35.539 | INFO     | modules.auth:ensure_logged_in:921 - auth: logging in (attempt 1/2)
+2026-10-20 18:02:36.665 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-20 18:02:47.142 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'text' field is index 4 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:02:50.439 | INFO     | modules.auth:_fill_email:1155 - auth: email filled
+2026-10-20 18:02:50.443 | INFO     | modules.auth:_log:3232 - auth: email submitted
+2026-10-20 18:02:52.736 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-20 18:02:52.859 | INFO     | modules.auth:_click_verify:1256 - auth: clicked Verify via #btnVerify
+2026-10-20 18:02:56.123 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:02:58.248 | INFO     | modules.auth:_fill_password:1191 - auth: password filled (real input[type='password'])
+2026-10-20 18:02:58.265 | INFO     | modules.auth:_log:3232 - auth: password filled
+2026-10-20 18:02:58.282 | INFO     | modules.auth:_perform_login:1011 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZu%2FOr3Pj9%2FMFjHQ4hGaBC5ESI%2BtgnYwOswzDQS1Md4c11keiL%2BcSLelRGZ9aCNLirS3QLT6ZNAJD1T5Cf26dSoGR6elo60N2Lrk%2FdPtFK3yhXzgdYUAw6c3fhkUOoQUqFo%3D
+2026-10-20 18:02:58.950 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180258_password-page-filled.png
+2026-10-20 18:02:59.010 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180258_password-page-filled.html
+2026-10-20 18:02:59.012 | INFO     | modules.auth:_perform_login:1019 - auth: checking for a CAPTCHA on the password page
+2026-10-20 18:02:59.092 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=39
+2026-10-20 18:02:59.093 | INFO     | modules.auth:solve_captcha:1350 - auth: CAPTCHA detected, attempting to solve
+2026-10-20 18:02:59.093 | INFO     | modules.auth:_log:3232 - auth: CAPTCHA detected — solving
+2026-10-20 18:03:00.120 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180259_captcha-before.png
+2026-10-20 18:03:00.148 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180300_captcha-detected.html
+2026-10-20 18:03:00.540 | INFO     | modules.auth:_captcha_target:2533 - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 18:03:00.540 | INFO     | modules.auth:_captcha_target:2554 - auth: prompt 668 chosen (contrast=15.16, z-index=963, color=rgb(33, 37, 41))
+2026-10-20 18:03:00.542 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 18:03:00.543 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 1 of 4
+2026-10-20 18:03:00.543 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 668
+2026-10-20 18:03:00.544 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-20 18:03:00.545 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 39 (of 39 box-labels in the DOM)
+2026-10-20 18:03:00.545 | INFO     | modules.auth:_log:3232 - auth: captcha attempt 1: target=668, 9 visible tiles
+2026-10-20 18:03:00.546 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:dwrvdb, 2:cyvet, 3:okmnanan, 4:waluyx, 5:rmpslbyxy, 6:rcasmar, 7:dkshzz, 8:ipalcwf, 9:tkakwspgp
+2026-10-20 18:03:00.556 | INFO     | modules.auth:_screenshot_grid_element:1956 -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 18:03:00.564 | INFO     | modules.auth:_screenshot_grid:2090 -   grid clip       : x=827.23 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-20 18:03:02.194 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+2026-10-20 18:03:02.198 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 18:03:04.002 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 18:03:04.287 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:05.696 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:05.814 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:05.920 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:06.020 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:06.098 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:06.205 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:06.296 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:03:06.376 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:04:09.422 | INFO     | modules.vision:read_tiles_individually:198 - vision: per-tile reply '758,668,445,668,668,668,668,668,950'
+2026-10-20 18:04:09.428 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:758, 2:668, 3:445, 4:668, 5:668, 6:668, 7:668, 8:668, 9:950
+2026-10-20 18:04:09.437 | INFO     | modules.auth:solve_captcha:1519 -   matching 668      : positions [2, 4, 5, 6, 7, 8]
+2026-10-20 18:04:09.450 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [2, 4, 5, 6, 7, 8]
+2026-10-20 18:04:09.452 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 6 -> ['cyvet', 'waluyx', 'rmpslbyxy', 'rcasmar', 'dkshzz', 'ipalcwf']
+2026-10-20 18:04:14.504 | INFO     | modules.auth:solve_captcha:1567 -   click results   :
+2026-10-20 18:04:14.508 | INFO     | modules.auth:solve_captcha:1569 -       id=cyvet          number=None   clicked=True  img-selected=True
+2026-10-20 18:04:14.511 | INFO     | modules.auth:solve_captcha:1569 -       id=waluyx         number=None   clicked=True  img-selected=True
+2026-10-20 18:04:14.515 | INFO     | modules.auth:solve_captcha:1569 -       id=rmpslbyxy      number=None   clicked=True  img-selected=True
+2026-10-20 18:04:14.521 | INFO     | modules.auth:solve_captcha:1569 -       id=rcasmar        number=None   clicked=True  img-selected=True
+2026-10-20 18:04:14.524 | INFO     | modules.auth:solve_captcha:1569 -       id=dkshzz         number=None   clicked=True  img-selected=True
+2026-10-20 18:04:14.528 | INFO     | modules.auth:solve_captcha:1569 -       id=ipalcwf        number=None   clicked=True  img-selected=True
+2026-10-20 18:04:15.549 | INFO     | modules.auth:solve_captcha:1579 -   SelectedImages  : ''
+2026-10-20 18:04:15.551 | INFO     | modules.auth:solve_captcha:1587 -   expected ids    : ['cyvet', 'dkshzz', 'ipalcwf', 'rcasmar', 'rmpslbyxy', 'waluyx']
+2026-10-20 18:04:15.556 | INFO     | modules.auth:solve_captcha:1595 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-20 18:04:16.040 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180415_captcha-attempt1-before-submit.png
+2026-10-20 18:04:16.119 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:04:16.133 | INFO     | modules.auth:_report_password_fields:2250 -   password boxes  : 1 of 10 filled (about to submit the captcha)
+2026-10-20 18:04:16.133 | INFO     | modules.auth:_report_password_fields:2256 -       pttmu        filled=True  len=12  display=block  onScreen=True
+2026-10-20 18:04:16.135 | WARNING  | modules.auth:solve_captcha:1642 -   outcome         : STALE - grid is 77s old (limit 35s); refreshing instead of submitting a doomed answer
+2026-10-20 18:04:16.142 | INFO     | modules.auth:_clear_captcha_selection:2914 - auth: clearing 6 tile(s) left selected from the last try
+2026-10-20 18:04:16.150 | INFO     | modules.auth:_call_captcha_action:2741 - auth: captcha action onUndo() -> called
+2026-10-20 18:04:16.791 | INFO     | modules.auth:_call_captcha_action:2741 - auth: captcha action onReload() -> called
+2026-10-20 18:04:16.792 | INFO     | modules.auth:_reload_captcha:2190 - auth: requested a fresh captcha grid
+2026-10-20 18:04:16.925 | INFO     | modules.auth:_on_response:765 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-20 18:04:26.280 | WARNING  | modules.auth:_wait_for_captcha_tiles:2353 - auth: no captcha tiles rendered within 8s
+2026-10-20 18:04:28.061 | WARNING  | modules.auth:solve_captcha:1389 - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+2026-10-20 18:04:36.798 | WARNING  | modules.auth:_wait_for_captcha_tiles:2353 - auth: no captcha tiles rendered within 8s
+2026-10-20 18:04:36.799 | ERROR    | modules.auth:solve_captcha:1408 - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+2026-10-20 18:04:37.352 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180436_captcha-no-tiles-attempt2.png
+2026-10-20 18:04:37.368 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180437_captcha-no-tiles-attempt2.html
+2026-10-20 18:04:37.370 | INFO     | modules.auth:_log:3232 - auth: CAPTCHA grid disappeared — restarting login
+2026-10-20 18:04:58.946 | WARNING  | modules.auth:_submit_login:1299 - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+2026-10-20 18:04:59.849 | INFO     | modules.auth:_log:3232 - auth: password submitted
+2026-10-20 18:04:59.850 | INFO     | modules.auth:_perform_login:1037 - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/account/login
+2026-10-20 18:05:00.368 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180459_after-password-submit.png
+2026-10-20 18:05:00.397 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180500_after-password-submit.html
+2026-10-20 18:05:32.684 | WARNING  | modules.auth:_perform_login:1064 - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/account/login)
+2026-10-20 18:05:33.155 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180532_login-stalled-round1.png
+2026-10-20 18:05:33.183 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180533_login-stalled-round1.html
+2026-10-20 18:05:33.185 | INFO     | modules.auth:_is_logged_in:2980 - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login)
+2026-10-20 18:05:33.647 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180533_login-failed-attempt1.png
+2026-10-20 18:05:38.654 | INFO     | modules.auth:ensure_logged_in:921 - auth: logging in (attempt 2/2)
+2026-10-20 18:05:38.797 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-20 18:05:48.969 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'text' field is index 0 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:05:52.159 | INFO     | modules.auth:_fill_email:1155 - auth: email filled
+2026-10-20 18:05:52.167 | INFO     | modules.auth:_log:3232 - auth: email submitted
+2026-10-20 18:05:54.172 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-20 18:05:54.260 | INFO     | modules.auth:_click_verify:1256 - auth: clicked Verify via #btnVerify
+2026-10-20 18:05:55.693 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:05:57.719 | INFO     | modules.auth:_fill_password:1191 - auth: password filled (real input[type='password'])
+2026-10-20 18:05:57.720 | INFO     | modules.auth:_log:3232 - auth: password filled
+2026-10-20 18:05:57.721 | INFO     | modules.auth:_perform_login:1011 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZvAz7kPv9ljZ3weyNztmQeLFBDg0F8pv0%2Bxy9kqCRiHPhgpY05JgfnXqXBQSfid3FVLXm7qu9HDioIKr7MMysPs0eCy4nxAOh4LIOr%2FLx2kCE%2FKVrRyFRou8r9Mid1DP9w%3D
+2026-10-20 18:05:58.287 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180557_password-page-filled.png
+2026-10-20 18:05:58.320 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180558_password-page-filled.html
+2026-10-20 18:05:58.321 | INFO     | modules.auth:_perform_login:1019 - auth: checking for a CAPTCHA on the password page
+2026-10-20 18:05:58.349 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=34
+2026-10-20 18:05:58.350 | INFO     | modules.auth:solve_captcha:1350 - auth: CAPTCHA detected, attempting to solve
+2026-10-20 18:05:58.350 | INFO     | modules.auth:_log:3232 - auth: CAPTCHA detected — solving
+2026-10-20 18:05:58.859 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180558_captcha-before.png
+2026-10-20 18:05:58.896 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-180558_captcha-detected.html
+2026-10-20 18:05:59.240 | INFO     | modules.auth:_captcha_target:2533 - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 18:05:59.241 | INFO     | modules.auth:_captcha_target:2554 - auth: prompt 831 chosen (contrast=15.43, z-index=954, color=rgb(33, 37, 41))
+2026-10-20 18:05:59.241 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 18:05:59.242 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 1 of 4
+2026-10-20 18:05:59.244 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 831
+2026-10-20 18:05:59.245 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-20 18:05:59.246 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 34 (of 34 box-labels in the DOM)
+2026-10-20 18:05:59.246 | INFO     | modules.auth:_log:3232 - auth: captcha attempt 1: target=831, 9 visible tiles
+2026-10-20 18:05:59.247 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:njqtdqkmk, 2:ucxzdvd, 3:vvrczwntw, 4:hfovif, 5:nfwloxlc, 6:ipjsyp, 7:engnbns, 8:jmiyygeko, 9:feltwi
+2026-10-20 18:05:59.258 | INFO     | modules.auth:_screenshot_grid_element:1956 -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 18:05:59.270 | INFO     | modules.auth:_screenshot_grid:2090 -   grid clip       : x=497.48 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-20 18:06:00.367 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+2026-10-20 18:06:00.372 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 18:06:02.052 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 18:06:02.121 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.207 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.283 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.361 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.453 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.538 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.615 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.693 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:02.771 | INFO     | modules.vision:upscale_png:432 - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+2026-10-20 18:06:40.901 | INFO     | modules.vision:read_tiles_individually:198 - vision: per-tile reply '459,831,831,823,748,831,831,831,831'
+2026-10-20 18:06:40.903 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:459, 2:831, 3:831, 4:823, 5:748, 6:831, 7:831, 8:831, 9:831
+2026-10-20 18:06:40.904 | INFO     | modules.auth:solve_captcha:1519 -   matching 831      : positions [2, 3, 6, 7, 8, 9]
+2026-10-20 18:06:40.907 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [2, 3, 6, 7, 8, 9]
+2026-10-20 18:06:40.915 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 6 -> ['ucxzdvd', 'vvrczwntw', 'ipjsyp', 'engnbns', 'jmiyygeko', 'feltwi']
+2026-10-20 18:06:45.914 | INFO     | modules.auth:solve_captcha:1567 -   click results   :
+2026-10-20 18:06:45.915 | INFO     | modules.auth:solve_captcha:1569 -       id=ucxzdvd        number=None   clicked=True  img-selected=True
+2026-10-20 18:06:45.916 | INFO     | modules.auth:solve_captcha:1569 -       id=vvrczwntw      number=None   clicked=True  img-selected=True
+2026-10-20 18:06:45.916 | INFO     | modules.auth:solve_captcha:1569 -       id=ipjsyp         number=None   clicked=True  img-selected=True
+2026-10-20 18:06:45.918 | INFO     | modules.auth:solve_captcha:1569 -       id=engnbns        number=None   clicked=True  img-selected=True
+2026-10-20 18:06:45.919 | INFO     | modules.auth:solve_captcha:1569 -       id=jmiyygeko      number=None   clicked=True  img-selected=True
+2026-10-20 18:06:45.919 | INFO     | modules.auth:solve_captcha:1569 -       id=feltwi         number=None   clicked=True  img-selected=True
+2026-10-20 18:06:46.928 | INFO     | modules.auth:solve_captcha:1579 -   SelectedImages  : ''
+2026-10-20 18:06:46.929 | INFO     | modules.auth:solve_captcha:1587 -   expected ids    : ['engnbns', 'feltwi', 'ipjsyp', 'jmiyygeko', 'ucxzdvd', 'vvrczwntw']
+2026-10-20 18:06:46.929 | INFO     | modules.auth:solve_captcha:1595 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-20 18:06:47.502 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-180646_captcha-attempt1-before-submit.png
+2026-10-20 18:06:47.596 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+2026-10-20 18:06:47.612 | INFO     | modules.auth:_report_password_fields:2250 -   password boxes  : 1 of 10 filled (about to submit the captcha)
+2026-10-20 18:06:47.614 | INFO     | modules.auth:_report_password_fields:2256 -       gvdqcxe      filled=True  len=12  display=block  onScreen=True
+2026-10-20 18:06:47.615 | WARNING  | modules.auth:solve_captcha:1642 -   outcome         : STALE - grid is 49s old (limit 35s); refreshing instead of submitting a doomed answer
+2026-10-20 18:06:47.624 | INFO     | modules.auth:_clear_captcha_selection:2914 - auth: clearing 6 tile(s) left selected from the last try
+2026-10-20 18:06:47.632 | INFO     | modules.auth:_call_captcha_action:2741 - auth: captcha action onUndo() -> called
+2026-10-20 18:06:48.278 | INFO     | modules.auth:_call_captcha_action:2741 - auth: captcha action onReload() -> called
+2026-10-20 18:06:48.280 | INFO     | modules.auth:_reload_captcha:2190 - auth: requested a fresh captcha grid
+2026-10-20 18:06:48.408 | INFO     | modules.auth:_on_response:765 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-20 18:06:58.227 | WARNING  | modules.auth:_wait_for_captcha_tiles:2353 - auth: no captcha tiles rendered within 8s
+2026-10-20 18:06:59.384 | WARNING  | modules.auth:solve_captcha:1389 - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+2026-10-20 18:07:07.407 | INFO     | __main__:_run_with_state:708 - cancelled — shutting down
+2026-10-20 18:07:07.661 | INFO     | __main__:_main_inner:600 - interrupted by user

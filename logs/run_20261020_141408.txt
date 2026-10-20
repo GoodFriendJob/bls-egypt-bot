@@ -1,0 +1,44 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T14:14:08
+command : bot.py --headful
+python  : 3.12.7
+======================================================================
+14:14:08 | INFO    | __main__ - ==============================================================
+14:14:08 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+14:14:08 | INFO    | __main__ - run transcript: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\run_20261020_141408.txt
+14:14:08 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+14:14:08 | INFO    | __main__ - visa_type=Schengen visa poll_interval=90s
+14:14:08 | INFO    | __main__ - ==============================================================
+14:14:08 | WARNING | __main__ - config: telegram.token / telegram.chat_id missing — alerts disabled
+14:14:08 | WARNING | __main__ - config: openai.api_key is empty — CAPTCHAs cannot be solved automatically, the bot will pause for a manual solve instead
+14:14:08 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+14:14:08 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.jpg
+14:14:08 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+14:14:08 | WARNING | modules.notifier - notifier: telegram token/chat_id missing — log-only mode
+14:14:08 | WARNING | modules.vision - vision: openai.api_key is empty — automatic solving disabled
+14:14:08 | INFO    | modules.notifier - notifier (log-only): 🤖 Bot started
+Locations: ['Cairo', 'Alexandria'],
+Category: ['Normal']
+Appointment For: ['Individual'],
+Visa type: ['Schengen visa'],
+Visa sub type: ['Schengen Visa']
+Interval: 90s
+
+Send /help for commands.
+14:14:08 | WARNING | modules.monitor - ============================================================
+14:14:08 | WARNING | modules.monitor - CONFIG INCOMPLETE — 1 required applicant setting(s) are blank
+14:14:08 | WARNING | modules.monitor -   file: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\config.yaml
+14:14:08 | WARNING | modules.monitor -   Monitoring still works, but a booking CANNOT be completed: the portal will hold the half-finished appointment and refuse another for ~27 minutes.
+14:14:08 | WARNING | modules.monitor -   Add these under 'applicant:' (or in the dashboard):
+14:14:08 | WARNING | modules.monitor -       means_of_support: ""
+14:14:08 | WARNING | modules.monitor - ============================================================
+14:14:08 | INFO    | modules.notifier - notifier (log-only): 🔴 ERROR
+⚠️ 1 required applicant setting(s) are blank in config.yaml on this machine, so a booking cannot be completed:
+- means_of_support
+
+Fill them in the dashboard Settings tab.
+
+Next: monitoring continues; booking will stop short
+14:14:08 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+======================================================================
+finished: 2026-10-20T14:14:08

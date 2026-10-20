@@ -1,0 +1,663 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T18:02:30
+command : bot.py --headful
+python  : 3.12.7
+======================================================================
+18:02:30 | INFO    | __main__ - ==============================================================
+18:02:30 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+18:02:30 | INFO    | __main__ - run transcript: D:\bls-egypt-bot-master\logs\run_20261020_180230.txt
+18:02:30 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+18:02:30 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+18:02:30 | INFO    | __main__ - ==============================================================
+18:02:30 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.jpg
+18:02:30 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+18:02:32 | INFO    | modules.notifier - notifier: telegram listener started
+18:02:32 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+18:02:32 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+18:02:32 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot-master\logs\state.json
+18:02:34 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+18:02:34 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+18:02:34 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+18:02:35 | INFO    | modules.auth - auth: browser launched
+18:02:35 | INFO    | modules.auth - auth: no saved session — going straight to the login page
+18:02:35 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+18:02:36 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:02:47 | INFO    | modules.utils - find_real_input: real 'text' field is index 4 of 10 (parent div.mb-3 display:block)
+18:02:50 | INFO    | modules.auth - auth: email filled
+18:02:50 | INFO    | modules.auth - auth: email submitted
+18:02:52 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:02:52 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+18:02:56 | INFO    | modules.utils - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+18:02:58 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+18:02:58 | INFO    | modules.auth - auth: password filled
+18:02:58 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZu%2FOr3Pj9%2FMFjHQ4hGaBC5ESI%2BtgnYwOswzDQS1Md4c11keiL%2BcSLelRGZ9aCNLirS3QLT6ZNAJD1T5Cf26dSoGR6elo60N2Lrk%2FdPtFK3yhXzgdYUAw6c3fhkUOoQUqFo%3D
+18:02:58 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180258_password-page-filled.png
+18:02:59 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180258_password-page-filled.html
+18:02:59 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+18:02:59 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=39
+18:02:59 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:02:59 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:03:00 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180259_captcha-before.png
+18:03:00 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180300_captcha-detected.html
+18:03:00 | INFO    | modules.auth - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:03:00 | INFO    | modules.auth - auth: prompt 668 chosen (contrast=15.16, z-index=963, color=rgb(33, 37, 41))
+18:03:00 | INFO    | modules.auth - ------------------------------------------------------------
+18:03:00 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:03:00 | INFO    | modules.auth -   target number   : 668
+18:03:00 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+18:03:00 | INFO    | modules.auth -   visible labels  : 39 (of 39 box-labels in the DOM)
+18:03:00 | INFO    | modules.auth - auth: captcha attempt 1: target=668, 9 visible tiles
+18:03:00 | INFO    | modules.auth -   grid order      : 1:dwrvdb, 2:cyvet, 3:okmnanan, 4:waluyx, 5:rmpslbyxy, 6:rcasmar, 7:dkshzz, 8:ipalcwf, 9:tkakwspgp
+18:03:00 | INFO    | modules.auth -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:03:00 | INFO    | modules.auth -   grid clip       : x=827.23 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+18:03:02 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+18:03:02 | INFO    | modules.auth -   grid screenshot : FAILED
+18:03:04 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:03:04 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:05 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:05 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:05 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:06 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:06 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:06 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:06 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:03:06 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ink\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 753, in _network_loop_retry
+    if not await do_action():
+           ^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 747, in do_action
+    return action_cb_task.result()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_updater.py", line 377, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 649, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 4366, in get_updates
+    await self._post(
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 623, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\ext\_extbot.py", line 355, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\_bot.py", line 652, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 201, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_baserequest.py", line 333, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\bls-egypt-bot-master\.venv\Lib\site-packages\telegram\request\_httpxrequest.py", line 316, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+18:04:09 | INFO    | modules.vision - vision: per-tile reply '758,668,445,668,668,668,668,668,950'
+18:04:09 | INFO    | modules.auth -   tiles read      : 1:758, 2:668, 3:445, 4:668, 5:668, 6:668, 7:668, 8:668, 9:950
+18:04:09 | INFO    | modules.auth -   matching 668      : positions [2, 4, 5, 6, 7, 8]
+18:04:09 | INFO    | modules.auth -   vision positions: [2, 4, 5, 6, 7, 8]
+18:04:09 | INFO    | modules.auth -   matched tiles   : 6 -> ['cyvet', 'waluyx', 'rmpslbyxy', 'rcasmar', 'dkshzz', 'ipalcwf']
+18:04:14 | INFO    | modules.auth -   click results   :
+18:04:14 | INFO    | modules.auth -       id=cyvet          number=None   clicked=True  img-selected=True
+18:04:14 | INFO    | modules.auth -       id=waluyx         number=None   clicked=True  img-selected=True
+18:04:14 | INFO    | modules.auth -       id=rmpslbyxy      number=None   clicked=True  img-selected=True
+18:04:14 | INFO    | modules.auth -       id=rcasmar        number=None   clicked=True  img-selected=True
+18:04:14 | INFO    | modules.auth -       id=dkshzz         number=None   clicked=True  img-selected=True
+18:04:14 | INFO    | modules.auth -       id=ipalcwf        number=None   clicked=True  img-selected=True
+18:04:15 | INFO    | modules.auth -   SelectedImages  : ''
+18:04:15 | INFO    | modules.auth -   expected ids    : ['cyvet', 'dkshzz', 'ipalcwf', 'rcasmar', 'rmpslbyxy', 'waluyx']
+18:04:15 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:04:16 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180415_captcha-attempt1-before-submit.png
+18:04:16 | INFO    | modules.utils - find_real_input: real 'password' field is index 1 of 10 (parent div.mb-3 display:block)
+18:04:16 | INFO    | modules.auth -   password boxes  : 1 of 10 filled (about to submit the captcha)
+18:04:16 | INFO    | modules.auth -       pttmu        filled=True  len=12  display=block  onScreen=True
+18:04:16 | WARNING | modules.auth -   outcome         : STALE - grid is 77s old (limit 35s); refreshing instead of submitting a doomed answer
+18:04:16 | INFO    | modules.auth - auth: clearing 6 tile(s) left selected from the last try
+18:04:16 | INFO    | modules.auth - auth: captcha action onUndo() -> called
+18:04:16 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:04:16 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:04:16 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:04:26 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:04:28 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+18:04:36 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:04:36 | ERROR   | modules.auth - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+18:04:37 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180436_captcha-no-tiles-attempt2.png
+18:04:37 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180437_captcha-no-tiles-attempt2.html
+18:04:37 | INFO    | modules.auth - auth: CAPTCHA grid disappeared — restarting login
+18:04:58 | WARNING | modules.auth - auth: no /Global/account/LoginSubmit response within 20s — the login POST does not appear to have fired (a captcha or validation error may be blocking the form)
+18:04:59 | INFO    | modules.auth - auth: password submitted
+18:04:59 | INFO    | modules.auth - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/account/login
+18:05:00 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180459_after-password-submit.png
+18:05:00 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180500_after-password-submit.html
+18:05:32 | WARNING | modules.auth - auth: 30s timeout — no CAPTCHA and no success URL (still at https://egypt.blsspainglobal.com/Global/account/login)
+18:05:33 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180532_login-stalled-round1.png
+18:05:33 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180533_login-stalled-round1.html
+18:05:33 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login)
+18:05:33 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180533_login-failed-attempt1.png
+18:05:38 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+18:05:38 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+18:05:48 | INFO    | modules.utils - find_real_input: real 'text' field is index 0 of 10 (parent div.mb-3 display:block)
+18:05:52 | INFO    | modules.auth - auth: email filled
+18:05:52 | INFO    | modules.auth - auth: email submitted
+18:05:54 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:05:54 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+18:05:55 | INFO    | modules.utils - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+18:05:57 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+18:05:57 | INFO    | modules.auth - auth: password filled
+18:05:57 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZvAz7kPv9ljZ3weyNztmQeLFBDg0F8pv0%2Bxy9kqCRiHPhgpY05JgfnXqXBQSfid3FVLXm7qu9HDioIKr7MMysPs0eCy4nxAOh4LIOr%2FLx2kCE%2FKVrRyFRou8r9Mid1DP9w%3D
+18:05:58 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180557_password-page-filled.png
+18:05:58 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180558_password-page-filled.html
+18:05:58 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+18:05:58 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=34
+18:05:58 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+18:05:58 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+18:05:58 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180558_captcha-before.png
+18:05:58 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-180558_captcha-detected.html
+18:05:59 | INFO    | modules.auth - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+18:05:59 | INFO    | modules.auth - auth: prompt 831 chosen (contrast=15.43, z-index=954, color=rgb(33, 37, 41))
+18:05:59 | INFO    | modules.auth - ------------------------------------------------------------
+18:05:59 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+18:05:59 | INFO    | modules.auth -   target number   : 831
+18:05:59 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+18:05:59 | INFO    | modules.auth -   visible labels  : 34 (of 34 box-labels in the DOM)
+18:05:59 | INFO    | modules.auth - auth: captcha attempt 1: target=831, 9 visible tiles
+18:05:59 | INFO    | modules.auth -   grid order      : 1:njqtdqkmk, 2:ucxzdvd, 3:vvrczwntw, 4:hfovif, 5:nfwloxlc, 6:ipjsyp, 7:engnbns, 8:jmiyygeko, 9:feltwi
+18:05:59 | INFO    | modules.auth -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+18:05:59 | INFO    | modules.auth -   grid clip       : x=497.48 y=149.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+18:06:00 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+18:06:00 | INFO    | modules.auth -   grid screenshot : FAILED
+18:06:02 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:02 | INFO    | modules.vision - vision: upscaled grid 224x220 -> 672x660 (x3, LANCZOS)
+18:06:40 | INFO    | modules.vision - vision: per-tile reply '459,831,831,823,748,831,831,831,831'
+18:06:40 | INFO    | modules.auth -   tiles read      : 1:459, 2:831, 3:831, 4:823, 5:748, 6:831, 7:831, 8:831, 9:831
+18:06:40 | INFO    | modules.auth -   matching 831      : positions [2, 3, 6, 7, 8, 9]
+18:06:40 | INFO    | modules.auth -   vision positions: [2, 3, 6, 7, 8, 9]
+18:06:40 | INFO    | modules.auth -   matched tiles   : 6 -> ['ucxzdvd', 'vvrczwntw', 'ipjsyp', 'engnbns', 'jmiyygeko', 'feltwi']
+18:06:45 | INFO    | modules.auth -   click results   :
+18:06:45 | INFO    | modules.auth -       id=ucxzdvd        number=None   clicked=True  img-selected=True
+18:06:45 | INFO    | modules.auth -       id=vvrczwntw      number=None   clicked=True  img-selected=True
+18:06:45 | INFO    | modules.auth -       id=ipjsyp         number=None   clicked=True  img-selected=True
+18:06:45 | INFO    | modules.auth -       id=engnbns        number=None   clicked=True  img-selected=True
+18:06:45 | INFO    | modules.auth -       id=jmiyygeko      number=None   clicked=True  img-selected=True
+18:06:45 | INFO    | modules.auth -       id=feltwi         number=None   clicked=True  img-selected=True
+18:06:46 | INFO    | modules.auth -   SelectedImages  : ''
+18:06:46 | INFO    | modules.auth -   expected ids    : ['engnbns', 'feltwi', 'ipjsyp', 'jmiyygeko', 'ucxzdvd', 'vvrczwntw']
+18:06:46 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+18:06:47 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-180646_captcha-attempt1-before-submit.png
+18:06:47 | INFO    | modules.utils - find_real_input: real 'password' field is index 0 of 10 (parent div.mb-3 display:block)
+18:06:47 | INFO    | modules.auth -   password boxes  : 1 of 10 filled (about to submit the captcha)
+18:06:47 | INFO    | modules.auth -       gvdqcxe      filled=True  len=12  display=block  onScreen=True
+18:06:47 | WARNING | modules.auth -   outcome         : STALE - grid is 49s old (limit 35s); refreshing instead of submitting a doomed answer
+18:06:47 | INFO    | modules.auth - auth: clearing 6 tile(s) left selected from the last try
+18:06:47 | INFO    | modules.auth - auth: captcha action onUndo() -> called
+18:06:48 | INFO    | modules.auth - auth: captcha action onReload() -> called
+18:06:48 | INFO    | modules.auth - auth: requested a fresh captcha grid
+18:06:48 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+18:06:58 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+18:06:59 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+18:07:07 | INFO    | __main__ - cancelled — shutting down
+======================================================================
+finished: 2026-10-20T18:07:07

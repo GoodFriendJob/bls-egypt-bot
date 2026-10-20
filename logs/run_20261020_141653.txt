@@ -1,0 +1,35 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T14:16:53
+command : bot.py --headful
+python  : 3.12.7
+======================================================================
+14:16:53 | INFO    | __main__ - ==============================================================
+14:16:53 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+14:16:53 | INFO    | __main__ - run transcript: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\run_20261020_141653.txt
+14:16:53 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+14:16:53 | INFO    | __main__ - visa_type=Schengen visa poll_interval=90s
+14:16:53 | INFO    | __main__ - ==============================================================
+14:16:53 | WARNING | __main__ - config: telegram.token / telegram.chat_id missing — alerts disabled
+14:16:53 | WARNING | __main__ - config: openai.api_key is empty — CAPTCHAs cannot be solved automatically, the bot will pause for a manual solve instead
+14:16:53 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+14:16:53 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.jpg
+14:16:53 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+14:16:53 | WARNING | modules.notifier - notifier: telegram token/chat_id missing — log-only mode
+14:16:53 | WARNING | modules.vision - vision: openai.api_key is empty — automatic solving disabled
+14:16:53 | INFO    | modules.notifier - notifier (log-only): 🤖 Bot started
+Locations: ['Cairo', 'Alexandria'],
+Category: ['Normal']
+Appointment For: ['Individual'],
+Visa type: ['Schengen visa'],
+Visa sub type: ['Schengen Visa']
+Interval: 90s
+
+Send /help for commands.
+14:16:53 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+14:16:53 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+14:16:53 | INFO    | __main__ - dashboard bridge: publishing status to C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\state.json
+14:16:53 | INFO    | modules.auth - auth: browser closed
+14:16:53 | INFO    | modules.notifier - notifier (log-only): 🛑 Bot stopped.
+14:16:53 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-20T14:16:53

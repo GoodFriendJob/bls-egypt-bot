@@ -1,0 +1,29 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T14:20:31
+command : C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\bot.py --config C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\config.yaml
+python  : 3.12.7
+======================================================================
+14:20:31 | INFO    | __main__ - ==============================================================
+14:20:31 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+14:20:31 | INFO    | __main__ - run transcript: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\run_20261020_142031.txt
+14:20:31 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+14:20:31 | INFO    | __main__ - visa_type=Schengen visa poll_interval=90s
+14:20:31 | INFO    | __main__ - ==============================================================
+14:20:31 | WARNING | __main__ - config: openai.api_key is empty — CAPTCHAs cannot be solved automatically, the bot will pause for a manual solve instead
+14:20:31 | WARNING | __main__ - config: otp.method is 'email' but imap_user/imap_pass are empty
+14:20:31 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.jpg
+14:20:31 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+14:20:31 | WARNING | modules.vision - vision: openai.api_key is empty — automatic solving disabled
+14:20:33 | INFO    | modules.notifier - notifier: telegram listener started
+14:20:33 | WARNING | modules.notifier - notifier: send to @bls_monitor_777_bot failed: Forbidden: the bot can't send messages to the bot
+14:20:33 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+14:20:33 | WARNING | __main__ - config: headless is true — the browser runs invisibly, so the live video check and the payment CANNOT be completed. Set headless: false for an unattended run that is meant to finish a booking.
+14:20:33 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+14:20:33 | INFO    | __main__ - dashboard bridge: publishing status to C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\state.json
+14:20:35 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+14:20:35 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+14:20:35 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+14:20:36 | INFO    | modules.auth - auth: browser launched
+14:20:36 | INFO    | modules.auth - auth: no saved session — going straight to the login page
+14:20:36 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+14:20:44 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification

@@ -1,0 +1,36 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T15:37:20
+command : bot.py --headful --once
+python  : 3.12.7
+======================================================================
+15:37:21 | INFO    | __main__ - ==============================================================
+15:37:21 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+15:37:21 | INFO    | __main__ - run transcript: C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\run_20261020_153720.txt
+15:37:21 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+15:37:21 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+15:37:21 | INFO    | __main__ - ==============================================================
+15:37:21 | WARNING | __main__ - config: document 'passport_scan' not found at docs/passport.jpg
+15:37:21 | WARNING | __main__ - config: document 'photo' not found at docs/photo.jpg
+15:37:23 | INFO    | modules.notifier - notifier: telegram listener started
+15:37:23 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+15:37:23 | INFO    | __main__ - single-cycle mode (--once)
+15:37:23 | INFO    | __main__ - dashboard bridge: publishing status to C:\Users\ink\Downloads\bls-egypt-bot-master\bls-egypt-bot-master\logs\state.json
+15:37:26 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+15:37:26 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+15:37:26 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+15:37:28 | INFO    | modules.auth - auth: browser launched
+15:37:28 | INFO    | modules.auth - auth: no saved session — going straight to the login page
+15:37:28 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+15:37:30 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+15:37:33 | WARNING | modules.auth - auth: login attempt failed: Page.goto: Target page, context or browser has been closed
+Call log:
+navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification", waiting until "domcontentloaded"
+
+15:37:33 | WARNING | modules.utils - screenshot failed (login-failed-attempt1): Page.screenshot: Target page, context or browser has been closed
+15:37:38 | INFO    | modules.auth - auth: logging in (attempt 2/2)
+15:37:38 | WARNING | modules.auth - auth: login attempt failed: Page.goto: Target page, context or browser has been closed
+15:37:38 | WARNING | modules.utils - screenshot failed (login-failed-attempt2): Page.screenshot: Target page, context or browser has been closed
+15:37:38 | INFO    | modules.auth - auth: Login failed after 2 attempt(s): Page.goto: Target page, context or browser has been closed
+15:37:39 | INFO    | __main__ - cancelled — shutting down
+======================================================================
+finished: 2026-10-20T15:37:39
