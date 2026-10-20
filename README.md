@@ -414,6 +414,22 @@ Any of these:
 
 To start it again: `start.bat`, or the **Start** button on the dashboard.
 
+### Starting completely fresh
+
+If the bot says it is waiting before its first attempt —
+
+```
+portal blocked us recently — the loop will wait 58 min before its first attempt
+```
+
+— it is remembering that the website refused this computer, and holding off so
+the refusal does not get worse. **Double-click `reset.bat`** to forget that, and
+the saved login with it, so the next `start.bat` begins straight away.
+
+> Only do that on a **different computer or a different internet connection**.
+> On the one that was just refused, starting again immediately is what turns a
+> short block into a long one — the wait is doing its job.
+
 ---
 
 ## 8. The dashboard
@@ -617,7 +633,8 @@ python bot.py --config other.yaml a different settings file
 | `start_headful.bat` | `python bot.py --headful --once` — one check, for debugging |
 | `dashboard.bat` | `python -m dashboard.server` |
 | `stop.bat` | terminates the bot process |
-| `push_logs.bat` | commits and pushes `logs/` |
+| `reset.bat` | deletes `session/cookies.json` and `logs/cooldown.json` |
+| `push_logs.bat` | commits and pushes the run transcripts; `push_logs.bat all` adds screenshots and page dumps |
 
 ## Settings worth knowing
 
@@ -767,7 +784,8 @@ start.bat              start the bot (visible browser)
 start_headful.bat      one check, for debugging
 dashboard.bat          open the web panel
 stop.bat               stop the bot
-push_logs.bat          send logs to GitHub
+reset.bat              forget the saved login and the block timer
+push_logs.bat          send the logs (add "all" for screenshots)
 
 http://127.0.0.1:5000  the dashboard
 
