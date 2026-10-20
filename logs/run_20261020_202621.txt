@@ -1,0 +1,106 @@
+BLS appointment bot - run transcript
+started : 2026-10-20T20:26:21
+command : bot.py --headful
+python  : 3.12.7
+======================================================================
+20:26:21 | INFO    | __main__ - ==============================================================
+20:26:21 | INFO    | __main__ - BLS Spain Egypt appointment bot starting
+20:26:21 | INFO    | __main__ - run transcript: D:\bls-egypt-bot-master\logs\run_20261020_202621.txt
+20:26:21 | INFO    | __main__ - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+20:26:21 | INFO    | __main__ - visa_type=['Schengen visa', 'National Visa'] poll_interval=90s
+20:26:21 | INFO    | __main__ - ==============================================================
+20:26:21 | WARNING | __main__ - config: document 'passport_scan' not found at D:\bls-egypt-bot-master\docs\passport.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean passport.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+20:26:21 | WARNING | __main__ - config: document 'photo' not found at D:\bls-egypt-bot-master\docs\photo.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean photo.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+20:26:23 | INFO    | modules.notifier - notifier: telegram listener started
+20:26:23 | INFO    | modules.monitor - config: all 55 applicant field(s) the form requires have values
+20:26:23 | INFO    | modules.monitor - monitor: watching ['cairo', 'alexandria'] every 90.0s
+20:26:23 | INFO    | __main__ - dashboard bridge: publishing status to D:\bls-egypt-bot-master\logs\state.json
+20:26:25 | INFO    | modules.auth - auth: restoring session from session\cookies.json
+20:26:26 | INFO    | modules.auth - auth: stealth disabled (recommended for this portal)
+20:26:26 | INFO    | modules.auth - auth: http->https upgrade route installed (regex)
+20:26:26 | INFO    | modules.auth - auth: captcha frame route installed (redirects followed here)
+20:26:27 | INFO    | modules.auth - auth: browser launched
+20:26:31 | INFO    | modules.auth - auth: [net] 307 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+20:26:31 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Account/LogIn?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+20:26:37 | INFO    | modules.auth - auth: not logged in — still on the login page (https://egypt.blsspainglobal.com/global/account/login?returnurl=%2fglobal%2fbls%2fvisatypeverification)
+20:26:37 | INFO    | modules.auth - auth: logging in (attempt 1/2)
+20:26:37 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+20:26:49 | INFO    | modules.utils - find_real_input: real 'text' field is index 9 of 10 (parent div.mb-3 display:block)
+20:26:53 | INFO    | modules.auth - auth: email filled
+20:26:53 | INFO    | modules.auth - auth: email submitted
+20:26:56 | INFO    | modules.auth - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+20:26:56 | INFO    | modules.auth - auth: clicked Verify via #btnVerify
+20:26:59 | INFO    | modules.utils - find_real_input: real 'password' field is index 9 of 10 (parent div.mb-3 display:block)
+20:27:01 | INFO    | modules.auth - auth: password filled (real input[type='password'])
+20:27:01 | INFO    | modules.auth - auth: password filled
+20:27:01 | INFO    | modules.auth - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZsLRvsgw5t4rrijMkekM3XuoJJO4olxFj%2FQcQf8rpulEch%2BxvaFa4lFt9y%2BdXy7ok6d%2FZHaignxIxbOLCl8sWVVFMRi%2Bb7ULq5olzpQBUxbpP%2F7qfP%2FivBRW1OzyWD56wU%3D
+20:27:02 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-202701_password-page-filled.png
+20:27:02 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-202702_password-page-filled.html
+20:27:02 | INFO    | modules.auth - auth: checking for a CAPTCHA on the password page
+20:27:02 | INFO    | modules.auth - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=39
+20:27:02 | INFO    | modules.auth - auth: CAPTCHA detected, attempting to solve
+20:27:02 | INFO    | modules.auth - auth: CAPTCHA detected — solving
+20:27:02 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-202702_captcha-before.png
+20:27:03 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-202702_captcha-detected.html
+20:27:03 | INFO    | modules.auth - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+20:27:03 | INFO    | modules.auth - auth: prompt 298 chosen (contrast=14.38, z-index=994, color=rgb(33, 37, 41))
+20:27:03 | INFO    | modules.auth - ------------------------------------------------------------
+20:27:03 | INFO    | modules.auth - CAPTCHA attempt 1 of 4
+20:27:03 | INFO    | modules.auth -   target number   : 298
+20:27:03 | INFO    | modules.auth -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+20:27:03 | INFO    | modules.auth -   visible labels  : 39 (of 39 box-labels in the DOM)
+20:27:03 | INFO    | modules.auth - auth: captcha attempt 1: target=298, 9 visible tiles
+20:27:03 | INFO    | modules.auth -   grid order      : 1:fhezr, 2:kyfnsqxoh, 3:ugpvs, 4:vonlgkfoy, 5:kwkry, 6:oomkpp, 7:qhskd, 8:piainxyv, 9:bnvbu
+20:27:03 | INFO    | modules.auth -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+20:27:03 | INFO    | modules.auth -   grid clip       : x=156.98 y=273.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+20:27:04 | INFO    | modules.vision - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+20:27:04 | INFO    | modules.auth -   grid screenshot : FAILED
+20:27:06 | INFO    | modules.auth -   tile capture    : 9 element screenshot(s)
+20:27:06 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:27:08 | INFO    | modules.vision - vision: upscaled grid 226x220 -> 678x660 (x3, LANCZOS)
+20:28:10 | INFO    | modules.vision - vision: per-tile reply '298,298,202,668,298,298,298,673,298'
+20:28:10 | INFO    | modules.auth -   tiles read      : 1:298, 2:298, 3:202, 4:668, 5:298, 6:298, 7:298, 8:673, 9:298
+20:28:10 | INFO    | modules.auth -   matching 298      : positions [1, 2, 5, 6, 7, 9]
+20:28:10 | INFO    | modules.auth -   vision positions: [1, 2, 5, 6, 7, 9]
+20:28:10 | INFO    | modules.auth -   matched tiles   : 6 -> ['fhezr', 'kyfnsqxoh', 'kwkry', 'oomkpp', 'qhskd', 'bnvbu']
+20:28:15 | INFO    | modules.auth -   click results   :
+20:28:15 | INFO    | modules.auth -       id=fhezr          number=None   clicked=True  img-selected=True
+20:28:15 | INFO    | modules.auth -       id=kyfnsqxoh      number=None   clicked=True  img-selected=True
+20:28:15 | INFO    | modules.auth -       id=kwkry          number=None   clicked=True  img-selected=True
+20:28:15 | INFO    | modules.auth -       id=oomkpp         number=None   clicked=True  img-selected=True
+20:28:15 | INFO    | modules.auth -       id=qhskd          number=None   clicked=True  img-selected=True
+20:28:15 | INFO    | modules.auth -       id=bnvbu          number=None   clicked=True  img-selected=True
+20:28:16 | INFO    | modules.auth -   SelectedImages  : ''
+20:28:16 | INFO    | modules.auth -   expected ids    : ['bnvbu', 'fhezr', 'kwkry', 'kyfnsqxoh', 'oomkpp', 'qhskd']
+20:28:16 | INFO    | modules.auth -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+20:28:16 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-202816_captcha-attempt1-before-submit.png
+20:28:17 | INFO    | modules.utils - find_real_input: real 'password' field is index 9 of 10 (parent div.mb-3 display:block)
+20:28:17 | INFO    | modules.auth -   password boxes  : 1 of 10 filled (about to submit the captcha)
+20:28:17 | INFO    | modules.auth -       mgojhuqo     filled=True  len=12  display=block  onScreen=True
+20:28:17 | WARNING | modules.auth -   outcome         : STALE - grid is 75s old (limit 35s); refreshing instead of submitting a doomed answer
+20:28:17 | INFO    | modules.auth - auth: clearing 6 tile(s) left selected from the last try
+20:28:17 | INFO    | modules.auth - auth: captcha action onUndo() -> called
+20:28:17 | INFO    | modules.auth - auth: captcha action onReload() -> called
+20:28:17 | INFO    | modules.auth - auth: requested a fresh captcha grid
+20:28:18 | INFO    | modules.auth - auth: [net] 302 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+20:28:19 | WARNING | modules.auth - auth: captcha DOM scan failed: Page.evaluate: Execution context was destroyed, most likely because of a navigation
+20:28:28 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+20:28:30 | WARNING | modules.auth - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+20:28:39 | WARNING | modules.auth - auth: no captcha tiles rendered within 8s
+20:28:39 | ERROR   | modules.auth - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+20:28:39 | INFO    | modules.utils - screenshot saved: logs\screenshots\20261020-202839_captcha-no-tiles-attempt2.png
+20:28:39 | INFO    | modules.utils - DOM dumped: logs\dom\20261020-202839_captcha-no-tiles-attempt2.html
+20:28:39 | INFO    | modules.auth - auth: CAPTCHA grid disappeared — restarting login
+20:28:59 | INFO    | __main__ - cancelled — shutting down
+20:29:00 | INFO    | modules.auth - auth: browser closed
+20:29:05 | INFO    | modules.notifier - notifier: telegram listener stopped
+20:29:05 | INFO    | __main__ - shutdown complete
+======================================================================
+finished: 2026-10-20T20:29:05
