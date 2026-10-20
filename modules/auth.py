@@ -1606,7 +1606,15 @@ class BLSAuth:
                 logger.info("  SelectedImages  : matches the intended selection")
 
             # Visual record of the selection actually made, before submitting.
-            await utils.screenshot(page, f"captcha-attempt{attempt}-before-submit")
+            # VIEWPORT ONLY. A full-page capture resizes the viewport to the
+            # document height and back, the page's resize handler re-renders
+            # the grid, and the tiles just chosen come back unselected -- the
+            # picture taken to prove the answer was the thing undoing it. It
+            # depends on screen height, which is why one machine could work
+            # and another fail on the same build.
+            await utils.screenshot(
+                page, f"captcha-attempt{attempt}-before-submit", full_page=False
+            )
 
             if not clicked_ok:
                 logger.warning(
@@ -1644,6 +1652,34 @@ class BLSAuth:
                 return False
 
             logger.info(f"  grid age        : {age:.1f}s (limit {CAPTCHA_MAX_AGE:.0f}s)")
+
+            # Last look before committing. Anything that re-renders the grid
+            # between choosing and submitting -- a resize, a timer, the portal
+            # swapping the challenge -- leaves the page holding no selection
+            # at all, and the submit then goes up empty and comes back
+            # "invalid" with the answer having been right. Re-click what was
+            # lost; if the grid itself has been replaced, start the attempt
+            # again on the new one rather than answering the old question.
+            state = await self._reselect_lost_tiles(ctx, matched_ids)
+            if state == "replaced":
+                logger.warning(
+                    "  outcome         : the grid was replaced before submit — "
+                    "reading the new one"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._wait_for_captcha_tiles(ctx)
+                    self._captcha_issued_at = time.monotonic()
+                    continue
+                return False
+            if state == "lost":
+                logger.error(
+                    "  outcome         : the selection could not be restored — "
+                    "not submitting an empty answer"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._clear_captcha_selection(ctx)
+                    continue
+                return False
             # On the LOGIN captcha page the submit button belongs to the login
             # form and is the correct target. Only the verification modal
             # (solved inside the GenerateCaptcha iframe) must avoid it, where a
@@ -2316,6 +2352,71 @@ class BLSAuth:
             waited += step
         logger.warning(f"auth: no captcha tiles rendered within {timeout:.0f}s")
         return []
+
+    # Are the tiles we chose still chosen? Re-click any that are not.
+    #
+    # Clicking the IMG is what the page listens to -- Select(id, img) is wired
+    # to it -- and the class it adds is the authoritative signal that the page
+    # registered the choice.
+    _RESELECT_JS = r"""
+    ({ ids, selectedClass }) => {
+      const out = { missing: [], restored: [], gone: [], selected: 0 };
+      for (const id of ids) {
+        const host = document.getElementById(id);
+        if (!host) { out.gone.push(id); continue; }
+        const img = host.matches('img') ? host : host.querySelector('img');
+        const target = img || host;
+        if (target.classList.contains(selectedClass)) continue;
+        out.missing.push(id);
+        target.click();
+      }
+      // Count what is selected now, across the whole challenge.
+      out.selected = document.querySelectorAll('.' + selectedClass).length;
+      for (const id of out.missing) {
+        const host = document.getElementById(id);
+        const img = host && (host.matches('img') ? host : host.querySelector('img'));
+        if (img && img.classList.contains(selectedClass)) out.restored.push(id);
+      }
+      return out;
+    }
+    """
+
+    async def _reselect_lost_tiles(self, ctx: Any, ids: list[str]) -> str:
+        """Confirm the chosen tiles are still selected; put back any that are not.
+
+        Returns "ok", "replaced" (the grid is a different one now) or "lost"
+        (the tiles are there but will not take the selection).
+        """
+        wanted = [i for i in ids if i and i != "?"]
+        if not wanted:
+            return "ok"
+        try:
+            report = await ctx.evaluate(
+                self._RESELECT_JS,
+                {"ids": wanted, "selectedClass": CAPTCHA_SELECTED_CLASS},
+            )
+        except Exception as exc:
+            logger.debug(f"auth: could not re-check the selection: {exc}")
+            return "ok"
+
+        gone = report.get("gone") or []
+        missing = report.get("missing") or []
+        restored = report.get("restored") or []
+
+        if len(gone) == len(wanted):
+            return "replaced"
+        if not missing:
+            return "ok"
+
+        logger.warning(
+            f"  selection lost  : {len(missing)} tile(s) had come unselected "
+            f"before submit — {len(restored)} put back"
+        )
+        if len(restored) + (len(missing) - len(restored) - len(gone)) < len(missing):
+            # Some could not be restored; only submit a complete answer.
+            if not restored:
+                return "lost"
+        return "ok"
 
     async def _captcha_present(self, page: Page) -> bool:
         """True while a captcha challenge is on screen."""

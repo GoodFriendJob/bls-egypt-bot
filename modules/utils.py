@@ -667,12 +667,19 @@ def _safe_name(label: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", label)[:60] or "page"
 
 
-async def screenshot(page: Any, label: str) -> str | None:
-    """Save a full-page screenshot to logs/screenshots and return its path."""
+async def screenshot(page: Any, label: str, *, full_page: bool = True) -> str | None:
+    """Save a screenshot to logs/screenshots and return its path.
+
+    ``full_page=False`` captures only the viewport. Use it when the page must
+    not be disturbed: a FULL-PAGE capture resizes the viewport to the document
+    height and restores it afterwards, and that fires the page's own resize
+    handlers. On the captcha page that wipes the tile selection -- the picture
+    taken to record the answer was destroying it.
+    """
     try:
         SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
         path = SCREENSHOT_DIR / f"{_stamp()}_{_safe_name(label)}.png"
-        await page.screenshot(path=str(path), full_page=True)
+        await page.screenshot(path=str(path), full_page=full_page)
         logger.info(f"screenshot saved: {path}")
         return str(path)
     except Exception as exc:
