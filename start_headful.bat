@@ -51,14 +51,14 @@ if %BOTCOUNT% GTR 0 (
 echo -----------------------------------------------------------
 echo.
 
-call ".venv\Scripts\activate.bat"
-if errorlevel 1 (
-    echo [ERROR] Could not activate the virtual environment.
-    echo Please run install.bat again.
-    goto :end
-)
+REM Call the venv's python DIRECTLY rather than activating it first.
+REM activate.bat bakes in the venv's ABSOLUTE path, so moving or renaming
+REM this folder leaves it pointing somewhere that no longer exists; PATH
+REM then falls through to the system python and the bot dies on
+REM "No module named 'yaml'". python.exe finds its own pyvenv.cfg relative
+REM to itself, so called by path it keeps working wherever the folder is.
 
-python bot.py --headful --once
+".venv\Scripts\python.exe" bot.py --headful --once
 
 echo.
 echo -----------------------------------------------------------
