@@ -176,7 +176,12 @@
       "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_stale_grid.py\")",
       "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_modal_fit.py\")",
       "Bash(./.venv/Scripts/python.exe -m compileall -q bot.py modules/ dashboard/)",
-      "Bash(git commit -q -m 'fix: make the tile reading land while the grid is still alive *)"
+      "Bash(git commit -q -m 'fix: make the tile reading land while the grid is still alive *)",
+      "PowerShell(powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\e--Work-bls-egypt-bot\\\\3731ba36-de56-4f32-9966-1d3d4c2c1235\\\\scratchpad\\\\check_push_guard.ps1\")",
+      "Bash(git commit -q -m 'fix: weigh the pictures before committing to an upload that cannot finish *)",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/grade_native.py\")",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_budget.py\")",
+      "Bash(git commit -q -m 'fix: fit the whole captcha round inside the grid'\\\\''s life *)"
     ],
     "additionalDirectories": [
       "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"

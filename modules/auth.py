@@ -174,7 +174,12 @@ CAPTCHA_MAX_ATTEMPTS = 4
 # costs a GenerateCaptcha request and the portal only allows a few of those per
 # session -- the 4th in two minutes came back 403 (run 20261013_044241).
 CAPTCHA_MAX_AGE = 35.0
-CAPTCHA_CLICK_DELAY = 0.8          # between tile clicks
+# Between tile clicks. This is spent INSIDE the grid's ~35s life, and six
+# matching tiles is normal, so 0.8s each was costing nearly 5s of the budget
+# that run_20261020_205107 then missed by 3s. The page's Select() handler is
+# synchronous and each click is confirmed by img-selected before the next one,
+# so the delay only has to look unmechanical, not wait for anything.
+CAPTCHA_CLICK_DELAY = 0.25         # between tile clicks
 CAPTCHA_SELECT_CONFIRM_MS = 2000   # wait for img-selected before moving on
 CAPTCHA_PRE_SUBMIT_WAIT = 1.0      # settle time after the last click
 
@@ -1461,18 +1466,29 @@ class BLSAuth:
                 )
 
             grid_png = await self._screenshot_grid(ctx, ordered, attempt, shot_page=page, offset=offset)
-            # Save exactly what the model is sent (upscaled), not the raw crop —
-            # otherwise the audit image and the model's input differ.
-            sample = vision.save_sample(
-                vision.upscale_png(grid_png),
-                f"{_sample_stamp()}_target{target}_attempt{attempt}",
-                enabled=bool(
-                    (self.config.get("logging", {}) or {}).get(
-                        "save_captcha_samples", False
-                    )
-                ),
+            # Only pay for the audit image if it is going to be kept. The 3x
+            # LANCZOS enlargement of a 702x700 grid is ~4.4M pixels and it was
+            # running on every attempt even with sampling switched off, which
+            # is seconds of a budget measured in tens of them — and then the
+            # line read "grid screenshot : FAILED", which looked like a broken
+            # capture rather than a disabled setting.
+            keep_samples = bool(
+                (self.config.get("logging", {}) or {}).get(
+                    "save_captcha_samples", False
+                )
             )
-            logger.info(f"  grid screenshot : {sample or 'FAILED'}")
+            sample = None
+            if keep_samples:
+                # Save exactly what the model is sent, not the raw crop —
+                # otherwise the audit image and the model's input differ.
+                sample = vision.save_sample(
+                    vision.upscale_png(grid_png),
+                    f"{_sample_stamp()}_target{target}_attempt{attempt}",
+                    enabled=True,
+                )
+                logger.info(f"  grid screenshot : {sample or 'FAILED'}")
+            elif not grid_png:
+                logger.info("  grid screenshot : none (per-tile capture only)")
 
             if not grid_png:
                 logger.warning(

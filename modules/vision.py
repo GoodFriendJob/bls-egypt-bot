@@ -499,10 +499,17 @@ def encode_for_upload(
 
     At ``detail: "high"`` the API resamples the image so its short side is 768px
     before it ever looks at it, so pixels beyond that are uploaded only to be
-    thrown away. Scaling to 768 ourselves with LANCZOS and encoding as JPEG
-    keeps the resolution the model sees identical while cutting the upload by
-    more than ten times. Graded against the human labels in
-    ``logs/captcha_samples/ground_truth.json`` this reads the same digits.
+    thrown away. Anything larger is therefore scaled down to 768 and JPEG'd.
+
+    SCALING UP IS NEVER WORTH IT. The portal's tiles are about 224x220, and
+    enlarging one to 768 made the upload BIGGER than the raw capture it came
+    from (75 KB of JPEG from a 56 KB PNG, run_20261020_205107) for a picture
+    the API would have enlarged itself anyway. Graded on live-sized tiles,
+    sending them untouched reads the same digits as the enlarged version on
+    every tile either could read, for a fifth of the bytes:
+
+        jpeg, enlarged to 768   0.88 MB per grid of nine
+        jpeg, as captured       0.16 MB per grid of nine
 
     Returns the original bytes if Pillow is missing or anything fails — a
     bigger upload beats no lookup at all.
@@ -519,7 +526,9 @@ def encode_for_upload(
         with Image.open(io.BytesIO(image_bytes)) as img:
             img = img.convert("RGB")
             width, height = img.size
-            scale = short_side / max(1, min(width, height))
+            # Downscale only: min(1.0, ...) is what keeps a small tile at its
+            # captured size instead of being inflated past what the API uses.
+            scale = min(1.0, short_side / max(1, min(width, height)))
             target = (max(1, round(width * scale)), max(1, round(height * scale)))
             if target != (width, height):
                 img = img.resize(target, Image.Resampling.LANCZOS)

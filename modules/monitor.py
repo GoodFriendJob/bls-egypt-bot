@@ -1917,7 +1917,29 @@ class Monitor:
             )
             await utils.screenshot(opened, "verify-no-frame")
             await utils.dump_page_html(opened, "verify-no-frame")
-            await self._probe_captcha_endpoint(opened)
+
+            # The probe opens a SECOND TAB and fetches GenerateCaptcha itself.
+            # That is one more request at a portal that has usually just
+            # refused one, and a visible tab flashing open and shut on the
+            # client's screen. Skip it when the network listener already caught
+            # the answer — a 403 there means the portal is rationing grids and
+            # no amount of frame handling helps. Only probe when the cause is
+            # genuinely still unknown.
+            seen = getattr(self.auth, "_last_captcha_generate_status", None)
+            if seen is None:
+                await self._probe_captcha_endpoint(opened)
+            elif seen >= 400:
+                logger.error(
+                    f"monitor: GenerateCaptcha already answered HTTP {seen} — "
+                    "the portal is refusing to issue new grids to this IP, so "
+                    "the iframe never had anything to show. Not probing it "
+                    "again; that would only add to the rate limiting."
+                )
+            else:
+                logger.warning(
+                    f"monitor: GenerateCaptcha answered HTTP {seen} but the "
+                    "iframe still never appeared"
+                )
             return False
         await utils.human_delay(self.config)
 
