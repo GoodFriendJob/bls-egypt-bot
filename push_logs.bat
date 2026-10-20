@@ -57,7 +57,12 @@ if /i "%~1"=="all" (
     git add logs/
 ) else (
     echo Adding log files ^(text only - use "push_logs.bat all" for pictures^) ...
-    git add "logs/*.txt" "logs/*.log"
+    REM  One pathspec at a time. git add is ATOMIC across pathspecs: if any
+    REM  one of them matches nothing it fails with "did not match any files"
+    REM  and stages NOTHING, so a machine with no bot.log yet would push no
+    REM  transcripts either. Each is allowed to match nothing on its own.
+    git add "logs/*.txt" 2>nul
+    git add "logs/*.log" 2>nul
     git add "logs/captcha_samples/*_REJECTED_*.png" 2>nul
     REM  Record files the bot has PRUNED. Log retention deletes screenshots
     REM  and page dumps that are already tracked, and leaving those deletions
@@ -65,10 +70,8 @@ if /i "%~1"=="all" (
     REM  nothing to upload - it is metadata, not content.
     git add -u logs/
 )
-if errorlevel 1 (
-    echo [ERROR] git add failed.
-    goto :end
-)
+REM  errorlevel is deliberately NOT checked here: the last git add above may
+REM  legitimately match nothing. Whether anything is staged is decided next.
 
 REM  git diff --cached --quiet returns 1 when something IS staged.
 git diff --cached --quiet
@@ -127,7 +130,16 @@ if errorlevel 1 (
     echo   - No internet connection
     echo   - You are not logged in to GitHub on this computer
     echo   - No remote set yet:  git remote add origin YOUR_REPO_URL
-    echo   - First push needs:   git push -u origin main
+    echo.
+    echo If the message above says "HTTP 408" or the upload is tens of MB,
+    echo an OLDER commit is carrying screenshots and has to go up with
+    echo everything after it. These three lines rebuild the waiting commits
+    echo with the text logs only ^(nothing on disk is deleted^):
+    echo.
+    echo     git fetch origin
+    echo     git reset --soft origin/master ^&^& git reset
+    echo     push_logs.bat
+    echo.
     goto :end
 )
 
