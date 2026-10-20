@@ -55,6 +55,7 @@ REM  are the only record of what the solver was actually shown.
 if /i "%~1"=="all" (
     echo Adding log files ^(including screenshots and page dumps^) ...
     git add logs/
+    call :weigh
 ) else (
     echo Adding log files ^(text only - use "push_logs.bat all" for pictures^) ...
     REM  One pathspec at a time. git add is ATOMIC across pathspecs: if any
@@ -133,11 +134,13 @@ if errorlevel 1 (
     echo.
     echo If the message above says "HTTP 408" or the upload is tens of MB,
     echo an OLDER commit is carrying screenshots and has to go up with
-    echo everything after it. These three lines rebuild the waiting commits
-    echo with the text logs only ^(nothing on disk is deleted^):
+    echo everything after it. These lines unpick the waiting commits and put
+    echo this computer back on the latest code. Nothing in logs is deleted -
+    echo the pictures stay on disk, they just stop being queued for upload:
     echo.
     echo     git fetch origin
-    echo     git reset --soft origin/master ^&^& git reset
+    echo     git reset --mixed origin/master
+    echo     git checkout -- .
     echo     push_logs.bat
     echo.
     goto :end
@@ -147,6 +150,31 @@ echo.
 echo ===========================================================
 echo    Done. Logs uploaded.
 echo ===========================================================
+goto :end
+
+REM --- Weigh the pictures before committing to them ------------
+REM  A pack much over 12 MB dies with "RPC failed; HTTP 408" on this link.
+REM  That failure is worse than it looks: the commit is already made, so it
+REM  sits locally and blocks every later text-only push too, and unpicking it
+REM  needs git commands the client should never have to type. Cheaper to weigh
+REM  the staged files first and put the heavy ones back if they cannot fly.
+:weigh
+set "STAGEDMB=0"
+for /f %%S in ('powershell -NoProfile -Command "$t=0; git diff --cached --name-only | ForEach-Object { if (Test-Path -LiteralPath $_) { $t += (Get-Item -LiteralPath $_).Length } }; [int]($t/1MB)" 2^>nul') do set "STAGEDMB=%%S"
+echo   Pictures and page dumps staged: about %STAGEDMB% MB
+if %STAGEDMB% LEQ 12 goto :eof
+echo.
+echo   [SKIPPED] That is too big for this connection - an upload this size
+echo             fails part-way through and then blocks the next one. Sending
+echo             the text logs only; the pictures stay on this computer.
+echo             Ask for a specific screenshot if one is needed.
+echo.
+git reset -q
+git add "logs/*.txt" 2>nul
+git add "logs/*.log" 2>nul
+git add "logs/captcha_samples/*_REJECTED_*.png" 2>nul
+git add -u logs/
+goto :eof
 
 :end
 echo.
