@@ -71,7 +71,12 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "fingerprints": "none",
         **{key: "" for _base, _kind, key, _required in APPLICANT_FIELDS},
     },
-    "openai": {"api_key": "", "model": "gpt-4o", "timeout": 45},
+    "openai": {
+        "api_key": "",
+        "model": "gpt-4o",
+        "timeout": 45,
+        "upload_quality": 85,
+    },
     "telegram": {"token": "", "chat_id": "", "heartbeat_hours": 6},
     "otp": {
         "method": "email",

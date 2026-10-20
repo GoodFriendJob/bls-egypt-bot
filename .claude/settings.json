@@ -167,7 +167,16 @@
       "Bash(timeout 180 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_settings_page.py\")",
       "Bash(timeout 180 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_settings_page.py\" --live)",
       "Bash(timeout 150 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_calendar.py\")",
-      "Bash(timeout 120 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_wait.py\")"
+      "Bash(timeout 120 env PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_wait.py\")",
+      "Bash(./.venv/Scripts/python.exe -c \"import modules.vision as v; print\\('ok', v.TARGET_SHORT_SIDE, v.UPLOAD_QUALITY\\)\")",
+      "Bash(./.venv/Scripts/python.exe -m compileall -q modules/)",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/grade_encoding.py\")",
+      "Bash(./.venv/Scripts/python.exe -c \"import openai\")",
+      "Bash(./.venv/Scripts/python.exe -m pip list)",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_stale_grid.py\")",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_modal_fit.py\")",
+      "Bash(./.venv/Scripts/python.exe -m compileall -q bot.py modules/ dashboard/)",
+      "Bash(git commit -q -m 'fix: make the tile reading land while the grid is still alive *)"
     ],
     "additionalDirectories": [
       "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"

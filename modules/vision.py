@@ -16,13 +16,21 @@ import base64
 import io
 import json
 import re
+import time
 from pathlib import Path
 from typing import Any
 
 from loguru import logger
 
 # Tiles are ~110px square with ~40px digits; 3x gives the model far more to read.
+# Used for the PNG samples kept on disk.
 UPSCALE_FACTOR = 3
+
+# What goes over the wire. "detail": "high" makes the API resample every image
+# to a 768px short side before reading it, so this is the largest size that is
+# not uploaded just to be discarded.
+TARGET_SHORT_SIDE = 768
+UPLOAD_QUALITY = 85
 
 try:
     from openai import AsyncOpenAI
@@ -72,7 +80,12 @@ class VisionSolver:
         cfg = config.get("openai", {}) or {}
         self.api_key = (cfg.get("api_key") or "").strip()
         self.model = cfg.get("model") or "gpt-4o"
+        # The ceiling is the captcha's own lifetime, not a generous network
+        # allowance: the portal replaces the grid about 45s after drawing it,
+        # so a reading that arrives later cannot be clicked. Measured on real
+        # grids, a per-tile read of the current payload takes 4-7s.
         self.timeout = float(cfg.get("timeout", 45))
+        self.quality = int(cfg.get("upload_quality", UPLOAD_QUALITY))
         self._client: Any = None
 
         if not OPENAI_AVAILABLE:
@@ -86,7 +99,20 @@ class VisionSolver:
 
     def _get_client(self) -> Any:
         if self._client is None:
-            self._client = AsyncOpenAI(api_key=self.api_key, timeout=self.timeout)
+            # ``timeout`` is the budget for the WHOLE read, not per attempt.
+            # The SDK's default of two retries is what turned a 45s ceiling
+            # into an 81-106s read (run_20261020_182608): the first upload
+            # aborted at the ceiling, the second succeeded, and the answer
+            # arrived long after the portal had swapped the grid — so every
+            # Select(id) came back 'no-tile' with a correct reading in hand.
+            # One retry still earns its keep against a dropped connection
+            # (measured here while grading: large uploads disconnect often),
+            # so allow one and halve the per-attempt ceiling to pay for it.
+            self._client = AsyncOpenAI(
+                api_key=self.api_key,
+                timeout=max(5.0, self.timeout / 2),
+                max_retries=1,
+            )
         return self._client
 
     # ------------------------------------------------------------------ #
@@ -152,7 +178,10 @@ class VisionSolver:
         )
 
         async def read_one(index: int, crop: bytes) -> str | None:
-            encoded = base64.b64encode(upscale_png(crop)).decode("ascii")
+            payload = encode_for_upload(
+                crop, quality=self.quality, label=f"tile {index + 1}"
+            )
+            encoded = base64.b64encode(payload).decode("ascii")
             try:
                 response = await self._get_client().chat.completions.create(
                     model=self.model,
@@ -164,7 +193,7 @@ class VisionSolver:
                                 {
                                     "type": "image_url",
                                     "image_url": {
-                                        "url": f"data:image/png;base64,{encoded}",
+                                        "url": f"data:image/jpeg;base64,{encoded}",
                                         "detail": "high",
                                     },
                                 },
@@ -191,9 +220,22 @@ class VisionSolver:
 
         # Results stay index-aligned with the crops: gather preserves order, so
         # position bookkeeping never depends on what the model wrote.
+        started = time.monotonic()
         numbers = await asyncio.gather(
             *(read_one(i, crop) for i, crop in enumerate(crops))
         )
+        took = time.monotonic() - started
+
+        # The grid dies ~45s after the portal drew it, and this read happens
+        # inside that window, so the wall clock belongs in the log next to the
+        # answer: a read slower than the budget explains a "no-tile" click
+        # failure that otherwise looks like a selector bug.
+        note = ""
+        if took > self.timeout:
+            note = f" — over the {self.timeout:.0f}s ceiling; the grid is dead"
+        elif took > 25:
+            note = " — slow link; the grid is close to expiry by now"
+        logger.info(f"vision: per-tile read took {took:.1f}s{note}")
 
         logger.info(f"vision: per-tile reply {','.join(n or '?' for n in numbers)!r}")
         if any(n is None for n in numbers):
@@ -235,7 +277,7 @@ class VisionSolver:
 
     async def _ask(self, prompt: str, image_bytes: bytes) -> str | None:
         """One vision round-trip. Returns the raw reply text."""
-        payload = upscale_png(image_bytes)
+        payload = encode_for_upload(image_bytes, quality=self.quality, label="grid")
         encoded = base64.b64encode(payload).decode("ascii")
         try:
             response = await self._get_client().chat.completions.create(
@@ -248,7 +290,7 @@ class VisionSolver:
                             {
                                 "type": "image_url",
                                 "image_url": {
-                                    "url": f"data:image/png;base64,{encoded}",
+                                    "url": f"data:image/jpeg;base64,{encoded}",
                                     "detail": "high",
                                 },
                             },
@@ -436,6 +478,64 @@ def upscale_png(image_bytes: bytes, factor: int = UPSCALE_FACTOR) -> bytes:
             return buffer.getvalue()
     except Exception as exc:
         logger.warning(f"vision: upscale failed ({exc}) — sending the original")
+        return image_bytes
+
+
+def encode_for_upload(
+    image_bytes: bytes,
+    *,
+    quality: int = UPLOAD_QUALITY,
+    short_side: int = TARGET_SHORT_SIDE,
+    label: str = "tile",
+) -> bytes:
+    """Resample to the size the API actually works at, then JPEG it.
+
+    WHY THIS EXISTS. A x3 LANCZOS PNG of a captcha tile is ~410 KB, so nine of
+    them base64'd is a 5.6 MB upload. On the Egypt machine's uplink that does
+    not finish inside the client's 45s timeout, the OpenAI SDK silently retries,
+    and the read lands 81-106s after the grid was drawn. By then the portal has
+    replaced the challenge: every ``Select(id)`` answers ``no-tile`` and the
+    attempt is burned with a perfectly correct reading in hand.
+
+    At ``detail: "high"`` the API resamples the image so its short side is 768px
+    before it ever looks at it, so pixels beyond that are uploaded only to be
+    thrown away. Scaling to 768 ourselves with LANCZOS and encoding as JPEG
+    keeps the resolution the model sees identical while cutting the upload by
+    more than ten times. Graded against the human labels in
+    ``logs/captcha_samples/ground_truth.json`` this reads the same digits.
+
+    Returns the original bytes if Pillow is missing or anything fails — a
+    bigger upload beats no lookup at all.
+    """
+    if not image_bytes:
+        return image_bytes
+    try:
+        from PIL import Image
+    except ImportError:
+        logger.warning("vision: Pillow not installed — uploading the crop as-is")
+        return image_bytes
+
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            img = img.convert("RGB")
+            width, height = img.size
+            scale = short_side / max(1, min(width, height))
+            target = (max(1, round(width * scale)), max(1, round(height * scale)))
+            if target != (width, height):
+                img = img.resize(target, Image.Resampling.LANCZOS)
+            buffer = io.BytesIO()
+            # subsampling=0 keeps the chroma full-resolution: these digits are
+            # coloured on coloured backgrounds, and 4:2:0 smears thin strokes.
+            img.save(buffer, format="JPEG", quality=quality, subsampling=0)
+            payload = buffer.getvalue()
+            logger.info(
+                f"vision: {label} {width}x{height} -> {target[0]}x{target[1]} "
+                f"JPEG q{quality} ({len(payload) / 1024:.0f} KB, was "
+                f"{len(image_bytes) / 1024:.0f} KB)"
+            )
+            return payload
+    except Exception as exc:
+        logger.warning(f"vision: upload encode failed ({exc}) — sending the original")
         return image_bytes
 
 

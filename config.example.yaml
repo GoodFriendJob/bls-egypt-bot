@@ -220,8 +220,16 @@ openai:
   # a manual solve over Telegram instead.
   api_key: ""
   model: "gpt-4o"
-  # Seconds to wait for a vision reply before giving up on an attempt.
+  # Seconds allowed for ONE whole reading of the nine tiles. Do not raise this
+  # much: the portal replaces the CAPTCHA about 45 seconds after drawing it, so
+  # an answer that arrives later cannot be clicked — the tiles it describes no
+  # longer exist. On a normal connection a reading takes 4-7 seconds.
   timeout: 45
+  # JPEG quality of the tile images sent to the model, 1-100. 85 reads the same
+  # digits as a lossless upload while being roughly 18x smaller, which is what
+  # keeps the reading inside the timeout above on a slow connection. Raise it
+  # only if readings start coming back wrong.
+  upload_quality: 85
 
 telegram:
   # Create a bot with @BotFather and paste the token here.

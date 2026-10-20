@@ -1995,6 +1995,10 @@ class Monitor:
             # spends a GenerateCaptcha request the portal may refuse: doing so
             # returned 403 and detached the frame (run 20261013_044241).
             # auth's age guard still refuses to submit against a dead grid.
+            # Fit the popup on screen BEFORE anything is measured or
+            # photographed: a tile below the fold cannot be scrolled into view
+            # inside a fixed modal, and photographs blank.
+            await self._fit_captcha_popup(main_page)
             submitted = await self.auth.solve_captcha(
                 main_page, ctx=work, offset=await self._frame_offset(work)
             )
@@ -2857,6 +2861,7 @@ class Monitor:
             if work is None:
                 logger.info("  verify appointment    : no captcha popup appeared")
             else:
+                await self._fit_captcha_popup(page)
                 offset = await self._frame_offset(work)
                 logger.info(f"  verify appointment    : captcha frame at {offset}")
                 if not await self.auth.solve_captcha(page, ctx=work, offset=offset):
@@ -5118,8 +5123,95 @@ class Monitor:
         await self._survey_page(page, f"visatype-{tag}-failed")
         return False
 
-    @staticmethod
-    async def _frame_offset(frame: Any) -> tuple[float, float]:
+    # Pull the captcha popup fully inside the viewport.
+    #
+    # The challenge is a Kendo window, positioned with inline top/left:
+    #   <div class="k-widget k-window" style="... top: 84px; left: 483px;">
+    # Where it lands depends on the page, and it can sit so low that its lower
+    # half is off-screen. A tile that cannot be scrolled into view cannot be
+    # photographed either, and what reaches the vision model is blank -- which
+    # is why it answered with single digits ("7,409,7,7,8,7,7,7,7") for seven
+    # consecutive grids while the same model read the password page's tiles
+    # perfectly ("838,339,145,838,...") minutes earlier.
+    _FIT_MODAL_JS = r"""
+    () => {
+      const vis = (el) => {
+        const s = getComputedStyle(el);
+        if (s.display === 'none' || s.visibility === 'hidden') return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 2 && r.height > 2;
+      };
+      const win = Array.prototype.find.call(
+        document.querySelectorAll('.k-window'), vis);
+      if (!win) return { moved: false, reason: 'no popup on screen' };
+
+      const r = win.getBoundingClientRect();
+      // window.inner*, NOT documentElement.client*: a page in quirks mode
+      // answers the latter with the whole document height, which here is
+      // thousands of pixels and makes every popup look like it fits.
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const before = { top: Math.round(r.top), bottom: Math.round(r.bottom),
+                       height: Math.round(r.height), viewport: vh };
+      if (r.bottom <= vh && r.top >= 0 && r.left >= 0 && r.right <= vw) {
+        return { moved: false, reason: 'already fully visible', before };
+      }
+
+      // Nudge it up/left by whatever it overflows, never past the edge. If it
+      // is taller than the viewport the top edge wins: the prompt and the
+      // first rows matter more than the buttons underneath.
+      const wantTop = Math.max(4, Math.min(r.top, vh - r.height - 4));
+      const wantLeft = Math.max(4, Math.min(r.left, vw - r.width - 4));
+
+      // getBoundingClientRect is relative to the viewport; style.top on an
+      // absolutely positioned element is relative to the document. Shifting by
+      // the DELTA instead of assigning the viewport figure keeps those two
+      // frames from being confused on a scrolled page, and works whether
+      // Kendo positioned the window absolute or fixed.
+      win.style.top = (win.offsetTop + (wantTop - r.top)) + 'px';
+      win.style.left = (win.offsetLeft + (wantLeft - r.left)) + 'px';
+      const after = win.getBoundingClientRect();
+      return {
+        moved: true, before,
+        after: { top: Math.round(after.top), bottom: Math.round(after.bottom) },
+        fits: after.bottom <= vh && after.top >= 0,
+      };
+    }
+    """
+
+    async def _fit_captcha_popup(self, page: Any) -> None:
+        """Make sure the whole captcha popup is on screen before it is read."""
+        try:
+            result = await page.evaluate(self._FIT_MODAL_JS)
+        except Exception as exc:
+            logger.debug(f"monitor: could not reposition the popup: {exc}")
+            return
+
+        before = result.get("before") or {}
+        if not result.get("moved"):
+            if before:
+                logger.debug(
+                    f"  captcha popup         : {result.get('reason')} "
+                    f"(top={before.get('top')} bottom={before.get('bottom')} "
+                    f"viewport={before.get('viewport')})"
+                )
+            return
+
+        after = result.get("after") or {}
+        logger.info(
+            f"  captcha popup         : moved up to fit — was top="
+            f"{before.get('top')} bottom={before.get('bottom')} against a "
+            f"{before.get('viewport')}px viewport, now top={after.get('top')} "
+            f"bottom={after.get('bottom')}"
+        )
+        if not result.get("fits"):
+            logger.warning(
+                "  captcha popup         : still does not fit the viewport — "
+                "the lower tiles may photograph blank"
+            )
+        await asyncio.sleep(0.3)
+
+    async def _frame_offset(self, frame: Any) -> tuple[float, float]:
         """Where the iframe sits in the page, for converting clip coordinates.
 
         Tile rects measured inside the frame are frame-relative, but only a Page
@@ -5130,9 +5222,21 @@ class Monitor:
             element = await frame.frame_element()
             box = await element.bounding_box()
             if box:
+                fits = ""
+                try:
+                    height = await frame.page.evaluate(
+                        "() => document.documentElement.clientHeight"
+                    )
+                    if box["y"] + box["height"] > height:
+                        fits = (
+                            f" — OVERFLOWS the {height}px viewport by "
+                            f"{box['y'] + box['height'] - height:.0f}px"
+                        )
+                except Exception:
+                    pass
                 logger.info(
                     f"monitor: captcha frame at x={box['x']:.0f} y={box['y']:.0f} "
-                    f"({box['width']:.0f}x{box['height']:.0f})"
+                    f"({box['width']:.0f}x{box['height']:.0f}){fits}"
                 )
                 return float(box["x"]), float(box["y"])
         except Exception as exc:

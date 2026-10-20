@@ -1560,6 +1560,26 @@ class BLSAuth:
             matched_ids = [t.get("id") or "?" for t in matches]
             logger.info(f"  matched tiles   : {len(matches)} -> {matched_ids}")
 
+            # CHECK THE CLOCK BEFORE TOUCHING ANYTHING. The reading describes
+            # the grid that was on screen when the tiles were photographed. If
+            # the read outlived the grid, those ids no longer exist: every
+            # Select() answers 'no-tile' and the attempt is spent discovering
+            # that a correct answer arrived too late (run_20261020_182608, a
+            # read that took 81s against a 35s-old grid). The age guard
+            # further down only runs after the clicks, so it never got a say.
+            age = time.monotonic() - self._captcha_issued_at
+            if age > CAPTCHA_MAX_AGE:
+                logger.warning(
+                    f"  outcome         : STALE - the reading landed {age:.0f}s "
+                    f"after the grid was drawn (limit {CAPTCHA_MAX_AGE:.0f}s); "
+                    "reading a fresh grid rather than clicking dead tiles"
+                )
+                if attempt < CAPTCHA_MAX_ATTEMPTS:
+                    await self._reload_captcha(ctx)
+                    continue
+                self._log("captcha grid expired while being read", status="error")
+                return False
+
             # Select() toggles — start every attempt from a clean slate.
             await self._clear_captcha_selection(ctx)
             clicked_ok, confirmations = await self._captcha_click_tiles(ctx, matches)
@@ -1617,10 +1637,25 @@ class BLSAuth:
             )
 
             if not clicked_ok:
-                logger.warning(
-                    f"  outcome         : RETRY - not every tile registered "
-                    f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                # Say which of the two it was. "no-tile" means the element is
+                # gone from the DOM — the challenge was swapped under us — and
+                # that reads very differently from a click the page ignored.
+                gone = sum(
+                    1 for e in confirmations
+                    if e["selected_confirmed"] == "no-tile"
                 )
+                if gone:
+                    logger.warning(
+                        f"  outcome         : RETRY - {gone} of "
+                        f"{len(confirmations)} tile(s) had already vanished "
+                        f"from the page; the grid was replaced while it was "
+                        f"being read (attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                    )
+                else:
+                    logger.warning(
+                        f"  outcome         : RETRY - not every tile registered "
+                        f"(attempt {attempt}/{CAPTCHA_MAX_ATTEMPTS})"
+                    )
                 await utils.screenshot(page, f"captcha-click-failed-attempt{attempt}")
                 if attempt < CAPTCHA_MAX_ATTEMPTS:
                     await self._reload_captcha(ctx)
