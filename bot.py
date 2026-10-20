@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
 import re
 import signal
 import sys
@@ -332,8 +333,40 @@ def validate_config(config: dict[str, Any]) -> list[str]:
             problems.append("otp.method is 'email' but imap_user/imap_pass are empty")
 
     for key, rel in (applicant.get("documents") or {}).items():
-        if rel and not (ROOT / rel).exists():
-            problems.append(f"document '{key}' not found at {rel}")
+        # Trailing whitespace in the config is invisible and makes a path that
+        # cannot match anything.
+        rel = str(rel or "").strip()
+        if not rel:
+            continue
+        probed = (ROOT / rel).resolve()
+        if probed.exists():
+            continue
+
+        # Say WHERE it looked and WHAT is actually there. "not found at
+        # docs/passport.jpg" next to a docs folder that visibly contains
+        # passport.jpg is a dead end -- and the usual cause is Windows hiding
+        # known extensions, so the real name is passport.jpg.jpg.
+        detail = f"document '{key}' not found at {probed}"
+        folder = probed.parent
+        if not folder.exists():
+            detail += f" — the folder {folder} does not exist"
+        else:
+            try:
+                here = sorted(p.name for p in folder.iterdir() if p.is_file())
+            except OSError:
+                here = []
+            if here:
+                detail += f" — {folder.name} contains: {', '.join(here[:12])}"
+                near = [n for n in here if n.lower().startswith(probed.stem.lower())]
+                if near:
+                    detail += (
+                        f". Did you mean {near[0]}? (Windows hides known file "
+                        "extensions, so a file shown as 'passport.jpg' can "
+                        "really be 'passport.jpg.jpg')"
+                    )
+            else:
+                detail += f" — {folder.name} is empty"
+        problems.append(detail)
     return problems
 
 
@@ -362,6 +395,52 @@ def setup_logging(config: dict[str, Any]) -> None:
         backtrace=True,
         diagnose=False,
     )
+    _quieten_telegram_logging()
+
+
+class _TelegramNoiseHandler(logging.Handler):
+    """Forward python-telegram-bot's network complaints as ONE line each.
+
+    PTB retries getUpdates by itself and logs a full traceback every time it
+    fails. One DNS blip on the host produced sixty lines per attempt, over and
+    over, and the run's own log was unreadable underneath it -- the captcha
+    that actually failed was buried in the middle of it.
+
+    The bottom line of the exception is the part that says anything, so that
+    is what gets through. Identical messages are counted rather than repeated,
+    and the listener dying for real is reported separately by the watchdog.
+    """
+
+    _last: str = ""
+    _repeats: int = 0
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            message = record.getMessage().strip()
+            if record.exc_info and record.exc_info[1] is not None:
+                message = f"{message} ({record.exc_info[1]})"
+            if message == type(self)._last:
+                type(self)._repeats += 1
+                # Every tenth, so a long outage still leaves a trail.
+                if type(self)._repeats % 10:
+                    return
+                message = f"{message}  (x{type(self)._repeats + 1})"
+            else:
+                type(self)._last = message
+                type(self)._repeats = 0
+            logger.warning(f"telegram: {message}")
+        except Exception:  # pragma: no cover - logging must never raise
+            pass
+
+
+def _quieten_telegram_logging() -> None:
+    """Keep PTB's retry tracebacks out of the run log."""
+    handler = _TelegramNoiseHandler()
+    for name in ("telegram", "httpx", "httpcore"):
+        noisy = logging.getLogger(name)
+        noisy.handlers = [handler]
+        noisy.propagate = False
+        noisy.setLevel(logging.ERROR)
 
 
 def ensure_dirs() -> None:
