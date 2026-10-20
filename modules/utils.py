@@ -474,6 +474,78 @@ BLOCK_LOG_WINDOW = 20.0
 _last_block_at = 0.0
 
 
+# Extensions a scan may substitute for a configured one. Deliberately narrow:
+# the only thing being corrected is which image/PDF suffix the file ended up
+# with, never which document was meant.
+_DOCUMENT_SUFFIXES = {".jpg", ".jpeg", ".png", ".pdf", ".webp", ".heic", ".bmp"}
+
+
+def resolve_document(rel_path: str, *, root: Path | None = None) -> Path | None:
+    """Find the file a configured document path meant. None if there isn't one.
+
+    Windows hides known extensions, so a passport saved from an email arrives
+    as ``passport.jpg.jpeg`` while Explorer shows it as ``passport.jpg`` — and
+    that is what gets typed into config.yaml. The client hit this on both
+    documents at once (run_20261020_205107) and the bot simply refused to
+    upload anything.
+
+    A MATCH MUST BE UNAMBIGUOUS. These are real visa documents; quietly
+    uploading the wrong scan would be far worse than refusing to upload. So a
+    candidate only counts when the configured name is a whole prefix of it,
+    what follows is just another known image or PDF suffix, and exactly ONE
+    file in the folder qualifies. Two candidates means the bot cannot know
+    which was meant, and it says so rather than guessing.
+    """
+    rel = str(rel_path or "").strip()
+    if not rel:
+        return None
+
+    path = Path(rel)
+    if not path.is_absolute():
+        path = (root or Path.cwd()) / path
+    if path.exists():
+        return path
+
+    folder = path.parent
+    if not folder.is_dir():
+        return None
+
+    wanted = path.name.lower()
+    candidates = []
+    for found in folder.iterdir():
+        if not found.is_file():
+            continue
+        name = found.name.lower()
+        if name == wanted or not name.startswith(wanted):
+            continue
+        # "passport.jpg" -> "passport.jpg.jpeg" is a suffix swap. It is NOT
+        # "passport.jpg-old-rejected.jpg" or "passport.jpg2.jpeg".
+        extra = found.name[len(path.name):]
+        if extra.lower() in _DOCUMENT_SUFFIXES:
+            candidates.append(found)
+
+    if not candidates:
+        return None
+    if len(candidates) > 1:
+        logger.error(
+            f"documents: {rel} does not exist and "
+            f"{len(candidates)} files could be it "
+            f"({', '.join(sorted(c.name for c in candidates))}) — refusing to "
+            "guess which document to upload. Rename the right one to "
+            f"{path.name}."
+        )
+        return None
+
+    chosen = candidates[0]
+    logger.warning(
+        f"documents: {rel} does not exist; using {chosen.name} instead "
+        "(Windows hides known extensions, so a file shown as "
+        f"'{path.name}' is really '{chosen.name}'). Rename it to "
+        f"{path.name} to silence this."
+    )
+    return chosen
+
+
 def record_block(reason: str) -> None:
     """Remember that the portal just blocked us, so the next run can hold off.
 

@@ -4835,13 +4835,9 @@ class Monitor:
         if not photo:
             logger.warning("  photo                 : not configured")
             return False
-        from pathlib import Path as _Path
-
-        path = _Path(photo)
-        if not path.is_absolute():
-            path = _Path.cwd() / path
-        if not path.exists():
-            logger.error(f"  photo                 : MISSING at {path}")
+        path = utils.resolve_document(photo)
+        if path is None:
+            logger.error(f"  photo                 : MISSING at {photo}")
             self.state.log_event("bot", f"photo not found: {photo}", status="error")
             return False
         size_kb = path.stat().st_size / 1024

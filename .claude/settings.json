@@ -181,7 +181,8 @@
       "Bash(git commit -q -m 'fix: weigh the pictures before committing to an upload that cannot finish *)",
       "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/grade_native.py\")",
       "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_budget.py\")",
-      "Bash(git commit -q -m 'fix: fit the whole captcha round inside the grid'\\\\''s life *)"
+      "Bash(git commit -q -m 'fix: fit the whole captcha round inside the grid'\\\\''s life *)",
+      "Bash(./.venv/Scripts/python.exe \"C:/Users/HomePC/AppData/Local/Temp/claude/e--Work-bls-egypt-bot/3731ba36-de56-4f32-9966-1d3d4c2c1235/scratchpad/check_docs_resolve.py\")"
     ],
     "additionalDirectories": [
       "E:\\Work\\bls-egypt-bot\\logs\\captcha_samples"

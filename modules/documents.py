@@ -91,11 +91,9 @@ async def upload_documents(
     for key, rel_path in configured.items():
         if not rel_path:
             continue
-        path = Path(rel_path)
-        if not path.is_absolute():
-            path = Path.cwd() / path
-        if not path.exists():
-            logger.error(f"documents: {key} missing at {path}")
+        path = utils.resolve_document(rel_path)
+        if path is None:
+            logger.error(f"documents: {key} missing at {rel_path}")
             _log(state, f"document not found: {rel_path}", status="error")
             results[key] = False
             continue

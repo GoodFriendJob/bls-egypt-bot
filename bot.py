@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent
 from modules.auth import BLSAuth, PortalUnreachableError
 from modules.monitor import APPLICANT_FIELDS, Monitor
 from modules.notifier import Notifier
-from modules import ipc
+from modules import ipc, utils
 from modules.state import BotState
 from modules.utils import block_cooldown_remaining as utils_block_cooldown
 from modules.utils import prune_logs as utils_prune_logs
@@ -345,6 +345,12 @@ def validate_config(config: dict[str, Any]) -> list[str]:
             continue
         probed = (ROOT / rel).resolve()
         if probed.exists():
+            continue
+
+        # A single unambiguous extension swap is not a problem to report: the
+        # upload resolves it and says so. Only complain when nothing can be
+        # found, or when more than one file could be the one meant.
+        if utils.resolve_document(rel, root=ROOT) is not None:
             continue
 
         # Say WHERE it looked and WHAT is actually there. "not found at
