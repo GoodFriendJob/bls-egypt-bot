@@ -23649,3 +23649,507 @@ navigating to "https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%
 2026-10-20 21:12:42.035 | INFO     | modules.auth:stop:871 - auth: browser closed
 2026-10-20 21:12:43.962 | INFO     | modules.notifier:stop:175 - notifier: telegram listener stopped
 2026-10-20 21:12:43.966 | INFO     | __main__:_run_with_state:809 - shutdown complete
+2026-10-20 21:17:13.099 | INFO     | __main__:_main_inner:633 - ==============================================================
+2026-10-20 21:17:13.100 | INFO     | __main__:_main_inner:634 - BLS Spain Egypt appointment bot starting
+2026-10-20 21:17:13.101 | INFO     | __main__:_main_inner:635 - run transcript: D:\bls-egypt-bot-master\logs\run_20261020_211713.txt
+2026-10-20 21:17:13.101 | INFO     | __main__:_main_inner:636 - portal=https://egypt.blsspainglobal.com/ locations=['cairo', 'alexandria']
+2026-10-20 21:17:13.102 | INFO     | __main__:_main_inner:637 - visa_type=['Schengen visa'] poll_interval=90s
+2026-10-20 21:17:13.103 | INFO     | __main__:_main_inner:638 - ==============================================================
+2026-10-20 21:17:13.107 | WARNING  | __main__:_main_inner:660 - config: document 'passport_scan' not found at D:\bls-egypt-bot-master\docs\passport.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean passport.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+2026-10-20 21:17:13.108 | WARNING  | __main__:_main_inner:660 - config: document 'photo' not found at D:\bls-egypt-bot-master\docs\photo.jpg — docs contains: .gitkeep, passport.jpg.jpeg, photo.jpg.jpeg. Did you mean photo.jpg.jpeg? (Windows hides known file extensions, so a file shown as 'passport.jpg' can really be 'passport.jpg.jpg')
+2026-10-20 21:17:14.804 | INFO     | modules.notifier:start:112 - notifier: telegram listener started
+2026-10-20 21:17:15.505 | INFO     | modules.monitor:warn_about_missing_settings:3124 - config: all 55 applicant field(s) the form requires have values
+2026-10-20 21:17:15.507 | INFO     | modules.monitor:run:1558 - monitor: watching ['cairo', 'alexandria'] every 90.0s
+2026-10-20 21:17:15.511 | INFO     | __main__:dashboard_bridge:476 - dashboard bridge: publishing status to D:\bls-egypt-bot-master\logs\state.json
+2026-10-20 21:17:16.846 | INFO     | modules.auth:start:591 - auth: stealth disabled (recommended for this portal)
+2026-10-20 21:17:16.857 | INFO     | modules.auth:_install_https_upgrade:742 - auth: http->https upgrade route installed (regex)
+2026-10-20 21:17:16.878 | INFO     | modules.auth:_install_https_upgrade:750 - auth: captcha frame route installed (redirects followed here)
+2026-10-20 21:17:18.650 | INFO     | modules.auth:_log:3267 - auth: browser launched
+2026-10-20 21:17:18.652 | INFO     | modules.auth:ensure_logged_in:904 - auth: no saved session — going straight to the login page
+2026-10-20 21:17:18.652 | INFO     | modules.auth:ensure_logged_in:921 - auth: logging in (attempt 1/2)
+2026-10-20 21:17:21.588 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/account/login?ReturnUrl=%2FGlobal%2Fbls%2Fvisatypeverification
+2026-10-20 21:17:32.200 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'text' field is index 0 of 10 (parent div.mb-3 display:block)
+2026-10-20 21:17:35.302 | INFO     | modules.auth:_fill_email:1155 - auth: email filled
+2026-10-20 21:17:35.303 | INFO     | modules.auth:_log:3267 - auth: email submitted
+2026-10-20 21:17:37.187 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V
+2026-10-20 21:17:37.206 | INFO     | modules.auth:_click_verify:1256 - auth: clicked Verify via #btnVerify
+2026-10-20 21:17:40.283 | INFO     | modules.utils:find_real_input:178 - find_real_input: real 'password' field is index 6 of 10 (parent div.mb-3 display:block)
+2026-10-20 21:17:42.445 | INFO     | modules.auth:_fill_password:1191 - auth: password filled (real input[type='password'])
+2026-10-20 21:17:42.446 | INFO     | modules.auth:_log:3267 - auth: password filled
+2026-10-20 21:17:42.451 | INFO     | modules.auth:_perform_login:1011 - auth: password-page URL is https://egypt.blsspainglobal.com/Global/newcaptcha/logincaptcha?returnUrl=%2FGlobal%2Fbls%2Fvisatypeverification&data=OhhZOC5LALiWhYgWeWq%2Fn0tgnppr7V0k4guUdTrsuZtQVN0IOC8sKBCCxP8JfSl3JCWxn4Twgu9mYcdTmXR0aBwK7A5fdqUQbIN34ejPuYO%2BxBXnJtgC0sbEyYWUvRdqf8QcJmnJw%2F95A6ekeceKTPBqWrOQvIihJOFBcmVLT0g%3D
+2026-10-20 21:17:43.028 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211742_password-page-filled.png
+2026-10-20 21:17:43.107 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211743_password-page-filled.html
+2026-10-20 21:17:43.107 | INFO     | modules.auth:_perform_login:1019 - auth: checking for a CAPTCHA on the password page
+2026-10-20 21:17:43.161 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=54 box_labels=36
+2026-10-20 21:17:43.162 | INFO     | modules.auth:solve_captcha:1350 - auth: CAPTCHA detected, attempting to solve
+2026-10-20 21:17:43.162 | INFO     | modules.auth:_log:3267 - auth: CAPTCHA detected — solving
+2026-10-20 21:17:43.697 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211743_captcha-before.png
+2026-10-20 21:17:43.728 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211743_captcha-detected.html
+2026-10-20 21:17:44.115 | INFO     | modules.auth:_captcha_target:2568 - auth: 36 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 21:17:44.116 | INFO     | modules.auth:_captcha_target:2589 - auth: prompt 354 chosen (contrast=15.11, z-index=945, color=rgb(33, 37, 41))
+2026-10-20 21:17:44.120 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 21:17:44.122 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 1 of 4
+2026-10-20 21:17:44.125 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 354
+2026-10-20 21:17:44.126 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 54 col-4 divs in the DOM)
+2026-10-20 21:17:44.127 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 36 (of 36 box-labels in the DOM)
+2026-10-20 21:17:44.129 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 1: target=354, 9 visible tiles
+2026-10-20 21:17:44.131 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:wfcvde, 2:kogruugdd, 3:srgaihky, 4:fpifwys, 5:afnbwl, 6:ixnknw, 7:efhmgm, 8:amqio, 9:qeuyifr
+2026-10-20 21:17:44.146 | INFO     | modules.auth:_screenshot_grid_element:1991 -   grid container  : 1.01x0.10 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 21:17:44.155 | INFO     | modules.auth:_screenshot_grid:2125 -   grid clip       : x=505.98 y=273.0 w=351.33 h=350 (viewport 1366x768, 9 tiles)
+2026-10-20 21:17:45.538 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 702x700 -> 2106x2100 (x3, LANCZOS)
+2026-10-20 21:17:45.543 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 21:17:47.211 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 21:17:47.244 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 1 226x220 -> 789x768 JPEG q85 (61 KB, was 42 KB)
+2026-10-20 21:17:48.553 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 2 226x220 -> 789x768 JPEG q85 (86 KB, was 62 KB)
+2026-10-20 21:17:48.581 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 3 226x220 -> 789x768 JPEG q85 (80 KB, was 58 KB)
+2026-10-20 21:17:48.621 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 4 226x220 -> 789x768 JPEG q85 (87 KB, was 62 KB)
+2026-10-20 21:17:48.661 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 5 226x220 -> 789x768 JPEG q85 (71 KB, was 55 KB)
+2026-10-20 21:17:48.683 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 6 226x220 -> 789x768 JPEG q85 (87 KB, was 60 KB)
+2026-10-20 21:17:48.708 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 7 226x220 -> 789x768 JPEG q85 (70 KB, was 45 KB)
+2026-10-20 21:17:48.730 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 8 226x220 -> 789x768 JPEG q85 (82 KB, was 64 KB)
+2026-10-20 21:17:48.757 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 9 226x220 -> 789x768 JPEG q85 (88 KB, was 62 KB)
+2026-10-20 21:18:18.969 | INFO     | modules.vision:read_tiles_individually:238 - vision: per-tile read took 31.8s — slow link; the grid is close to expiry by now
+2026-10-20 21:18:18.971 | INFO     | modules.vision:read_tiles_individually:240 - vision: per-tile reply '309,370,493,354,354,258,354,413,675'
+2026-10-20 21:18:18.972 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:309, 2:370, 3:493, 4:354, 5:354, 6:258, 7:354, 8:413, 9:675
+2026-10-20 21:18:18.973 | INFO     | modules.auth:solve_captcha:1519 -   matching 354      : positions [4, 5, 7]
+2026-10-20 21:18:18.977 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [4, 5, 7]
+2026-10-20 21:18:18.986 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 3 -> ['fpifwys', 'afnbwl', 'efhmgm']
+2026-10-20 21:18:18.987 | WARNING  | modules.auth:solve_captcha:1572 -   outcome         : STALE - the reading landed 36s after the grid was drawn (limit 35s); reading a fresh grid rather than clicking dead tiles
+2026-10-20 21:18:19.056 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-20 21:18:19.057 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-20 21:18:19.071 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#1 in a row)
+2026-10-20 21:18:20.971 | WARNING  | modules.auth:solve_captcha:1389 - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+2026-10-20 21:18:22.304 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-20 21:18:22.305 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-20 21:18:29.819 | WARNING  | modules.auth:_wait_for_captcha_tiles:2388 - auth: no captcha tiles rendered within 8s
+2026-10-20 21:18:29.822 | ERROR    | modules.auth:solve_captcha:1408 - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+2026-10-20 21:18:30.355 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211829_captcha-no-tiles-attempt2.png
+2026-10-20 21:18:30.367 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211830_captcha-no-tiles-attempt2.html
+2026-10-20 21:18:30.368 | INFO     | modules.auth:_log:3267 - auth: CAPTCHA grid disappeared — restarting login
+2026-10-20 21:18:31.136 | INFO     | modules.auth:_on_response:765 - auth: [net] 302 https://egypt.blsspainglobal.com/Global/NewCaptcha/LoginCaptchaSubmit
+2026-10-20 21:18:31.364 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:31.758 | INFO     | modules.auth:_perform_login:1029 - auth: already authenticated after the captcha — skipping resubmit
+2026-10-20 21:18:31.759 | INFO     | modules.auth:_log:3267 - auth: password submitted
+2026-10-20 21:18:31.760 | INFO     | modules.auth:_perform_login:1037 - auth: post-submit URL is https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:35.505 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211831_after-password-submit.png
+2026-10-20 21:18:35.537 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211835_after-password-submit.html
+2026-10-20 21:18:35.538 | SUCCESS  | modules.auth:_perform_login:1048 - auth: authenticated URL reached — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:35.581 | SUCCESS  | modules.auth:_is_logged_in:3026 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:35.607 | INFO     | modules.auth:_save_session:3064 - auth: session saved to session\cookies.json
+2026-10-20 21:18:35.608 | INFO     | modules.utils:clear_block:541 - portal answered normally — block history cleared
+2026-10-20 21:18:35.611 | INFO     | modules.auth:_log:3267 - auth: login successful
+2026-10-20 21:18:35.616 | INFO     | modules.monitor:install_navigation_watch:5039 - monitor: navigation watch installed (now: verification)
+2026-10-20 21:18:35.626 | INFO     | modules.monitor:ensure_visa_type_verified:1874 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:41.211 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:18:41.887 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:18:52.361 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:18:52.367 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on xhr https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:18:52.370 | INFO     | modules.monitor:_on_dialog:5390 - monitor: JS dialog accepted — 'Your session has been expired. Please try again'
+2026-10-20 21:18:52.655 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:18:52.658 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on sub-frame https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:18:57.850 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:57.851 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:18:57.858 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#1 in a row)
+2026-10-20 21:18:58.055 | INFO     | modules.monitor:_open_verification_popup:5355 - monitor: clicked Verify Selection via #btnVerify
+2026-10-20 21:19:01.965 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:19:01.966 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:19:04.240 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:19:04.241 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:19:29.570 | WARNING  | modules.monitor:_wait_for_captcha_frame:2191 - monitor: no frame matching 'generatecaptcha' after 30s; frames seen: ['https://egypt.blsspainglobal.com/Global/bls/visatypeverification']
+2026-10-20 21:19:29.571 | ERROR    | modules.monitor:ensure_visa_type_verified:1914 - monitor: the verification iframe never appeared — the challenge cannot be read
+2026-10-20 21:19:30.062 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211929_verify-no-frame.png
+2026-10-20 21:19:30.074 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211930_verify-no-frame.html
+2026-10-20 21:19:30.076 | INFO     | modules.monitor:_probe_captcha_endpoint:5256 - monitor: probing the captcha endpoint directly — https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:19:31.370 | INFO     | modules.monitor:_probe_captcha_endpoint:5265 -   probe status    : 200
+2026-10-20 21:19:31.373 | INFO     | modules.monitor:_probe_captcha_endpoint:5266 -   probe final url : https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:19:31.374 | INFO     | modules.monitor:_probe_captcha_endpoint:5267 -   looks like login: False
+2026-10-20 21:19:31.377 | INFO     | modules.monitor:_probe_captcha_endpoint:5268 -   has number prompt: True
+2026-10-20 21:19:31.383 | INFO     | modules.monitor:_probe_captcha_endpoint:5269 -   body starts     : 'Please select all boxes with number 143\nPlease select all boxes with number 133\nPlease select all boxes with number 157\nPlease select all boxes with number 847\n'
+2026-10-20 21:19:32.501 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-211931_captcha-endpoint-probe.png
+2026-10-20 21:19:32.557 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-211932_captcha-endpoint-probe.html
+2026-10-20 21:19:32.559 | WARNING  | modules.monitor:_probe_captcha_endpoint:5280 - monitor: the endpoint serves the grid fine on its own, so the iframe is being blocked in the browser (mixed content).
+2026-10-20 21:19:32.589 | ERROR    | modules.monitor:run_once:1639 - monitor: visa-type verification not cleared — skipping cycle
+2026-10-20 21:19:40.096 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:19:49.817 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:20:02.519 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:20:02.520 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on xhr https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:20:02.523 | INFO     | modules.monitor:_on_dialog:5390 - monitor: JS dialog accepted — 'Your session has been expired. Please try again'
+2026-10-20 21:20:03.622 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:20:03.636 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on sub-frame https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:20:07.991 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:20:07.991 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:20:08.054 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#2 in a row)
+2026-10-20 21:20:10.989 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:20:10.990 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:20:32.566 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:20:41.304 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:20:50.799 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:20:55.943 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:20:56.541 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=uC%2fpTwThJV6zWKswcyj4CQgchda%2bb7VA0EWWkrujVxkiOQdC)
+2026-10-20 21:21:04.766 | WARNING  | modules.monitor:run:1572 - monitor: portal blocked — waiting 15 more minutes before the next login attempt
+2026-10-20 21:21:04.768 | WARNING  | modules.monitor:_wait_visibly:5669 - monitor: a recorded block — waiting 15 min, back at 21:36
+2026-10-20 21:25:59.341 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/Bls/VisaTypeVerification
+2026-10-20 21:25:59.408 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> verification  (https://egypt.blsspainglobal.com/Global/Bls/VisaTypeVerification)
+2026-10-20 21:25:59.409 | WARNING  | modules.monitor:_on_nav:5029 - monitor: returned to the verification gate from 'appointment-form' — it must be solved again
+2026-10-20 21:26:08.827 | INFO     | modules.monitor:_wait_visibly:5686 - monitor: still waiting — 10 min to go (back at 21:36)
+2026-10-20 21:26:28.594 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:31:11.053 | INFO     | modules.monitor:_wait_visibly:5686 - monitor: still waiting — 5 min to go (back at 21:36)
+2026-10-20 21:36:13.430 | INFO     | modules.monitor:_wait_visibly:5686 - monitor: still waiting — 0 min to go (back at 21:36)
+2026-10-20 21:36:16.759 | INFO     | modules.monitor:_wait_visibly:5696 - monitor: the wait is over — a recorded block ended, trying again
+2026-10-20 21:36:17.208 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:36:21.925 | SUCCESS  | modules.auth:_is_logged_in:3026 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:36:21.926 | INFO     | modules.monitor:ensure_visa_type_verified:1874 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:36:25.641 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:36:27.805 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:36:33.668 | INFO     | modules.monitor:_open_verification_popup:5360 - monitor: clicked 'Verify Selection'
+2026-10-20 21:36:37.372 | INFO     | modules.monitor:_wait_for_captcha_frame:2180 - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:36:38.345 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 1/5
+2026-10-20 21:36:38.964 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213638_verify-modal-attempt1.png
+2026-10-20 21:36:38.998 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-213638_verify-frame-attempt1.html
+2026-10-20 21:36:39.022 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:36:39.063 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=39
+2026-10-20 21:36:39.063 | INFO     | modules.auth:solve_captcha:1350 - auth: CAPTCHA detected, attempting to solve
+2026-10-20 21:36:39.064 | INFO     | modules.auth:_log:3267 - auth: CAPTCHA detected — solving
+2026-10-20 21:36:39.626 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213639_captcha-before.png
+2026-10-20 21:36:39.652 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-213639_captcha-detected.html
+2026-10-20 21:36:40.006 | INFO     | modules.auth:_captcha_target:2568 - auth: 39 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 21:36:40.006 | INFO     | modules.auth:_captcha_target:2589 - auth: prompt 661 chosen (contrast=14.38, z-index=962, color=rgb(33, 37, 41))
+2026-10-20 21:36:40.007 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 21:36:40.007 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 1 of 4
+2026-10-20 21:36:40.009 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 661
+2026-10-20 21:36:40.010 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-20 21:36:40.011 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 39 (of 39 box-labels in the DOM)
+2026-10-20 21:36:40.012 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 1: target=661, 9 visible tiles
+2026-10-20 21:36:40.013 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:ntdph, 2:rbfux, 3:owpaeawb, 4:pvikgax, 5:ubwkx, 6:cbqwfssc, 7:hqdqctqln, 8:tnpilyu, 9:fjuyd
+2026-10-20 21:36:40.023 | INFO     | modules.auth:_screenshot_grid_element:1991 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 21:36:40.042 | INFO     | modules.auth:_screenshot_grid:2113 -   frame moved     : offset (654.74609375, 222.4609375) -> (654.75, 222.46) (scrollIntoView moved the page); using the fresh one
+2026-10-20 21:36:40.042 | INFO     | modules.auth:_screenshot_grid:2125 -   grid clip       : x=678.5 y=298.46 w=350 h=350 (viewport 397x556, 9 tiles)
+2026-10-20 21:36:40.712 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:36:40.714 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 21:36:41.873 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 21:36:41.906 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 1 222x222 -> 768x768 JPEG q85 (75 KB, was 62 KB)
+2026-10-20 21:36:41.935 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 2 222x222 -> 768x768 JPEG q85 (29 KB, was 10 KB)
+2026-10-20 21:36:41.954 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 3 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:36:41.974 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 4 222x222 -> 768x768 JPEG q85 (65 KB, was 53 KB)
+2026-10-20 21:36:41.993 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 5 222x222 -> 768x768 JPEG q85 (26 KB, was 7 KB)
+2026-10-20 21:36:42.011 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 6 222x222 -> 768x768 JPEG q85 (16 KB, was 1 KB)
+2026-10-20 21:36:42.031 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 7 222x222 -> 768x768 JPEG q85 (32 KB, was 3 KB)
+2026-10-20 21:36:42.051 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 8 222x222 -> 768x768 JPEG q85 (22 KB, was 1 KB)
+2026-10-20 21:36:42.070 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 9 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:36:46.783 | WARNING  | modules.vision:read_one:215 - vision: tile 9 replied "I'm sorry, I can't read the number from the image." — not one number
+2026-10-20 21:36:47.622 | WARNING  | modules.vision:read_one:215 - vision: tile 7 replied "I can't read the number from the image." — not one number
+2026-10-20 21:36:48.647 | INFO     | modules.vision:read_tiles_individually:238 - vision: per-tile read took 6.8s
+2026-10-20 21:36:48.649 | INFO     | modules.vision:read_tiles_individually:240 - vision: per-tile reply '513,3,8,661,7,8,?,9,?'
+2026-10-20 21:36:48.654 | WARNING  | modules.vision:read_tiles_individually:243 - vision: tile(s) [7, 9] could not be read
+2026-10-20 21:36:48.695 | INFO     | modules.vision:encode_for_upload:531 - vision: grid 700x700 -> 768x768 JPEG q85 (57 KB, was 162 KB)
+2026-10-20 21:36:50.860 | INFO     | modules.vision:_ask:313 - vision: model replied '1,513,661,1,513,661,4,513,661'
+2026-10-20 21:36:50.864 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:1, 2:513, 3:661, 4:1, 5:513, 6:661, 7:4, 8:513, 9:661
+2026-10-20 21:36:50.868 | INFO     | modules.auth:solve_captcha:1519 -   matching 661      : positions [3, 6, 9]
+2026-10-20 21:36:50.876 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [3, 6, 9]
+2026-10-20 21:36:50.877 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 3 -> ['owpaeawb', 'cbqwfssc', 'fjuyd']
+2026-10-20 21:36:53.375 | INFO     | modules.auth:solve_captcha:1587 -   click results   :
+2026-10-20 21:36:53.378 | INFO     | modules.auth:solve_captcha:1589 -       id=owpaeawb       number=None   clicked=True  img-selected=True
+2026-10-20 21:36:53.384 | INFO     | modules.auth:solve_captcha:1589 -       id=cbqwfssc       number=None   clicked=True  img-selected=True
+2026-10-20 21:36:53.389 | INFO     | modules.auth:solve_captcha:1589 -       id=fjuyd          number=None   clicked=True  img-selected=True
+2026-10-20 21:36:54.422 | INFO     | modules.auth:solve_captcha:1599 -   SelectedImages  : ''
+2026-10-20 21:36:54.424 | INFO     | modules.auth:solve_captcha:1607 -   expected ids    : ['cbqwfssc', 'fjuyd', 'owpaeawb']
+2026-10-20 21:36:54.425 | INFO     | modules.auth:solve_captcha:1615 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-20 21:36:54.812 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213654_captcha-attempt1-before-submit.png
+2026-10-20 21:36:54.828 | INFO     | modules.auth:solve_captcha:1689 -   grid age        : 15.8s (limit 35s)
+2026-10-20 21:36:54.856 | INFO     | modules.auth:_click_captcha_submit:2872 - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+2026-10-20 21:36:54.858 | INFO     | modules.auth:solve_captcha:1726 -   submit clicked  : True
+2026-10-20 21:36:55.019 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:36:55.022 | INFO     | modules.monitor:_on_dialog:5390 - monitor: JS dialog accepted — 'Invalid selection'
+2026-10-20 21:36:55.763 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:36:55.772 | INFO     | modules.vision:save_sample:556 - captcha sample saved: logs\captcha_samples\20261020-213655_REJECTED_target661_attempt1.png
+2026-10-20 21:36:55.773 | WARNING  | modules.auth:solve_captcha:1835 -   rejected grid   : logs\captcha_samples\20261020-213655_REJECTED_target661_attempt1.png
+2026-10-20 21:36:55.773 | WARNING  | modules.auth:solve_captcha:1837 -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+2026-10-20 21:36:55.775 | INFO     | modules.auth:solve_captcha:1841 - ------------------------------------------------------------
+2026-10-20 21:36:55.776 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 1 rejected
+2026-10-20 21:36:55.840 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:36:56.405 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213655_captcha-attempt1-rejected.png
+2026-10-20 21:36:58.078 | INFO     | modules.auth:_captcha_target:2568 - auth: 26 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 21:36:58.079 | INFO     | modules.auth:_captcha_target:2589 - auth: prompt 980 chosen (contrast=14.89, z-index=955, color=rgb(33, 37, 41))
+2026-10-20 21:36:58.079 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 21:36:58.081 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 2 of 4
+2026-10-20 21:36:58.082 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 980
+2026-10-20 21:36:58.083 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-20 21:36:58.084 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 26 (of 26 box-labels in the DOM)
+2026-10-20 21:36:58.084 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 2: target=980, 9 visible tiles
+2026-10-20 21:36:58.085 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:fscxtue, 2:wccxsm, 3:arqer, 4:rsjkg, 5:bdduy, 6:knxeqqgmp, 7:chubtu, 8:vuckjc, 9:hpibaqp
+2026-10-20 21:36:58.096 | INFO     | modules.auth:_screenshot_grid_element:1991 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 21:36:58.115 | INFO     | modules.auth:_screenshot_grid:2113 -   frame moved     : offset (654.74609375, 222.4609375) -> (654.75, 222.46) (scrollIntoView moved the page); using the fresh one
+2026-10-20 21:36:58.115 | INFO     | modules.auth:_screenshot_grid:2125 -   grid clip       : x=678.5 y=298.46 w=350 h=350 (viewport 397x556, 9 tiles)
+2026-10-20 21:36:58.790 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:36:58.793 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 21:37:00.402 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 21:37:00.430 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 1 222x222 -> 768x768 JPEG q85 (86 KB, was 69 KB)
+2026-10-20 21:37:00.456 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 2 222x222 -> 768x768 JPEG q85 (29 KB, was 9 KB)
+2026-10-20 21:37:00.474 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 3 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:37:00.494 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 4 222x222 -> 768x768 JPEG q85 (69 KB, was 55 KB)
+2026-10-20 21:37:00.516 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 5 222x222 -> 768x768 JPEG q85 (26 KB, was 7 KB)
+2026-10-20 21:37:00.536 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 6 222x222 -> 768x768 JPEG q85 (16 KB, was 1 KB)
+2026-10-20 21:37:00.556 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 7 222x222 -> 768x768 JPEG q85 (32 KB, was 3 KB)
+2026-10-20 21:37:00.575 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 8 222x222 -> 768x768 JPEG q85 (22 KB, was 1 KB)
+2026-10-20 21:37:00.594 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 9 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:37:05.474 | WARNING  | modules.vision:read_one:215 - vision: tile 9 replied "I'm sorry, I can't identify the number in the image." — not one number
+2026-10-20 21:37:05.608 | WARNING  | modules.vision:read_one:215 - vision: tile 7 replied "I can't read the number from the image." — not one number
+2026-10-20 21:37:08.133 | INFO     | modules.vision:read_tiles_individually:238 - vision: per-tile read took 7.7s
+2026-10-20 21:37:08.136 | INFO     | modules.vision:read_tiles_individually:240 - vision: per-tile reply '406,8,8,627,7,8,?,9,?'
+2026-10-20 21:37:08.139 | WARNING  | modules.vision:read_tiles_individually:243 - vision: tile(s) [7, 9] could not be read
+2026-10-20 21:37:08.175 | INFO     | modules.vision:encode_for_upload:531 - vision: grid 700x700 -> 768x768 JPEG q85 (61 KB, was 173 KB)
+2026-10-20 21:37:10.701 | INFO     | modules.vision:_ask:313 - vision: model replied '200,906,900,0,406,406,99,627,627'
+2026-10-20 21:37:10.707 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:200, 2:906, 3:900, 4:0, 5:406, 6:406, 7:99, 8:627, 9:627
+2026-10-20 21:37:10.713 | INFO     | modules.auth:solve_captcha:1519 -   matching 980      : positions []
+2026-10-20 21:37:10.718 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: []
+2026-10-20 21:37:10.721 | WARNING  | modules.auth:solve_captcha:1550 -   vision reported no tile shows 980 — treating the reading as wrong and retrying with a fresh grid
+2026-10-20 21:37:10.741 | INFO     | modules.auth:_call_captcha_action:2776 - auth: captcha action onReload() -> called
+2026-10-20 21:37:10.745 | INFO     | modules.auth:_reload_captcha:2225 - auth: requested a fresh captcha grid
+2026-10-20 21:37:11.306 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:37:13.233 | INFO     | modules.auth:_captcha_target:2568 - auth: 26 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 21:37:13.235 | INFO     | modules.auth:_captcha_target:2589 - auth: prompt 760 chosen (contrast=14.38, z-index=900, color=rgb(33, 37, 41))
+2026-10-20 21:37:13.237 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 21:37:13.242 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 3 of 4
+2026-10-20 21:37:13.243 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 760
+2026-10-20 21:37:13.244 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-20 21:37:13.245 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 26 (of 26 box-labels in the DOM)
+2026-10-20 21:37:13.246 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 3: target=760, 9 visible tiles
+2026-10-20 21:37:13.248 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:hutrs, 2:cwuqywweb, 3:eiheb, 4:fakvxaqr, 5:fmmdxf, 6:rjoekst, 7:wlmkpf, 8:wsafgib, 9:oygjbxn
+2026-10-20 21:37:13.264 | INFO     | modules.auth:_screenshot_grid_element:1991 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 21:37:13.301 | INFO     | modules.auth:_screenshot_grid:2113 -   frame moved     : offset (654.74609375, 222.4609375) -> (654.75, 222.46) (scrollIntoView moved the page); using the fresh one
+2026-10-20 21:37:13.302 | INFO     | modules.auth:_screenshot_grid:2125 -   grid clip       : x=678.5 y=298.46 w=350 h=350 (viewport 397x556, 9 tiles)
+2026-10-20 21:37:14.235 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:37:14.239 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 21:37:15.924 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 21:37:15.974 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 1 222x222 -> 768x768 JPEG q85 (81 KB, was 67 KB)
+2026-10-20 21:37:15.998 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 2 222x222 -> 768x768 JPEG q85 (29 KB, was 9 KB)
+2026-10-20 21:37:16.057 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 3 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:37:16.087 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 4 222x222 -> 768x768 JPEG q85 (76 KB, was 56 KB)
+2026-10-20 21:37:16.114 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 5 222x222 -> 768x768 JPEG q85 (28 KB, was 8 KB)
+2026-10-20 21:37:16.135 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 6 222x222 -> 768x768 JPEG q85 (16 KB, was 1 KB)
+2026-10-20 21:37:16.161 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 7 222x222 -> 768x768 JPEG q85 (32 KB, was 3 KB)
+2026-10-20 21:37:16.186 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 8 222x222 -> 768x768 JPEG q85 (22 KB, was 1 KB)
+2026-10-20 21:37:16.206 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 9 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:37:29.498 | WARNING  | modules.vision:read_one:215 - vision: tile 9 replied "I can't identify the number from the image provided." — not one number
+2026-10-20 21:37:32.960 | INFO     | modules.vision:read_tiles_individually:238 - vision: per-tile read took 17.0s
+2026-10-20 21:37:32.962 | INFO     | modules.vision:read_tiles_individually:240 - vision: per-tile reply '430,8,8,925,7,8,7,7,?'
+2026-10-20 21:37:32.963 | WARNING  | modules.vision:read_tiles_individually:243 - vision: tile(s) [9] could not be read
+2026-10-20 21:37:32.996 | INFO     | modules.vision:encode_for_upload:531 - vision: grid 700x700 -> 768x768 JPEG q85 (59 KB, was 169 KB)
+2026-10-20 21:37:34.322 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:37:34.888 | INFO     | modules.vision:_ask:313 - vision: model replied '150,394,430,760,430,925,70,430,925'
+2026-10-20 21:37:34.890 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:150, 2:394, 3:430, 4:760, 5:430, 6:925, 7:70, 8:430, 9:925
+2026-10-20 21:37:34.894 | INFO     | modules.auth:solve_captcha:1519 -   matching 760      : positions [4]
+2026-10-20 21:37:34.908 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [4]
+2026-10-20 21:37:34.911 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 1 -> ['fakvxaqr']
+2026-10-20 21:37:35.306 | WARNING  | modules.auth:_captcha_click_tiles:2652 - auth: Select('fakvxaqr') threw: Frame.evaluate: Frame was detached
+2026-10-20 21:37:35.307 | INFO     | modules.auth:solve_captcha:1587 -   click results   :
+2026-10-20 21:37:35.310 | INFO     | modules.auth:solve_captcha:1589 -       id=fakvxaqr       number=None   clicked=False  img-selected=select-error
+2026-10-20 21:37:36.362 | INFO     | modules.auth:solve_captcha:1599 -   SelectedImages  : None
+2026-10-20 21:37:36.368 | INFO     | modules.auth:solve_captcha:1607 -   expected ids    : ['fakvxaqr']
+2026-10-20 21:37:36.369 | INFO     | modules.auth:solve_captcha:1615 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-20 21:37:36.738 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213736_captcha-attempt3-before-submit.png
+2026-10-20 21:37:36.739 | WARNING  | modules.auth:solve_captcha:1655 -   outcome         : RETRY - not every tile registered (attempt 3/4)
+2026-10-20 21:37:37.315 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213736_captcha-click-failed-attempt3.png
+2026-10-20 21:37:38.925 | WARNING  | modules.auth:_captcha_scan:2542 - auth: captcha DOM scan failed: Frame.evaluate: Frame was detached
+2026-10-20 21:37:39.421 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-213738_captcha-scan-failed-attempt4.png
+2026-10-20 21:37:39.451 | WARNING  | modules.utils:dump_page_html:587 - dump_page_html failed (captcha-scan-failed-attempt4): Frame.content: Unable to retrieve content because the page is navigating and changing the content.
+2026-10-20 21:37:40.097 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:37:40.476 | INFO     | modules.monitor:ensure_visa_type_verified:2011 -   dialog(s)       : ['Invalid selection']
+2026-10-20 21:37:40.476 | WARNING  | modules.monitor:ensure_visa_type_verified:2054 -   outcome         : REJECTED — ['Invalid selection']
+2026-10-20 21:37:40.477 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 2/5
+2026-10-20 21:37:40.479 | INFO     | modules.monitor:ensure_visa_type_verified:1944 - monitor: verification frame closed
+2026-10-20 21:37:40.696 | WARNING  | modules.monitor:ensure_visa_type_verified:1952 - monitor: popup closed but the gate is still shut
+2026-10-20 21:37:40.728 | ERROR    | modules.monitor:run_once:1639 - monitor: visa-type verification not cleared — skipping cycle
+2026-10-20 21:37:40.873 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=i10Fsy11BCUvDfrNQtBNf6VQAVe%2fRz9mz1047qsG6HwCurhPgy)
+2026-10-20 21:38:57.897 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:38:58.119 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> verification  (https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification)
+2026-10-20 21:38:58.142 | WARNING  | modules.monitor:_on_nav:5029 - monitor: returned to the verification gate from 'appointment-form' — it must be solved again
+2026-10-20 21:39:07.126 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:39:11.769 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:39:16.565 | SUCCESS  | modules.auth:_is_logged_in:3026 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:39:16.566 | INFO     | modules.monitor:ensure_visa_type_verified:1874 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:39:20.495 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:39:22.425 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:39:28.543 | INFO     | modules.monitor:_open_verification_popup:5360 - monitor: clicked 'Verify Selection'
+2026-10-20 21:39:32.215 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:39:38.352 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:39:38.778 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> appointment-form  (https://egypt.blsspainglobal.com/Global/bls/visatype?data=t001y6gYRk1w75A7yOWW8%2bziYtqWKl%2b0Y8KRnE7XFtqWwGQ0)
+2026-10-20 21:40:04.196 | WARNING  | modules.monitor:_wait_for_captcha_frame:2196 - monitor: captcha frame never finished rendering (https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha)
+2026-10-20 21:40:05.446 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 1/5
+2026-10-20 21:40:05.455 | INFO     | modules.monitor:ensure_visa_type_verified:1944 - monitor: verification frame closed
+2026-10-20 21:40:05.494 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': True, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatype?data=t001y6gYRk1w75A7yOWW8%2bziYtqWKl%2b0Y8KRnE7XFtqWwGQ0Jzinzyo9B03KaMhbWx1o0AD5oTXHmyGGUIVacXJSSuNb5sQoIQJyzQxR1GnXh8%2fuoirZB1csfyhKagCvNCv%2bE1pfzjJQ16bSJeapEYnt0G9I8XKaVSak6BtHkT0%3d'}
+2026-10-20 21:40:05.496 | SUCCESS  | modules.monitor:ensure_visa_type_verified:1947 - monitor: verification captcha passed
+2026-10-20 21:40:05.646 | INFO     | modules.monitor:_submit_verified_form:5454 - monitor: clicked #btnSubmit
+2026-10-20 21:40:05.776 | SUCCESS  | modules.monitor:_submit_verified_form:5471 - monitor: reached the appointment form — https://egypt.blsspainglobal.com/Global/bls/visatype?data=t001y6gYRk1w75A7yOWW8%2bziYtqWKl%2b0Y8KRnE7XFtqWwGQ0Jzinzyo9B03KaMhbWx1o0AD5oTXHmyGGUIVacXJSSuNb5sQoIQJyzQxR1GnXh8%2fuoirZB1csfyhKagCvNCv%2bE1pfzjJQ16bSJeapEYnt0G9I8XKaVSak6BtHkT0%3d
+2026-10-20 21:40:07.524 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214006_visatype-form.png
+2026-10-20 21:40:07.567 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214007_visatype-form.html
+2026-10-20 21:40:07.568 | INFO     | modules.monitor:run_once:1654 - monitor: 2 combination(s) configured; trying 1 this cycle, then continuing from there next cycle
+2026-10-20 21:40:07.569 | INFO     | modules.monitor:run_once:1659 - monitor:   1. Cairo / Schengen visa / Schengen Visa / Normal / Individual
+2026-10-20 21:40:07.570 | INFO     | modules.monitor:run_once:1678 - monitor: [1/1] Cairo / Schengen visa / Schengen Visa / Normal / Individual
+2026-10-20 21:40:07.572 | INFO     | modules.monitor:complete_visatype_form:2233 - ============================================================
+2026-10-20 21:40:07.572 | INFO     | modules.monitor:complete_visatype_form:2234 - APPOINTMENT FORM
+2026-10-20 21:40:09.088 | INFO     | modules.monitor:_set_kendo:2557 -   Appointment Category  : 'Normal' (of 3 options, widget AppointmentCategoryId4, via hand)
+2026-10-20 21:40:10.368 | INFO     | modules.monitor:complete_visatype_form:2260 -   Appointment For       : 'Individual' (name=AppointmentFor2, real click)
+2026-10-20 21:40:34.026 | INFO     | modules.monitor:_on_response:5059 - monitor: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaType
+2026-10-20 21:40:38.545 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:40:38.572 | INFO     | modules.monitor:_on_nav:5014 - monitor: page -> verification  (https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification)
+2026-10-20 21:40:38.572 | WARNING  | modules.monitor:_on_nav:5029 - monitor: returned to the verification gate from 'appointment-form' — it must be solved again
+2026-10-20 21:40:53.893 | ERROR    | modules.monitor:_set_kendo:2588 -   Location              : FAILED — no visible widget for this label (options seen: None)
+2026-10-20 21:40:54.464 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214053_visatype-location-failed.png
+2026-10-20 21:40:54.499 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214054_visatype-location-failed.html
+2026-10-20 21:40:54.511 | INFO     | modules.monitor:_survey_page:5531 - ============================================================
+2026-10-20 21:40:54.512 | INFO     | modules.monitor:_survey_page:5532 - PAGE SURVEY (visatype-location-failed)
+2026-10-20 21:40:54.512 | INFO     | modules.monitor:_survey_page:5533 -   url      : https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:40:54.513 | INFO     | modules.monitor:_survey_page:5534 -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+2026-10-20 21:40:54.514 | INFO     | modules.monitor:_survey_page:5535 -   headings : ['BLS International']
+2026-10-20 21:40:54.515 | INFO     | modules.monitor:_survey_page:5536 -   selects  : []
+2026-10-20 21:40:54.515 | INFO     | modules.monitor:_survey_page:5537 -   buttons  : ['Verify Selection']
+2026-10-20 21:40:54.517 | INFO     | modules.monitor:_survey_page:5538 -   inputs   : []
+2026-10-20 21:40:54.518 | INFO     | modules.monitor:_survey_page:5539 -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', 'index.html', '/']
+2026-10-20 21:40:54.519 | INFO     | modules.monitor:_survey_page:5540 - ============================================================
+2026-10-20 21:40:55.103 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214054_visatype-location-failed.png
+2026-10-20 21:40:55.146 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214055_visatype-location-failed.html
+2026-10-20 21:40:55.147 | ERROR    | modules.monitor:run_once:1757 - monitor: appointment form failed for 'cairo'
+2026-10-20 21:40:55.157 | INFO     | modules.monitor:_survey_page:5531 - ============================================================
+2026-10-20 21:40:55.157 | INFO     | modules.monitor:_survey_page:5532 - PAGE SURVEY (visatype-incomplete-cairo)
+2026-10-20 21:40:55.159 | INFO     | modules.monitor:_survey_page:5533 -   url      : https://egypt.blsspainglobal.com/Global/bls/VisaTypeVerification
+2026-10-20 21:40:55.160 | INFO     | modules.monitor:_survey_page:5534 -   title    : Egypt BLS Spain Visa: Welcome to the Official Website Spain Visa Application Centre in Egypt
+2026-10-20 21:40:55.161 | INFO     | modules.monitor:_survey_page:5535 -   headings : ['BLS International']
+2026-10-20 21:40:55.161 | INFO     | modules.monitor:_survey_page:5536 -   selects  : []
+2026-10-20 21:40:55.162 | INFO     | modules.monitor:_survey_page:5537 -   buttons  : ['Verify Selection']
+2026-10-20 21:40:55.163 | INFO     | modules.monitor:_survey_page:5538 -   inputs   : []
+2026-10-20 21:40:55.163 | INFO     | modules.monitor:_survey_page:5539 -   links    : ['https://egypt.blsspainvisa.com', '/Global/home/sm?name=F', '/Global/home/sm?name=I', '/Global/home/sm?name=X', '/Global/home/sm?name=L', '#', '#', 'https://egypt.blsspainvisa.com', '/Global/bls/visatypeverification', '/Global/bls/VisaApplicationStatus', '/Global/blsappointment/MyAppointments', 'https://bls.schengen.europ-assistance.com/en?ipc=blsegypt&utm_source=blsegypt&utm_medium=affiliates', 'index.html', '/']
+2026-10-20 21:40:55.164 | INFO     | modules.monitor:_survey_page:5540 - ============================================================
+2026-10-20 21:40:55.683 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214055_visatype-incomplete-cairo.png
+2026-10-20 21:40:55.714 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214055_visatype-incomplete-cairo.html
+2026-10-20 21:42:26.565 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:42:31.801 | SUCCESS  | modules.auth:_is_logged_in:3026 - auth: logged in — landed on https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:42:31.802 | INFO     | modules.monitor:ensure_visa_type_verified:1874 - monitor: already on the verification page — https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:42:35.440 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': False, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:42:36.698 | INFO     | modules.auth:_on_response:765 - auth: [net] 200 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:42:43.461 | INFO     | modules.monitor:_open_verification_popup:5360 - monitor: clicked 'Verify Selection'
+2026-10-20 21:42:46.943 | INFO     | modules.monitor:_wait_for_captcha_frame:2180 - monitor: captcha frame ready — 54 number element(s), url=https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:42:47.782 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 1/5
+2026-10-20 21:42:48.452 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214247_verify-modal-attempt1.png
+2026-10-20 21:42:48.491 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214248_verify-frame-attempt1.html
+2026-10-20 21:42:48.522 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:42:48.565 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=True visible_tiles=9 captcha_imgs=54 container=1(has_captcha=True) col4_total=57 box_labels=34
+2026-10-20 21:42:48.565 | INFO     | modules.auth:solve_captcha:1350 - auth: CAPTCHA detected, attempting to solve
+2026-10-20 21:42:48.567 | INFO     | modules.auth:_log:3267 - auth: CAPTCHA detected — solving
+2026-10-20 21:42:49.226 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214248_captcha-before.png
+2026-10-20 21:42:49.258 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214249_captcha-detected.html
+2026-10-20 21:42:49.615 | INFO     | modules.auth:_captcha_target:2568 - auth: 34 stacked prompt(s); 1 readable (contrast >= 2.0)
+2026-10-20 21:42:49.616 | INFO     | modules.auth:_captcha_target:2589 - auth: prompt 920 chosen (contrast=15.16, z-index=902, color=rgb(33, 37, 41))
+2026-10-20 21:42:49.618 | INFO     | modules.auth:solve_captcha:1419 - ------------------------------------------------------------
+2026-10-20 21:42:49.618 | INFO     | modules.auth:solve_captcha:1420 - CAPTCHA attempt 1 of 4
+2026-10-20 21:42:49.622 | INFO     | modules.auth:solve_captcha:1421 -   target number   : 920
+2026-10-20 21:42:49.623 | INFO     | modules.auth:solve_captcha:1422 -   visible tiles   : 9 (of 57 col-4 divs in the DOM)
+2026-10-20 21:42:49.623 | INFO     | modules.auth:solve_captcha:1426 -   visible labels  : 34 (of 34 box-labels in the DOM)
+2026-10-20 21:42:49.624 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 1: target=920, 9 visible tiles
+2026-10-20 21:42:49.626 | INFO     | modules.auth:solve_captcha:1450 -   grid order      : 1:xtdpfgkuu, 2:zalgxmti, 3:epxhclsr, 4:whtzjp, 5:mnrvjp, 6:ybumv, 7:bavjntiy, 8:eifgrs, 9:lwggq
+2026-10-20 21:42:49.635 | INFO     | modules.auth:_screenshot_grid_element:1991 -   grid container  : 1.00x0.00 the size of the tiles — not a clean wrapper, using the measured clip instead
+2026-10-20 21:42:49.656 | INFO     | modules.auth:_screenshot_grid:2113 -   frame moved     : offset (654.74609375, 222.4609375) -> (654.75, 222.46) (scrollIntoView moved the page); using the fresh one
+2026-10-20 21:42:49.657 | INFO     | modules.auth:_screenshot_grid:2125 -   grid clip       : x=678.5 y=298.46 w=350 h=350 (viewport 397x556, 9 tiles)
+2026-10-20 21:42:50.454 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:42:50.457 | INFO     | modules.auth:solve_captcha:1475 -   grid screenshot : FAILED
+2026-10-20 21:42:52.053 | INFO     | modules.auth:solve_captcha:1502 -   tile capture    : 9 element screenshot(s)
+2026-10-20 21:42:52.102 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 1 222x222 -> 768x768 JPEG q85 (74 KB, was 58 KB)
+2026-10-20 21:42:52.139 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 2 222x222 -> 768x768 JPEG q85 (27 KB, was 7 KB)
+2026-10-20 21:42:52.166 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 3 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:42:52.189 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 4 222x222 -> 768x768 JPEG q85 (73 KB, was 58 KB)
+2026-10-20 21:42:52.216 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 5 222x222 -> 768x768 JPEG q85 (27 KB, was 8 KB)
+2026-10-20 21:42:52.238 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 6 222x222 -> 768x768 JPEG q85 (16 KB, was 1 KB)
+2026-10-20 21:42:52.264 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 7 222x222 -> 768x768 JPEG q85 (32 KB, was 3 KB)
+2026-10-20 21:42:52.285 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 8 222x222 -> 768x768 JPEG q85 (22 KB, was 1 KB)
+2026-10-20 21:42:52.308 | INFO     | modules.vision:encode_for_upload:531 - vision: tile 9 222x222 -> 768x768 JPEG q85 (18 KB, was 1 KB)
+2026-10-20 21:43:05.457 | INFO     | modules.vision:read_tiles_individually:238 - vision: per-tile read took 13.4s
+2026-10-20 21:43:05.459 | INFO     | modules.vision:read_tiles_individually:240 - vision: per-tile reply '356,8,7,920,4,9,4,7,7'
+2026-10-20 21:43:05.462 | INFO     | modules.auth:solve_captcha:1514 -   tiles read      : 1:356, 2:8, 3:7, 4:920, 5:4, 6:9, 7:4, 8:7, 9:7
+2026-10-20 21:43:05.466 | INFO     | modules.auth:solve_captcha:1519 -   matching 920      : positions [4]
+2026-10-20 21:43:05.472 | INFO     | modules.auth:solve_captcha:1547 -   vision positions: [4]
+2026-10-20 21:43:05.473 | INFO     | modules.auth:solve_captcha:1561 -   matched tiles   : 1 -> ['whtzjp']
+2026-10-20 21:43:06.306 | INFO     | modules.auth:solve_captcha:1587 -   click results   :
+2026-10-20 21:43:06.309 | INFO     | modules.auth:solve_captcha:1589 -       id=whtzjp         number=None   clicked=True  img-selected=True
+2026-10-20 21:43:07.332 | INFO     | modules.auth:solve_captcha:1599 -   SelectedImages  : ''
+2026-10-20 21:43:07.332 | INFO     | modules.auth:solve_captcha:1607 -   expected ids    : ['whtzjp']
+2026-10-20 21:43:07.335 | INFO     | modules.auth:solve_captcha:1615 -   SelectedImages  : empty — the page likely fills it on submit; relying on img-selected confirmations instead
+2026-10-20 21:43:07.776 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214307_captcha-attempt1-before-submit.png
+2026-10-20 21:43:07.805 | INFO     | modules.auth:solve_captcha:1689 -   grid age        : 19.2s (limit 35s)
+2026-10-20 21:43:07.842 | INFO     | modules.auth:_click_captcha_submit:2872 - auth: captcha submitted immediately via div.img-action-div[onclick*="onSubmit"]
+2026-10-20 21:43:07.843 | INFO     | modules.auth:solve_captcha:1726 -   submit clicked  : True
+2026-10-20 21:43:08.898 | INFO     | modules.vision:upscale_png:474 - vision: upscaled grid 700x700 -> 2100x2100 (x3, LANCZOS)
+2026-10-20 21:43:08.913 | INFO     | modules.vision:save_sample:556 - captcha sample saved: logs\captcha_samples\20261020-214308_REJECTED_target920_attempt1.png
+2026-10-20 21:43:08.915 | WARNING  | modules.auth:solve_captcha:1835 -   rejected grid   : logs\captcha_samples\20261020-214308_REJECTED_target920_attempt1.png
+2026-10-20 21:43:08.916 | WARNING  | modules.auth:solve_captcha:1837 -   outcome         : REJECTED - captcha still present after attempt 1, grid reloaded
+2026-10-20 21:43:08.917 | INFO     | modules.auth:solve_captcha:1841 - ------------------------------------------------------------
+2026-10-20 21:43:08.919 | INFO     | modules.auth:_log:3267 - auth: captcha attempt 1 rejected
+2026-10-20 21:43:08.935 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha
+2026-10-20 21:43:08.937 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on xhr https://egypt.blsspainglobal.com/Global/NewCaptcha/SubmitCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:43:08.939 | INFO     | modules.monitor:_on_dialog:5390 - monitor: JS dialog accepted — 'Your session has been expired. Please try again'
+2026-10-20 21:43:09.246 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha
+2026-10-20 21:43:09.254 | WARNING  | modules.auth:_on_response:801 - auth: [net] 403 on sub-frame https://egypt.blsspainglobal.com/Global/NewCaptcha/GenerateCaptcha — expired token or rejected request, not an IP block
+2026-10-20 21:43:09.915 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214308_captcha-attempt1-rejected.png
+2026-10-20 21:43:19.547 | WARNING  | modules.auth:_wait_for_captcha_tiles:2388 - auth: no captcha tiles rendered within 8s
+2026-10-20 21:43:19.892 | WARNING  | modules.auth:solve_captcha:1389 - auth: no visible tile on attempt 2 (DOM has 0 col-4 divs, 0 box-labels) — waiting for render
+2026-10-20 21:43:28.684 | WARNING  | modules.auth:_wait_for_captcha_tiles:2388 - auth: no captcha tiles rendered within 8s
+2026-10-20 21:43:28.687 | ERROR    | modules.auth:solve_captcha:1408 - auth: no visible tile though 0 exist in the DOM — the challenge was replaced (usually a rejected answer). Abandoning this captcha so the login can restart.
+2026-10-20 21:43:29.294 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214328_captcha-no-tiles-attempt2.png
+2026-10-20 21:43:29.329 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214329_captcha-no-tiles-attempt2.html
+2026-10-20 21:43:29.331 | INFO     | modules.auth:_log:3267 - auth: CAPTCHA grid disappeared — restarting login
+2026-10-20 21:43:30.354 | INFO     | modules.monitor:ensure_visa_type_verified:2011 -   dialog(s)       : ['Your session has been expired. Please try again']
+2026-10-20 21:43:30.357 | WARNING  | modules.monitor:ensure_visa_type_verified:2022 - monitor: the challenge expired before submission (['Your session has been expired. Please try again'])
+2026-10-20 21:43:30.881 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214330_verify-expired-attempt1.png
+2026-10-20 21:43:32.955 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 2/5
+2026-10-20 21:43:33.506 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214332_verify-modal-attempt2.png
+2026-10-20 21:43:33.551 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214333_verify-frame-attempt2.html
+2026-10-20 21:43:33.586 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:43:33.602 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+2026-10-20 21:43:33.603 | INFO     | modules.auth:solve_captcha:1347 - auth: no CAPTCHA detected
+2026-10-20 21:43:35.614 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:43:35.615 | WARNING  | modules.monitor:ensure_visa_type_verified:2052 - monitor: submitted but the gate is still closed
+2026-10-20 21:43:37.327 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 3/5
+2026-10-20 21:43:37.986 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214337_verify-modal-attempt3.png
+2026-10-20 21:43:38.032 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214337_verify-frame-attempt3.html
+2026-10-20 21:43:38.061 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:43:38.076 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+2026-10-20 21:43:38.077 | INFO     | modules.auth:solve_captcha:1347 - auth: no CAPTCHA detected
+2026-10-20 21:43:40.120 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:43:40.122 | WARNING  | modules.monitor:ensure_visa_type_verified:2052 - monitor: submitted but the gate is still closed
+2026-10-20 21:43:42.731 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 4/5
+2026-10-20 21:43:43.321 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214342_verify-modal-attempt4.png
+2026-10-20 21:43:43.354 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214343_verify-frame-attempt4.html
+2026-10-20 21:43:43.385 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:43:43.401 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+2026-10-20 21:43:43.403 | INFO     | modules.auth:solve_captcha:1347 - auth: no CAPTCHA detected
+2026-10-20 21:43:45.457 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:43:45.458 | WARNING  | modules.monitor:ensure_visa_type_verified:2052 - monitor: submitted but the gate is still closed
+2026-10-20 21:43:47.434 | INFO     | modules.monitor:ensure_visa_type_verified:1925 - monitor: verification attempt 5/5
+2026-10-20 21:43:47.978 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214347_verify-modal-attempt5.png
+2026-10-20 21:43:48.018 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214348_verify-frame-attempt5.html
+2026-10-20 21:43:48.045 | INFO     | modules.monitor:_frame_offset:5237 - monitor: captcha frame at x=655 y=222 (398x556)
+2026-10-20 21:43:48.062 | INFO     | modules.auth:solve_captcha:1344 - auth: captcha signals -> prompt_text=False visible_tiles=0 captcha_imgs=0 container=0(has_captcha=False) col4_total=0 box_labels=0
+2026-10-20 21:43:48.063 | INFO     | modules.auth:solve_captcha:1347 - auth: no CAPTCHA detected
+2026-10-20 21:43:50.096 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:43:50.097 | WARNING  | modules.monitor:ensure_visa_type_verified:2052 - monitor: submitted but the gate is still closed
+2026-10-20 21:43:50.098 | ERROR    | modules.monitor:ensure_visa_type_verified:2062 - monitor: verification not cleared after all attempts
+2026-10-20 21:43:50.634 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214350_verify-failed.png
+2026-10-20 21:43:50.680 | INFO     | modules.utils:dump_page_html:584 - DOM dumped: logs\dom\20261020-214350_verify-failed.html
+2026-10-20 21:43:51.770 | INFO     | modules.monitor:_gate_state:5437 -   gate state      : {'verified': False, 'submit': False, 'modalOpen': True, 'url': 'https://egypt.blsspainglobal.com/Global/bls/visatypeverification'}
+2026-10-20 21:43:51.772 | ERROR    | modules.monitor:run_once:1639 - monitor: visa-type verification not cleared — skipping cycle
+2026-10-20 21:45:22.661 | INFO     | modules.auth:_on_response:765 - auth: [net] 403 https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:45:22.663 | ERROR    | modules.auth:_on_response:794 - auth: [net] 403 on a page load — the portal is blocking https://egypt.blsspainglobal.com/Global/bls/visatypeverification
+2026-10-20 21:45:22.676 | WARNING  | modules.utils:record_block:526 - block recorded in logs\cooldown.json (#3 in a row)
+2026-10-20 21:45:23.238 | INFO     | modules.utils:screenshot:683 - screenshot saved: logs\screenshots\20261020-214522_http-403.png
+2026-10-20 21:45:23.242 | ERROR    | modules.auth:_goto:3190 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-20 21:45:23.243 | INFO     | modules.auth:_log:3267 - auth: portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-20 21:45:25.877 | ERROR    | modules.monitor:_handle_portal_block:5713 - monitor: portal blocked — portal returned HTTP 403 for https://egypt.blsspainglobal.com/Global/bls/visatypeverification (server: awselb/2.0) — awselb returns 403 either for non-Egyptian / datacenter IPs, OR after repeated automated attempts from an IP that was previously fine. If earlier requests in this same run succeeded, it is rate limiting, not geo-blocking: stop, wait, and reduce the attempt rate.
+2026-10-20 21:45:25.878 | WARNING  | modules.monitor:_handle_portal_block:5714 - monitor: sleeping 32 min, then logging in from scratch
+2026-10-20 21:45:28.189 | INFO     | modules.auth:stop:871 - auth: browser closed
+2026-10-20 21:45:28.190 | INFO     | modules.monitor:_reset_session:5835 - monitor: browser closed without saving the session
+2026-10-20 21:45:28.191 | INFO     | modules.auth:_clear_saved_session:3072 - auth: stored session discarded
+2026-10-20 21:45:28.193 | INFO     | modules.monitor:_reset_session:5840 - monitor: stored cookies cleared — next login is clean
+2026-10-20 21:45:28.194 | WARNING  | modules.monitor:_wait_visibly:5669 - monitor: the portal is blocking us — waiting 32 min, back at 22:17
+2026-10-20 21:50:30.917 | INFO     | modules.monitor:_wait_visibly:5686 - monitor: still waiting — 27 min to go (back at 22:17)
+2026-10-20 21:55:33.342 | INFO     | modules.monitor:_wait_visibly:5686 - monitor: still waiting — 22 min to go (back at 22:17)
+2026-10-20 21:58:51.292 | INFO     | __main__:_run_with_state:792 - cancelled — shutting down
+2026-10-20 21:58:51.304 | INFO     | __main__:_main_inner:684 - interrupted by user
